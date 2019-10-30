@@ -20,16 +20,13 @@
 #include <utility>
 
 #include "rosidl_generator_cpp/message_type_support_decl.hpp"
-#include "rosbag2/visibility_control.hpp"
 
 namespace iceoryx_ros2_bridge
 {
 
-ROSBAG2_PUBLIC
 const rosidl_message_type_support_t *
 get_typesupport(const std::string & type, const std::string & typesupport_identifier);
 
-ROSBAG2_PUBLIC
 const std::tuple<std::string, std::string, std::string>
 extract_type_identifier(const std::string & full_type);
 

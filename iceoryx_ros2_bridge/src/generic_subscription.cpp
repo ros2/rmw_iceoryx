@@ -18,9 +18,8 @@
 #include <string>
 
 #include "rclcpp/any_subscription_callback.hpp"
+#include "rclcpp/logger.hpp"
 #include "rclcpp/subscription.hpp"
-
-#include "rosbag2_transport/logging.hpp"
 
 namespace iceoryx_ros2_bridge
 {
@@ -112,7 +111,8 @@ GenericSubscription::borrow_serialized_message(size_t capacity)
         auto fini_return = rmw_serialized_message_fini(msg);
         delete msg;
         if (fini_return != RCL_RET_OK) {
-          ROSBAG2_TRANSPORT_LOG_ERROR_STREAM(
+          RCLCPP_ERROR_STREAM(
+            rclcpp::get_logger("iceoryx_ros2_bridge"),
             "Failed to destroy serialized message: " << rcl_get_error_string().str);
         }
       });

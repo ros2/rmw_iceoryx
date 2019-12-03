@@ -33,9 +33,6 @@
 #include "rmw_iceoryx_cpp/iceoryx_topic_names_and_types.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_type_info_introspection.hpp"
 
-#include "std_msgs/msg/string.hpp"
-#include "std_msgs/msg/float64.hpp"
-
 #include "./command_line_parser.hpp"
 #include "./generic_subscription.hpp"
 #include "./generic_publisher.hpp"

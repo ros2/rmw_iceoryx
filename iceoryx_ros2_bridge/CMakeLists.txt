@@ -28,8 +28,6 @@ find_package(rosidl_generator_cpp REQUIRED)
 find_package(rosidl_typesupport_cpp REQUIRED)
 find_package(rosidl_typesupport_introspection_cpp REQUIRED)
 
-find_package(std_msgs REQUIRED)
-
 add_library(iceoryx_typesupport_helpers
   src/typesupport_helpers.cpp
 )
@@ -63,7 +61,6 @@ target_link_libraries(iceoryx_ros2_bridge
 ament_target_dependencies(iceoryx_ros2_bridge
   rclcpp
   rmw_iceoryx_cpp
-  std_msgs
 )
 install(
   TARGETS iceoryx_ros2_bridge

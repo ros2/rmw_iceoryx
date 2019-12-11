@@ -60,19 +60,20 @@ rmw_get_node_names(
 
   if (updated) {
     // get the latest sample
-    const iox::mepoo::ChunkInfo * chunkInfo = nullptr;
-    const iox::mepoo::ChunkInfo * latestChunkInfo = nullptr;
+    const iox::mepoo::ChunkHeader * chunk_header = nullptr;
+    const iox::mepoo::ChunkHeader * latest_chunk_header = nullptr;
 
-    while (process_receiver.getChunkWithInfo(&chunkInfo)) {
-      if (latestChunkInfo) {
-        process_receiver.releaseChunkWithInfo(latestChunkInfo);
+    while (process_receiver.getChunk(&chunk_header)) {
+      if (latest_chunk_header) {
+        process_receiver.releaseChunk(latest_chunk_header);
       }
-      latestChunkInfo = chunkInfo;
+      latest_chunk_header = chunk_header;
     }
 
-    if (latestChunkInfo) {
+    if (latest_chunk_header) {
       const iox::roudi::ProcessIntrospectionFieldTopic * process_sample =
-        static_cast<const iox::roudi::ProcessIntrospectionFieldTopic *>(latestChunkInfo->m_payload);
+        static_cast<const iox::roudi::ProcessIntrospectionFieldTopic *>(latest_chunk_header->
+        m_payload);
 
       node_names_set.clear();
       for (auto & process : process_sample->m_processList) {
@@ -80,7 +81,7 @@ rmw_get_node_names(
           node_names_set.insert(std::string(runnable.to_cstring()));
         }
       }
-      process_receiver.releaseChunkWithInfo(latestChunkInfo);
+      process_receiver.releaseChunk(latest_chunk_header);
     }
   }
 

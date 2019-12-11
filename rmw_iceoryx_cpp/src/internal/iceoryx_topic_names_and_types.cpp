@@ -55,19 +55,20 @@ void fill_topic_containers(
 
   if (updated) {
     // get the latest sample
-    const iox::mepoo::ChunkInfo * chunkInfo = nullptr;
-    const iox::mepoo::ChunkInfo * latestChunkInfo = nullptr;
+    const iox::mepoo::ChunkHeader * chunk_header = nullptr;
+    const iox::mepoo::ChunkHeader * latest_chunk_header = nullptr;
 
-    while (port_receiver.getChunkWithInfo(&chunkInfo)) {
-      if (latestChunkInfo) {
-        port_receiver.releaseChunkWithInfo(latestChunkInfo);
+    while (port_receiver.getChunk(&chunk_header)) {
+      if (latest_chunk_header) {
+        port_receiver.releaseChunk(latest_chunk_header);
       }
-      latestChunkInfo = chunkInfo;
+      latest_chunk_header = chunk_header;
     }
 
-    if (latestChunkInfo) {
+    if (latest_chunk_header) {
       const iox::roudi::PortIntrospectionFieldTopic * port_sample =
-        static_cast<const iox::roudi::PortIntrospectionFieldTopic *>(latestChunkInfo->m_payload);
+        static_cast<const iox::roudi::PortIntrospectionFieldTopic *>(latest_chunk_header->
+        m_payload);
 
       names_n_types.clear();
       subscribers_topics.clear();
@@ -93,7 +94,7 @@ void fill_topic_containers(
         publishers_topics[std::string(sender.m_runnable.to_cstring())].push_back(std::get<0>(
             name_and_type));
       }
-      port_receiver.releaseChunkWithInfo(latestChunkInfo);
+      port_receiver.releaseChunk(latest_chunk_header);
     }
   }
 

@@ -67,7 +67,8 @@ void fill_topic_containers(
 
     if (latest_chunk_header) {
       const iox::roudi::PortIntrospectionFieldTopic * port_sample =
-        static_cast<const iox::roudi::PortIntrospectionFieldTopic *>(latest_chunk_header->payload());
+        static_cast<const iox::roudi::PortIntrospectionFieldTopic *>(latest_chunk_header->
+        payload());
 
       names_n_types.clear();
       subscribers_topics.clear();

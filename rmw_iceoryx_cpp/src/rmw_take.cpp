@@ -83,7 +83,7 @@ rmw_take(
 
   // if fixed size, we fetch the data via memcpy
   if (iceoryx_subscription->is_fixed_size_) {
-    memcpy(ros_message, chunk_header->m_payload, chunk_header->m_info.m_payloadSize);
+    memcpy(ros_message, chunk_header->payload(), chunk_header->m_info.m_payloadSize);
     iceoryx_receiver->releaseChunk(chunk_header);
     *taken = true;
     return RMW_RET_OK;
@@ -97,7 +97,7 @@ rmw_take(
     auto members =
       static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts_cpp->data);
     rmw_iceoryx_cpp::deserialize(
-      static_cast<const char *>(chunk_header->m_payload), members, ros_message);
+      static_cast<const char *>(chunk_header->payload()), members, ros_message);
     iceoryx_receiver->releaseChunk(chunk_header);
     *taken = true;
   }
@@ -110,7 +110,7 @@ rmw_take(
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts_c->data);
     rmw_iceoryx_cpp::deserialize(
-      static_cast<const char *>(chunk_header->m_payload), members, ros_message);
+      static_cast<const char *>(chunk_header->payload()), members, ros_message);
     iceoryx_receiver->releaseChunk(chunk_header);
     *taken = true;
   }

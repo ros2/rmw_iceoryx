@@ -73,7 +73,7 @@ rmw_get_node_names(
     if (latest_chunk_header) {
       const iox::roudi::ProcessIntrospectionFieldTopic * process_sample =
         static_cast<const iox::roudi::ProcessIntrospectionFieldTopic *>(latest_chunk_header->
-        m_payload);
+        payload());
 
       node_names_set.clear();
       for (auto & process : process_sample->m_processList) {

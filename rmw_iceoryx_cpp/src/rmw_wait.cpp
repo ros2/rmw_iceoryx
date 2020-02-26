@@ -65,21 +65,29 @@ rmw_wait(
       static_cast<IceoryxSubscription * const>(subscriptions->subscribers[i]);
     auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
-    if (!iceoryx_receiver->isChunkReceiveSemaphoreSet()) {
-      iceoryx_receiver->setChunkReceiveSemaphore(semaphore);
+    // indicate that we do not have to wait if there is already a new sample
+    if (iceoryx_receiver->hasNewChunks()) {
+      goto after_wait;
     }
+
+    iceoryx_receiver->setChunkReceiveSemaphore(semaphore);
   }
 
   // attach semaphore to all guard conditions
   for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
     auto iceoryx_guard_condition =
       static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
+
+    // indicate that we do not have to wait if there is already a triggered guard condition
+    if (iceoryx_guard_condition->hasTriggered()) {
+      goto after_wait;
+    }
+
     iceoryx_guard_condition->attachSemaphore(semaphore);
   }
 
-  bool semaphore_fired = false;
   if (!wait_timeout) {
-    semaphore_fired = semaphore->wait();
+    semaphore->wait();
   } else {
     struct timespec ts_start;
     struct timespec ts_end;
@@ -92,7 +100,7 @@ rmw_wait(
       ts_end.tv_sec = ts_start.tv_sec + wait_timeout->sec;
     }
     ts_end.tv_nsec = nsec;
-    semaphore_fired = semaphore->timedWait(&ts_end, true);
+    semaphore->timedWait(&ts_end, true);
 
     // // for debugging
     // struct timespec ts_diff;
@@ -108,22 +116,8 @@ rmw_wait(
     // printf("waited s %lu ns %lu\n", ts_diff.tv_sec, ts_diff.tv_nsec);
   }
 
-  if (semaphore_fired) {
-    // clear the semaphore again, could have received multiple triggers
-    // but we now evaluate each possible one
-    while (semaphore->tryWait()) {
-    }
-  }
+after_wait:
 
-  // TODO(mphnl) Do we want to detach the samaphore from all the subscriptions and guard_conditions?
-  // In iceoryx we would lose the sample arrived information via the semaphore
-  // in the time interval between detach and re-attach
-  // For now detaching for guard_conditions like in the other rmw,
-  // but not for subscription for ensuring fastest possible processing of arrived samples.
-  // But it seems that the rcl layer triggers guard conditions when not in rmw_wait.
-  // That these were triggered is then recognized after the wait, they are not triggered
-  // between attaching the wait_set and the wait timeout but between detaching and re-attaching.
-  // This means it is not recognized by the wait_set (semaphore in our case)
 
   // reset all the subscriptions that don't have new data
   for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
@@ -131,12 +125,15 @@ rmw_wait(
       static_cast<IceoryxSubscription * const>(subscriptions->subscribers[i]);
     iox::popo::Subscriber * iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
+    // remove semaphore from all receivers because next call a new waitset could be provided
+    iceoryx_receiver->unsetChunkReceiveSemaphore();
+
     if (!iceoryx_receiver->hasNewChunks()) {
       subscriptions->subscribers[i] = nullptr;
     }
   }
 
-  // reset all the guard_conditions that havenot triggered
+  // reset all the guard_conditions that have not triggered
   for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
     auto iceoryx_guard_condition =
       static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
@@ -148,6 +145,11 @@ rmw_wait(
     } else {
       guard_conditions->guard_conditions[i] = nullptr;
     }
+  }
+
+  // clear the semaphore
+  // events that triggered it and where not yet collected will be seen on next rmw_wait
+  while (semaphore->tryWait()) {
   }
 
   return RMW_RET_OK;

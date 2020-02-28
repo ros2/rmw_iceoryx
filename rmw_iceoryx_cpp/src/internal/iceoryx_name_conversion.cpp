@@ -49,13 +49,15 @@ std::tuple<std::string, std::string, std::string> get_service_description_elemen
   }
 
   // Could check more detailed!!
-  auto service = type_name.substr(0, pos_msg);
-  auto pos_type_name = topic_name.find(type_name);
-  auto pos_package_name = topic_name.find(service);
-  if (pos_type_name == std::string::npos || pos_package_name == std::string::npos) {
+  auto service_lowercase = type_name.substr(0, pos_msg);
+  std::string topic_name_lowercase = topic_name;
+  transform(topic_name_lowercase.begin(), topic_name_lowercase.end(), topic_name_lowercase.begin(), ::tolower);
+  auto pos_package_name = topic_name_lowercase.find(service_lowercase);
+  if (pos_package_name == std::string::npos) {
     throw std::runtime_error("message topic and type are inconsistent");
   }
 
+  auto service = topic_name.substr(pos_package_name, service_lowercase.length());
   auto instance = topic_name.substr(1, pos_package_name - 2);       // / before and after
   auto event = type_name.substr(pos_msg + delimiter_msg.size(), type_name.size());
 
@@ -102,10 +104,11 @@ get_name_n_type_from_iceoryx_service_description(
   } else {
     // ARA Naming
     std::string delimiter_msg = "_ara_msgs/msg/";
+    std::string service_lowercase = service;
+    transform(service_lowercase.begin(), service_lowercase.end(), service_lowercase.begin(), ::tolower);
 
-    return std::make_tuple(
-      "/" + instance + "/" + service + "/" + event,
-      service + delimiter_msg + event);
+    return std::make_tuple("/" + instance + "/" + service + "/" + event,
+             service_lowercase + delimiter_msg + event);
   }
 }
 

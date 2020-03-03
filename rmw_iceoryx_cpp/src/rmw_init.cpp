@@ -48,7 +48,8 @@ rmw_init_options_copy(const rmw_init_options_t * src, rmw_init_options_t * dst)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(src, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_ARGUMENT_FOR_NULL(dst, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_init_options_copy
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_init_options_copy
     : source options,
     src->implementation_identifier,
     rmw_get_implementation_identifier(),
@@ -67,7 +68,8 @@ rmw_init_options_fini(rmw_init_options_t * init_options)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(init_options, RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ALLOCATOR(&(init_options->allocator), return RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_init_options_fini
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_init_options_fini
     : options,
     init_options->implementation_identifier,
     rmw_get_implementation_identifier(),
@@ -81,7 +83,8 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(options, RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_init
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_init
     : options,
     options->implementation_identifier,
     rmw_get_implementation_identifier(),
@@ -110,7 +113,8 @@ rmw_ret_t
 rmw_shutdown(rmw_context_t * context)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_shutdown
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_shutdown
     : context,
     context->implementation_identifier,
     rmw_get_implementation_identifier(),
@@ -123,7 +127,8 @@ rmw_ret_t
 rmw_context_fini(rmw_context_t * context)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_context_fini
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_context_fini
     : context,
     context->implementation_identifier,
     rmw_get_implementation_identifier(),

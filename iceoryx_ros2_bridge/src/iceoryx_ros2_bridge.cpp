@@ -231,7 +231,8 @@ int main(int argc, char ** argv)
     std::function<void(std::shared_ptr<rmw_serialized_message_t>)> cb =
       std::bind(&publish_to_iceoryx, std::placeholders::_1, ts, iceoryx_pubs.back());
 
-    ros2_subs.emplace_back(std::make_shared<iceoryx_ros2_bridge::GenericSubscription>(
+    ros2_subs.emplace_back(
+      std::make_shared<iceoryx_ros2_bridge::GenericSubscription>(
         node->get_node_base_interface().get(), *ts, topic, cb));
     node->get_node_topics_interface()->add_subscription(ros2_subs.back(), nullptr);
   }
@@ -261,7 +262,8 @@ int main(int argc, char ** argv)
 
     auto ts = iceoryx_ros2_bridge::get_typesupport(type, "rosidl_typesupport_cpp");
 
-    ros2_pubs.emplace_back(std::make_shared<iceoryx_ros2_bridge::GenericPublisher>(
+    ros2_pubs.emplace_back(
+      std::make_shared<iceoryx_ros2_bridge::GenericPublisher>(
         node->get_node_base_interface().get(), topic, *ts));
 
     auto service_desc =

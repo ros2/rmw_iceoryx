@@ -26,7 +26,8 @@ rmw_trigger_guard_condition(const rmw_guard_condition_t * guard_condition_handle
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(guard_condition_handle, RMW_RET_ERROR);
 
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_trigger_guard_condition
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_trigger_guard_condition
     : guard_condition_handle,
     guard_condition_handle->implementation_identifier,
     rmw_get_implementation_identifier(),

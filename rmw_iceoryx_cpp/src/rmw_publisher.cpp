@@ -183,12 +183,14 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
   IceoryxPublisher * iceoryx_publisher = static_cast<IceoryxPublisher *>(publisher->data);
   if (iceoryx_publisher) {
     if (iceoryx_publisher->iceoryx_sender_) {
-      RMW_TRY_DESTRUCTOR(iceoryx_publisher->iceoryx_sender_->~Publisher(),
+      RMW_TRY_DESTRUCTOR(
+        iceoryx_publisher->iceoryx_sender_->~Publisher(),
         iceoryx_publisher->iceoryx_sender_,
         result = RMW_RET_ERROR)
       rmw_free(iceoryx_publisher->iceoryx_sender_);
     }
-    RMW_TRY_DESTRUCTOR(iceoryx_publisher->~IceoryxPublisher(),
+    RMW_TRY_DESTRUCTOR(
+      iceoryx_publisher->~IceoryxPublisher(),
       iceoryx_publisher,
       result = RMW_RET_ERROR)
     rmw_free(iceoryx_publisher);

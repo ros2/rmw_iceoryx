@@ -56,7 +56,8 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     RMW_SET_ERROR_MSG("failed to allocate memory for wait_set data");
     goto fail;
   }
-  RMW_TRY_PLACEMENT_NEW(process_receiver,
+  RMW_TRY_PLACEMENT_NEW(
+    process_receiver,
     process_receiver,
     goto fail,
     iox::popo::Subscriber,
@@ -82,7 +83,8 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
 fail:
   if (rmw_wait_set) {
     if (process_receiver) {
-      RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(process_receiver->~Subscriber(),
+      RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
+        process_receiver->~Subscriber(),
         iox::popo::Subscriber)
       rmw_free(process_receiver);
     }
@@ -113,7 +115,8 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
   auto iceoryx_wait_set = static_cast<IceoryxWaitSet *>(wait_set->data);
   if (iceoryx_wait_set) {
     if (iceoryx_wait_set->iceoryx_receiver_) {
-      RMW_TRY_DESTRUCTOR(iceoryx_wait_set->iceoryx_receiver_->~Subscriber(),
+      RMW_TRY_DESTRUCTOR(
+        iceoryx_wait_set->iceoryx_receiver_->~Subscriber(),
         iceoryx_wait_set->iceoryx_receiver_,
         result = RMW_RET_ERROR)
       rmw_free(iceoryx_wait_set->iceoryx_receiver_);

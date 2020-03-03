@@ -44,7 +44,8 @@ public:
       iceoryx_guard_condition_ = nullptr;
     } else {
       iceoryx_guard_condition_ = static_cast<IceoryxGuardCondition *>(guard_condition->data);
-      RMW_CHECK_TYPE_IDENTIFIERS_MATCH(IceoryxGraphChangeNotifier
+      RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+        IceoryxGraphChangeNotifier
         : guard_condition,
         guard_condition->implementation_identifier,
         rmw_get_implementation_identifier(),

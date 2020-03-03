@@ -29,7 +29,8 @@ rmw_create_guard_condition(rmw_context_t * context)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
 
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_create_guard_condition
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_create_guard_condition
     : context,
     context->implementation_identifier,
     rmw_get_implementation_identifier(),
@@ -80,7 +81,8 @@ rmw_destroy_guard_condition(rmw_guard_condition_t * guard_condition)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(guard_condition, RMW_RET_ERROR);
 
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_destroy_guard_condition
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_destroy_guard_condition
     : guard_condition,
     guard_condition->implementation_identifier,
     rmw_get_implementation_identifier(),

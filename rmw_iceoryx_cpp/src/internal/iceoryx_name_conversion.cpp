@@ -103,8 +103,9 @@ get_name_n_type_from_iceoryx_service_description(
     // ARA Naming
     std::string delimiter_msg = "_ara_msgs/msg/";
 
-    return std::make_tuple("/" + instance + "/" + service + "/" + event,
-             service + delimiter_msg + event);
+    return std::make_tuple(
+      "/" + instance + "/" + service + "/" + event,
+      service + delimiter_msg + event);
   }
 }
 
@@ -119,9 +120,10 @@ get_iceoryx_service_description(
   type_name = package_name + "/" + type_name;
 
   auto serviceDescriptionTuple = get_service_description_elements(topic_name, type_name);
-  return iox::capro::ServiceDescription(std::get<0>(serviceDescriptionTuple),
-           std::get<1>(serviceDescriptionTuple),
-           std::get<2>(serviceDescriptionTuple));
+  return iox::capro::ServiceDescription(
+    std::get<0>(serviceDescriptionTuple),
+    std::get<1>(serviceDescriptionTuple),
+    std::get<2>(serviceDescriptionTuple));
 }
 
 }  // namespace rmw_iceoryx_cpp

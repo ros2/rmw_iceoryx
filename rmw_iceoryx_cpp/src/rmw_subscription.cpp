@@ -175,12 +175,14 @@ rmw_destroy_subscription(
     static_cast<IceoryxSubscription *>(subscription->data);
   if (iceoryx_subscription) {
     if (iceoryx_subscription->iceoryx_receiver_) {
-      RMW_TRY_DESTRUCTOR(iceoryx_subscription->iceoryx_receiver_->~Subscriber(),
+      RMW_TRY_DESTRUCTOR(
+        iceoryx_subscription->iceoryx_receiver_->~Subscriber(),
         iceoryx_subscription->iceoryx_receiver_,
         result = RMW_RET_ERROR)
       rmw_free(iceoryx_subscription->iceoryx_receiver_);
     }
-    RMW_TRY_DESTRUCTOR(iceoryx_subscription->~IceoryxSubscription(),
+    RMW_TRY_DESTRUCTOR(
+      iceoryx_subscription->~IceoryxSubscription(),
       iceoryx_subscription,
       result = RMW_RET_ERROR)
     rmw_free(iceoryx_subscription);

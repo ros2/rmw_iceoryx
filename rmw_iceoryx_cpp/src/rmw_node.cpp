@@ -72,7 +72,8 @@ rmw_create_node(
     RMW_SET_ERROR_MSG("failed to allocate memory for graph change notifier");
     goto fail;
   }
-  RMW_TRY_PLACEMENT_NEW(graph_change_notifier, graph_change_notifier, goto fail,
+  RMW_TRY_PLACEMENT_NEW(
+    graph_change_notifier, graph_change_notifier, goto fail,
     IceoryxGraphChangeNotifier, guard_condition)
 
   // allocate iceoryx_runnable
@@ -92,7 +93,8 @@ rmw_create_node(
     RMW_SET_ERROR_MSG("failed to allocate memory for node info");
     goto fail;
   }
-  RMW_TRY_PLACEMENT_NEW(node_info, node_info, goto fail, IceoryxNodeInfo, guard_condition,
+  RMW_TRY_PLACEMENT_NEW(
+    node_info, node_info, goto fail, IceoryxNodeInfo, guard_condition,
     graph_change_notifier, iceoryx_runnable)
 
   node_handle->data = node_info;
@@ -160,7 +162,8 @@ rmw_destroy_node(rmw_node_t * node)
   IceoryxNodeInfo * node_info = static_cast<IceoryxNodeInfo *>(node->data);
   if (node_info) {
     if (node_info->graph_change_notifier_) {
-      RMW_TRY_DESTRUCTOR(node_info->graph_change_notifier_->~IceoryxGraphChangeNotifier(),
+      RMW_TRY_DESTRUCTOR(
+        node_info->graph_change_notifier_->~IceoryxGraphChangeNotifier(),
         node_info->graph_change_notifier_,
         result = RMW_RET_ERROR)
       rmw_free(node_info->graph_change_notifier_);
@@ -170,12 +173,14 @@ rmw_destroy_node(rmw_node_t * node)
       result = RMW_RET_ERROR;
     }
     if (node_info->iceoryx_runnable_) {
-      RMW_TRY_DESTRUCTOR(node_info->iceoryx_runnable_->~Runnable(),
+      RMW_TRY_DESTRUCTOR(
+        node_info->iceoryx_runnable_->~Runnable(),
         node_info->iceoryx_runnable_,
         result = RMW_RET_ERROR)
       rmw_free(node_info->iceoryx_runnable_);
     }
-    RMW_TRY_DESTRUCTOR(node_info->~IceoryxNodeInfo(),
+    RMW_TRY_DESTRUCTOR(
+      node_info->~IceoryxNodeInfo(),
       node_info_,
       result = RMW_RET_ERROR)
     rmw_free(node_info);

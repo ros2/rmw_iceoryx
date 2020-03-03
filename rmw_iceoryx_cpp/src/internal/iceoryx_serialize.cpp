@@ -242,9 +242,10 @@ void copy_data_c_ros_message(
   } else {
     void * subros_message = nullptr;
     size_t sub_members_size = sub_members->size_of_;
-    size_t array_elememts = get_array_elememts_and_assign_ros_message_field_c(member,
-        ros_message_field,
-        subros_message);
+    size_t array_elememts = get_array_elememts_and_assign_ros_message_field_c(
+      member,
+      ros_message_field,
+      subros_message);
 
     store_array_size(payloadVector, array_elememts);
 
@@ -268,9 +269,10 @@ void copy_data_cpp_ros_message(
     size_t array_elements;
     size_t sub_members_size = sub_members->size_of_;
 
-    array_elements = get_array_elememts_and_assign_ros_message_field_cpp(member, ros_message_field,
-        subros_message,
-        sub_members_size);
+    array_elements = get_array_elememts_and_assign_ros_message_field_cpp(
+      member, ros_message_field,
+      subros_message,
+      sub_members_size);
     store_array_size(payloadVector, array_elements);
     for (size_t index = 0; index < array_elements; ++index) {
       serialize(subros_message, sub_members, payloadVector);

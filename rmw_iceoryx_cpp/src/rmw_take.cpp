@@ -46,7 +46,8 @@ rmw_take(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_ERROR);
   (void)allocation;
 
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_take
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_take
     : subscription,
     subscription->implementation_identifier,
     rmw_get_implementation_identifier(),
@@ -185,7 +186,8 @@ rmw_take_loaned_message(
 
   *taken = false;
 
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_take
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_take
     : subscription,
     subscription->implementation_identifier,
     rmw_get_implementation_identifier(),
@@ -243,7 +245,8 @@ rmw_return_loaned_message_from_subscription(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(loaned_message, RMW_RET_ERROR);
 
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(rmw_take
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_take
     : subscription,
     subscription->implementation_identifier,
     rmw_get_implementation_identifier(),

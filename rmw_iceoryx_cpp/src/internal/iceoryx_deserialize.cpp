@@ -203,8 +203,9 @@ const char * copy_payload_cpp(
     serialized_msg += size;
   } else {
     if (member->array_size_ > 0 && !member->is_upper_bound_) {
-      serialized_msg = copy_payload_fixed_array_cpp<T>(serialized_msg, ros_message_field,
-          member->array_size_);
+      serialized_msg = copy_payload_fixed_array_cpp<T>(
+        serialized_msg, ros_message_field,
+        member->array_size_);
     } else {
       serialized_msg = copy_payload_array_cpp<T>(serialized_msg, ros_message_field);
     }
@@ -271,8 +272,9 @@ const char * copy_payload_c(
     serialized_msg += size;
   } else {
     if (member->array_size_ > 0 && !member->is_upper_bound_) {
-      serialized_msg = copy_payload_fixed_array_cpp<T>(serialized_msg, ros_message_field,
-          member->array_size_);
+      serialized_msg = copy_payload_fixed_array_cpp<T>(
+        serialized_msg, ros_message_field,
+        member->array_size_);
     } else {
       serialized_msg = copy_payload_array_c<T>(serialized_msg, ros_message_field);
     }

@@ -81,7 +81,8 @@ void fill_topic_containers(
           std::string(receiver.m_caproEventMethodID.to_cstring()));
 
         names_n_types[std::get<0>(name_and_type)] = std::get<1>(name_and_type);
-        subscribers_topics[std::string(receiver.m_runnable.to_cstring())].push_back(std::get<0>(
+        subscribers_topics[std::string(receiver.m_runnable.to_cstring())].push_back(
+          std::get<0>(
             name_and_type));
       }
       for (auto & sender : port_sample->m_senderList) {
@@ -91,7 +92,8 @@ void fill_topic_containers(
           std::string(sender.m_caproEventMethodID.to_cstring()));
 
         names_n_types[std::get<0>(name_and_type)] = std::get<1>(name_and_type);
-        publishers_topics[std::string(sender.m_runnable.to_cstring())].push_back(std::get<0>(
+        publishers_topics[std::string(sender.m_runnable.to_cstring())].push_back(
+          std::get<0>(
             name_and_type));
       }
       port_receiver.releaseChunk(latest_chunk_header);
@@ -186,8 +188,9 @@ rmw_ret_t fill_rmw_names_and_types(
   rmw_ret_t rmw_ret = RMW_RET_ERROR;
 
   if (!iceoryx_topic_names_and_types.empty()) {
-    rmw_ret = rmw_names_and_types_init(rmw_topic_names_and_types,
-        iceoryx_topic_names_and_types.size(), allocator);
+    rmw_ret = rmw_names_and_types_init(
+      rmw_topic_names_and_types,
+      iceoryx_topic_names_and_types.size(), allocator);
     if (rmw_ret != RMW_RET_OK) {
       return rmw_ret;
     }

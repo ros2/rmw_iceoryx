@@ -136,6 +136,9 @@ install(
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(${PROJECT_NAME}_tests test/iceoryx_name_conversion_test.cpp)
 endif()
 
 ament_export_include_directories(include)

@@ -16,17 +16,17 @@
 
 TEST(TestSuite, testCase1)
 {
-    EXPECT_TRUE(true);
+  EXPECT_TRUE(true);
 }
 
 TEST(TestSuite, testCase2)
 {
-    EXPECT_TRUE(true);
+  EXPECT_TRUE(true);
 }
 
 TEST(TestSuite, testCase3)
 {
-    EXPECT_FALSE(false);
+  EXPECT_FALSE(false);
 }
 
 int main(int argc, char ** argv)

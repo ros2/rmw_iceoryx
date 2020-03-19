@@ -12,21 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
+
 #include <gtest/gtest.h>
 
-TEST(TestSuite, testCase1)
+TEST(NameConverisonTests, get_name_n_type_from_iceoryx_service_description)
 {
+  auto topic_and_type = rmw_iceoryx_cpp::get_name_n_type_from_iceoryx_service_description(
+    "SERVICE",
+    "INSTANCE",
+    "EVENT");
   EXPECT_TRUE(true);
 }
 
-TEST(TestSuite, testCase2)
+TEST(NameConverisonTests, get_service_description_elements)
 {
+  auto service_description = rmw_iceoryx_cpp::get_service_description_elements(
+    "TopicName",
+    "TypeName");
   EXPECT_TRUE(true);
-}
-
-TEST(TestSuite, testCase3)
-{
-  EXPECT_FALSE(false);
 }
 
 int main(int argc, char ** argv)

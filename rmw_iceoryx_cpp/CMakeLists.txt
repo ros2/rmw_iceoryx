@@ -139,6 +139,8 @@ if(BUILD_TESTING)
 
   find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(${PROJECT_NAME}_tests test/iceoryx_name_conversion_test.cpp)
+
+  target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 endif()
 
 ament_export_include_directories(include)

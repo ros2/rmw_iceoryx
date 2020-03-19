@@ -32,6 +32,11 @@ get_name_n_type_from_iceoryx_service_description(
   const std::string & instance,
   const std::string & event);
 
+std::tuple<std::string, std::string, std::string>
+get_service_description_elements(
+  const std::string & topic_name,
+  const std::string & type_name);
+
 iox::capro::ServiceDescription
 get_iceoryx_service_description(
   const std::string & topic,

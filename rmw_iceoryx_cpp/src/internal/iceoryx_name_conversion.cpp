@@ -35,12 +35,13 @@
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_type_info_introspection.hpp"
 
+static const std::string DELIMITER_MSG = "_ara_msgs/msg/";
+
 std::tuple<std::string, std::string, std::string> get_service_description_elements(
   const std::string & topic_name,
   const std::string & type_name)
 {
-  std::string delimiter_msg = "_ara_msgs/msg/";
-  auto pos_delimiter_msg = type_name.find(delimiter_msg);
+  auto pos_delimiter_msg = type_name.find(DELIMITER_MSG);
 
   // ROS 2.0 Naming
   if (pos_delimiter_msg == std::string::npos) {
@@ -61,7 +62,7 @@ std::tuple<std::string, std::string, std::string> get_service_description_elemen
 
   auto service = topic_name.substr(pos_package_name, service_lowercase.length());
   auto instance = topic_name.substr(1, pos_package_name - 2);       // / before and after
-  auto event = type_name.substr(pos_delimiter_msg + delimiter_msg.size(), type_name.size());
+  auto event = type_name.substr(pos_delimiter_msg + DELIMITER_MSG.size(), type_name.size());
 
   return std::make_tuple(service, instance, event);
 }
@@ -105,7 +106,6 @@ get_name_n_type_from_iceoryx_service_description(
     return std::make_tuple(instance, service);
   } else {
     // ARA Naming
-    std::string delimiter_msg = "_ara_msgs/msg/";
     std::string service_lowercase = service;
     std::transform(
       service_lowercase.begin(), service_lowercase.end(),
@@ -113,7 +113,7 @@ get_name_n_type_from_iceoryx_service_description(
 
     return std::make_tuple(
       "/" + instance + "/" + service + "/" + event,
-      service_lowercase + delimiter_msg + event);
+      service_lowercase + DELIMITER_MSG + event);
   }
 }
 

@@ -86,7 +86,8 @@ rmw_create_node(
   }
   RMW_TRY_PLACEMENT_NEW(
     iceoryx_runnable, iceoryx_runnable,
-    goto fail, iox::runtime::Runnable, full_name);
+    goto fail, iox::runtime::Runnable,
+    iox::cxx::CString100(iox::cxx::TruncateToCapacity, full_name));
 
   node_info = static_cast<IceoryxNodeInfo *>(rmw_allocate(sizeof(IceoryxNodeInfo)));
   if (!node_info) {

@@ -93,7 +93,8 @@ rmw_create_subscription(
   }
   RMW_TRY_PLACEMENT_NEW(
     iceoryx_receiver, iceoryx_receiver, goto fail,
-    iox::popo::Subscriber, service_description, node_full_name)
+    iox::popo::Subscriber, service_description,
+    iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_full_name))
   // instant subscribe, queue size form qos settings
   iceoryx_receiver->subscribe(qos_policies->depth);
 

@@ -73,16 +73,24 @@ get_name_n_type_from_service_description(
   if (event == ROS2_EVENT_NAME) {
     // ROS 2.0 Naming
     return std::make_tuple(instance, service);
-  }
-  // ARA Naming
-  std::string service_lowercase = service;
-  std::transform(
-    service_lowercase.begin(), service_lowercase.end(),
-    service_lowercase.begin(), ::tolower);
+  } else if (service.find("Introspection") != std::string::npos) {
+    // iceoryx built-in topic handling
+    std::string delimiter_msg = "_iceoryx/";
 
-  return std::make_tuple(
-    "/" + instance + "/" + service + "/" + event,
-    service_lowercase + ARA_DELIMITER + event);
+    return std::make_tuple(
+      "/" + delimiter_msg + instance + "/" + service + "/" + event,
+       "iceoryx_introspection/msg/" + event);     
+  } else {
+    // ARA Naming
+    std::string service_lowercase = service;
+    std::transform(
+      service_lowercase.begin(), service_lowercase.end(),
+      service_lowercase.begin(), ::tolower);
+
+    return std::make_tuple(
+      "/" + instance + "/" + service + "/" + event,
+      service_lowercase + ARA_DELIMITER + event);
+  }
 }
 
 std::tuple<std::string, std::string, std::string> get_service_description_from_name_n_type(

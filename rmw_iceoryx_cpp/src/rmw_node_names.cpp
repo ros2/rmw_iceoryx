@@ -78,7 +78,7 @@ rmw_get_node_names(
       node_names_set.clear();
       for (auto & process : process_sample->m_processList) {
         for (auto & runnable : process.m_runnables) {
-          node_names_set.insert(std::string(runnable.to_cstring()));
+          node_names_set.insert(std::string(runnable.c_str()));
         }
       }
       process_receiver.releaseChunk(latest_chunk_header);

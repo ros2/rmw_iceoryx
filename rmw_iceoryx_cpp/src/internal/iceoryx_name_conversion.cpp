@@ -120,10 +120,11 @@ get_iceoryx_service_description(
   type_name = package_name + "/" + type_name;
 
   auto serviceDescriptionTuple = get_service_description_elements(topic_name, type_name);
+
   return iox::capro::ServiceDescription(
-    std::get<0>(serviceDescriptionTuple),
-    std::get<1>(serviceDescriptionTuple),
-    std::get<2>(serviceDescriptionTuple));
+    iox::capro::IdString(iox::cxx::TruncateToCapacity, std::get<0>(serviceDescriptionTuple)),
+    iox::capro::IdString(iox::cxx::TruncateToCapacity, std::get<1>(serviceDescriptionTuple)),
+    iox::capro::IdString(iox::cxx::TruncateToCapacity, std::get<2>(serviceDescriptionTuple)));
 }
 
 }  // namespace rmw_iceoryx_cpp

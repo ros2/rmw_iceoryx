@@ -95,7 +95,8 @@ rmw_create_publisher(
 
   RMW_TRY_PLACEMENT_NEW(
     iceoryx_sender, iceoryx_sender,
-    goto fail, iox::popo::Publisher, service_description, node_full_name);
+    goto fail, iox::popo::Publisher, service_description,
+    iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_full_name));
   iceoryx_sender->offer();  // make the sender visible
 
   // allocate iceoryx_publisher

@@ -35,7 +35,7 @@
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_type_info_introspection.hpp"
 
-static const char DELIMITER_MSG[] = "_ara_msgs/msg/";
+static const char ARA_DELIMITER[] = "_ara_msgs/msg/";
 
 
 std::string to_message_type(const std::string & in)
@@ -81,34 +81,42 @@ get_name_n_type_from_iceoryx_service_description(
 
   return std::make_tuple(
     "/" + instance + "/" + service + "/" + event,
-    service_lowercase + DELIMITER_MSG + event);
+    service_lowercase + ARA_DELIMITER + event);
 }
 
 std::tuple<std::string, std::string, std::string> get_service_description_elements(
   const std::string & topic_name,
   const std::string & type_name)
 {
-  auto pos_delimiter_msg = type_name.find(DELIMITER_MSG);
+  auto position_ara_delimiter = type_name.find(ARA_DELIMITER);
 
-  if (pos_delimiter_msg == std::string::npos) {
+  if (position_ara_delimiter == std::string::npos) {
     // ROS 2.0 Naming
     return std::make_tuple(type_name, topic_name, "data");
   }
 
   // ARA Naming
-  auto service_lowercase = type_name.substr(0, pos_delimiter_msg);
+  // Due to ros package naming conventions the service name packed into
+  // the type name had to be lowercase
+  auto service_lowercase = type_name.substr(0, position_ara_delimiter);
+
   std::string topic_name_lowercase = topic_name;
   std::transform(
     topic_name_lowercase.begin(), topic_name_lowercase.end(),
     topic_name_lowercase.begin(), ::tolower);
-  auto pos_package_name = topic_name_lowercase.find(service_lowercase);
-  if (pos_package_name == std::string::npos) {
+
+  // Find the lowercase service name in the lowercased topic name
+  auto position_package_name = topic_name_lowercase.find(service_lowercase);
+
+  if (position_package_name == std::string::npos) {
     throw std::runtime_error("message topic and type are inconsistent");
   }
 
-  auto service = topic_name.substr(pos_package_name, service_lowercase.length());
-  auto instance = topic_name.substr(1, pos_package_name - 2);       // / before and after
-  auto event = type_name.substr(pos_delimiter_msg + strlen(DELIMITER_MSG), type_name.size());
+  // Get the mixed uppercase and lowercase service name
+  // knowing the strings position in the topic name
+  auto service = topic_name.substr(position_package_name, service_lowercase.length());
+  auto instance = topic_name.substr(1, position_package_name - 2);
+  auto event = type_name.substr(position_ara_delimiter + strlen(ARA_DELIMITER), type_name.size());
 
   return std::make_tuple(service, instance, event);
 }

@@ -69,23 +69,19 @@ get_name_n_type_from_iceoryx_service_description(
   const std::string & instance,
   const std::string & event)
 {
-  std::string topic_name;
-  std::string type_name;
-
-  if (service.find("/msg/") != std::string::npos) {
+  if (event == "data") {
     // ROS 2.0 Naming
     return std::make_tuple(instance, service);
-  } else {
-    // ARA Naming
-    std::string service_lowercase = service;
-    std::transform(
-      service_lowercase.begin(), service_lowercase.end(),
-      service_lowercase.begin(), ::tolower);
-
-    return std::make_tuple(
-      "/" + instance + "/" + service + "/" + event,
-      service_lowercase + DELIMITER_MSG + event);
   }
+  // ARA Naming
+  std::string service_lowercase = service;
+  std::transform(
+    service_lowercase.begin(), service_lowercase.end(),
+    service_lowercase.begin(), ::tolower);
+
+  return std::make_tuple(
+    "/" + instance + "/" + service + "/" + event,
+    service_lowercase + DELIMITER_MSG + event);
 }
 
 std::tuple<std::string, std::string, std::string> get_service_description_elements(
@@ -94,13 +90,12 @@ std::tuple<std::string, std::string, std::string> get_service_description_elemen
 {
   auto pos_delimiter_msg = type_name.find(DELIMITER_MSG);
 
-  // ROS 2.0 Naming
   if (pos_delimiter_msg == std::string::npos) {
-    // service, instance, event
+    // ROS 2.0 Naming
     return std::make_tuple(type_name, topic_name, "data");
   }
 
-  // Could check more detailed!!
+  // ARA Naming
   auto service_lowercase = type_name.substr(0, pos_delimiter_msg);
   std::string topic_name_lowercase = topic_name;
   std::transform(

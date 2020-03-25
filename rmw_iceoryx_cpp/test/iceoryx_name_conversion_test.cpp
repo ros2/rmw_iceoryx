@@ -22,7 +22,18 @@ TEST(NameConverisonTests, get_name_n_type_from_iceoryx_service_description)
     "SERVICE",
     "INSTANCE",
     "EVENT");
-  EXPECT_TRUE(true);
+  EXPECT_EQ(std::get<0>(topic_and_type), "/INSTANCE/SERVICE/EVENT");
+  EXPECT_EQ(std::get<1>(topic_and_type), "service_ara_msgs/msg/EVENT");
+}
+
+TEST(NameConverisonTests, get_service_description_elements_revers)
+{
+  auto service_description = rmw_iceoryx_cpp::get_service_description_elements(
+    "/INSTANCE/SERVICE/EVENT",
+    "service_ara_msgs/msg/EVENT");
+  EXPECT_EQ(std::get<0>(service_description), "SERVICE");
+  EXPECT_EQ(std::get<1>(service_description), "INSTANCE");
+  EXPECT_EQ(std::get<2>(service_description), "EVENT");
 }
 
 TEST(NameConverisonTests, get_service_description_elements)
@@ -30,7 +41,19 @@ TEST(NameConverisonTests, get_service_description_elements)
   auto service_description = rmw_iceoryx_cpp::get_service_description_elements(
     "TopicName",
     "TypeName");
-  EXPECT_TRUE(true);
+  EXPECT_EQ(std::get<0>(service_description), "TypeName");
+  EXPECT_EQ(std::get<1>(service_description), "TopicName");
+  EXPECT_EQ(std::get<2>(service_description), "data");
+}
+
+TEST(NameConverisonTests, get_name_n_type_from_iceoryx_service_description_revers)
+{
+  auto topic_and_type = rmw_iceoryx_cpp::get_name_n_type_from_iceoryx_service_description(
+    "TypeName",
+    "TopicName",
+    "data");
+  EXPECT_EQ(std::get<0>(topic_and_type), "TopicName");
+  EXPECT_EQ(std::get<1>(topic_and_type), "TypeName");
 }
 
 int main(int argc, char ** argv)

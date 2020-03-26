@@ -1,3 +1,7 @@
+![Integration build and tests](https://github.com/ros2/rmw_iceoryx/workflows/Integration%20build%20rmw_iceoryx/badge.svg)
+![Linting](https://github.com/ros2/rmw_iceoryx/workflows/Lint%20rmw_iceoryx/badge.svg)
+![Iceoryx build and tests](https://github.com/ros2/rmw_iceoryx/workflows/Build%20iceoryx/badge.svg)
+
 Installation
 ============
 

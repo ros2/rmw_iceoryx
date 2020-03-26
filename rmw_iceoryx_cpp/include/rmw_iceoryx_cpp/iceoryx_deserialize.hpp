@@ -25,11 +25,11 @@ struct MessageMembers;
 namespace rmw_iceoryx_cpp
 {
 
+// TODO(karsten1987): This should be `uint8`, really
 const char * deserialize(
   const char * serialized_msg,
   const rosidl_typesupport_introspection_c__MessageMembers * members,
   void * ros_message);
-
 
 const char * deserialize(
   const char * serialized_msg,

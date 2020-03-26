@@ -150,8 +150,52 @@ rmw_take_serialized_message(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_ERROR);
   (void)allocation;
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_take
+    : subscription,
+    subscription->implementation_identifier,
+    rmw_get_implementation_identifier(),
+    return RMW_RET_ERROR);
+
+  auto iceoryx_subscription = static_cast<IceoryxSubscription *>(subscription->data);
+  if (!iceoryx_subscription) {
+    RMW_SET_ERROR_MSG("subscription data is null");
+    return RMW_RET_ERROR;
+  }
+
+  auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
+  if (!iceoryx_receiver) {
+    RMW_SET_ERROR_MSG("iceoryx_receiver is null");
+    return RMW_RET_ERROR;
+  }
+
+  // Subscription is not matched
+  if (iox::popo::SubscriptionState::SUBSCRIBED != iceoryx_receiver->getSubscriptionState()) {
+    return RMW_RET_OK;
+  }
+
+  // this should never happen if checked already at rmw_create_subscription
+  if (!rmw_iceoryx_cpp::iceoryx_is_valid_type_support(&iceoryx_subscription->type_supports_)) {
+    RMW_SET_ERROR_MSG("Use either C typesupport or CPP typesupport");
+    return RMW_RET_ERROR;
+  }
+
+  const iox::mepoo::ChunkHeader * chunk_header = nullptr;
+  if (!iceoryx_receiver->getChunk(&chunk_header)) {
+    RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
+    return RMW_RET_ERROR;
+  }
+
+  // all incoming data is serialzed already in memory, so simply call memcopy
+  auto ret = rmw_serialized_message_resize(serialized_message, chunk_header->m_info.m_payloadSize);
+  if (RMW_RET_OK == ret) {
+    memcpy(serialized_message->buffer, chunk_header->payload(), chunk_header->m_info.m_payloadSize);
+    serialized_message->buffer_length = chunk_header->m_info.m_payloadSize;
+    iceoryx_receiver->releaseChunk(chunk_header);
+    *taken = true;
+  }
+
+  return ret;
 }
 
 rmw_ret_t
@@ -168,8 +212,9 @@ rmw_take_serialized_message_with_info(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(message_info, RMW_RET_ERROR);
   (void)allocation;
 
-  assert(false);
-  return RMW_RET_OK;
+  // TODO(mphnl) implement message_info related stuff
+  (void) message_info;
+  return rmw_take_serialized_message(subscription, serialized_message, taken, allocation);
 }
 
 rmw_ret_t

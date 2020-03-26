@@ -65,7 +65,7 @@ namespace rmw_iceoryx_cpp
 {
 
 std::tuple<std::string, std::string>
-get_name_n_type_from_iceoryx_service_description(
+get_name_n_type_from_service_description(
   const std::string & service,
   const std::string & instance,
   const std::string & event)
@@ -85,7 +85,7 @@ get_name_n_type_from_iceoryx_service_description(
     service_lowercase + ARA_DELIMITER + event);
 }
 
-std::tuple<std::string, std::string, std::string> get_service_description_elements(
+std::tuple<std::string, std::string, std::string> get_service_description_from_name_n_type(
   const std::string & topic_name,
   const std::string & type_name)
 {
@@ -132,7 +132,7 @@ get_iceoryx_service_description(
   extract_type(type_supports, package_name, type_name);
   type_name = package_name + "/" + type_name;
 
-  auto serviceDescriptionTuple = get_service_description_elements(topic_name, type_name);
+  auto serviceDescriptionTuple = get_service_description_from_name_n_type(topic_name, type_name);
 
   return iox::capro::ServiceDescription(
     iox::capro::IdString(iox::cxx::TruncateToCapacity, std::get<0>(serviceDescriptionTuple)),

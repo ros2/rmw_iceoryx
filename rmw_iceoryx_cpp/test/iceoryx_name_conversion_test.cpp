@@ -16,9 +16,9 @@
 
 #include <gtest/gtest.h>
 
-TEST(NameConverisonTests, get_name_n_type_from_iceoryx_service_description)
+TEST(NameConverisonTests, get_name_n_type_from_service_description)
 {
-  auto topic_and_type = rmw_iceoryx_cpp::get_name_n_type_from_iceoryx_service_description(
+  auto topic_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
     "SERVICE",
     "INSTANCE",
     "EVENT");
@@ -26,9 +26,9 @@ TEST(NameConverisonTests, get_name_n_type_from_iceoryx_service_description)
   EXPECT_EQ(std::get<1>(topic_and_type), "service_ara_msgs/msg/EVENT");
 }
 
-TEST(NameConverisonTests, get_service_description_elements_revers)
+TEST(NameConverisonTests, get_service_description_from_name_n_type_revers)
 {
-  auto service_description = rmw_iceoryx_cpp::get_service_description_elements(
+  auto service_description = rmw_iceoryx_cpp::get_service_description_from_name_n_type(
     "/INSTANCE/SERVICE/EVENT",
     "service_ara_msgs/msg/EVENT");
   EXPECT_EQ(std::get<0>(service_description), "SERVICE");
@@ -36,9 +36,9 @@ TEST(NameConverisonTests, get_service_description_elements_revers)
   EXPECT_EQ(std::get<2>(service_description), "EVENT");
 }
 
-TEST(NameConverisonTests, get_service_description_elements)
+TEST(NameConverisonTests, get_service_description_from_name_n_type)
 {
-  auto service_description = rmw_iceoryx_cpp::get_service_description_elements(
+  auto service_description = rmw_iceoryx_cpp::get_service_description_from_name_n_type(
     "TopicName",
     "TypeName");
   EXPECT_EQ(std::get<0>(service_description), "TypeName");
@@ -46,9 +46,9 @@ TEST(NameConverisonTests, get_service_description_elements)
   EXPECT_EQ(std::get<2>(service_description), "data");
 }
 
-TEST(NameConverisonTests, get_name_n_type_from_iceoryx_service_description_revers)
+TEST(NameConverisonTests, get_name_n_type_from_service_description_revers)
 {
-  auto topic_and_type = rmw_iceoryx_cpp::get_name_n_type_from_iceoryx_service_description(
+  auto topic_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
     "TypeName",
     "TopicName",
     "data");

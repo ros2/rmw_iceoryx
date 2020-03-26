@@ -23,9 +23,9 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: eclipse/iceoryx
-          path: iceoryx
+          path: .
           ref: master
       - name: Trigger Build
-        run: "iceoryx/tools/iceoryx_build_test.sh"
+        run: "./tools/iceoryx_build_test.sh"
       - name: Execute Tests
-        run: "iceoryx/tools/iceoryx_build_test.sh test"
+        run: "./tools/iceoryx_build_test.sh test"

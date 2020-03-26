@@ -43,8 +43,7 @@ std::map<std::string, std::string> get_subscription_names_and_types_of_node(
 
 rmw_ret_t fill_rmw_names_and_types(
   rmw_names_and_types_t * rmw_topic_names_and_types,
-  const std::map<std::string,
-  std::string> & iceoryx_topic_names_and_types,
+  const std::map<std::string, std::string> & iceoryx_topic_names_and_types,
   rcutils_allocator_t * allocator);
 
 }  // namespace rmw_iceoryx_cpp

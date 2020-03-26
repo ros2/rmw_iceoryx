@@ -1,0 +1,21 @@
+name: Lint
+on:
+  pull_request:
+
+jobs:
+  lint:
+    name: ament_${{ matrix.linter }}
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+          linter: [cppcheck, cpplint, uncrustify, xmllint, copyright]
+    steps:
+    - uses: actions/checkout@v1
+    - uses: ros-tooling/setup-ros@0.0.13
+    - uses: ros-tooling/action-ros-lint@0.0.5
+      with:
+        linter: ${{ matrix.linter }}
+        package-name: |
+            rmw_iceoryx_cpp
+            iceoryx_ros2_bridge

@@ -22,8 +22,8 @@ TEST(NameConverisonTests, get_name_n_type_from_service_description)
     "SERVICE",
     "INSTANCE",
     "EVENT");
-  EXPECT_EQ(std::get<0>(topic_and_type), "/INSTANCE/SERVICE/EVENT");
-  EXPECT_EQ(std::get<1>(topic_and_type), "service_ara_msgs/msg/EVENT");
+  EXPECT_EQ("/INSTANCE/SERVICE/EVENT", std::get<0>(topic_and_type));
+  EXPECT_EQ("service_ara_msgs/msg/EVENT", std::get<1>(topic_and_type));
 }
 
 TEST(NameConverisonTests, get_service_description_from_name_n_type_revers)
@@ -31,9 +31,9 @@ TEST(NameConverisonTests, get_service_description_from_name_n_type_revers)
   auto service_description = rmw_iceoryx_cpp::get_service_description_from_name_n_type(
     "/INSTANCE/SERVICE/EVENT",
     "service_ara_msgs/msg/EVENT");
-  EXPECT_EQ(std::get<0>(service_description), "SERVICE");
-  EXPECT_EQ(std::get<1>(service_description), "INSTANCE");
-  EXPECT_EQ(std::get<2>(service_description), "EVENT");
+  EXPECT_EQ("SERVICE", std::get<0>(service_description));
+  EXPECT_EQ("INSTANCE", std::get<1>(service_description));
+  EXPECT_EQ("EVENT", std::get<2>(service_description));
 }
 
 TEST(NameConverisonTests, get_service_description_from_name_n_type)
@@ -41,9 +41,9 @@ TEST(NameConverisonTests, get_service_description_from_name_n_type)
   auto service_description = rmw_iceoryx_cpp::get_service_description_from_name_n_type(
     "TopicName",
     "TypeName");
-  EXPECT_EQ(std::get<0>(service_description), "TypeName");
-  EXPECT_EQ(std::get<1>(service_description), "TopicName");
-  EXPECT_EQ(std::get<2>(service_description), "data");
+  EXPECT_EQ("TypeName", std::get<0>(service_description));
+  EXPECT_EQ("TopicName", std::get<1>(service_description));
+  EXPECT_EQ("data", std::get<2>(service_description));
 }
 
 TEST(NameConverisonTests, get_name_n_type_from_service_description_revers)
@@ -52,8 +52,8 @@ TEST(NameConverisonTests, get_name_n_type_from_service_description_revers)
     "TypeName",
     "TopicName",
     "data");
-  EXPECT_EQ(std::get<0>(topic_and_type), "TopicName");
-  EXPECT_EQ(std::get<1>(topic_and_type), "TypeName");
+  EXPECT_EQ("TopicName", std::get<0>(topic_and_type));
+  EXPECT_EQ("TypeName", std::get<1>(topic_and_type));
 }
 
 TEST(NameConverisonTests, get_hidden_topic)

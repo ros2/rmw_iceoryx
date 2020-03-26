@@ -1,4 +1,4 @@
-name: CI
+name: Integration build rmw_iceoryx
 
 on: [push, pull_request]
 

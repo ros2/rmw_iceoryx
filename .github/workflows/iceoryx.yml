@@ -1,4 +1,4 @@
-name: Iceoryx
+name: Build iceoryx
 
 on:
   push:

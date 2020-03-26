@@ -1,4 +1,4 @@
-name: Lint
+name: Lint rmw_iceoryx
 on:
   pull_request:
 

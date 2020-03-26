@@ -35,11 +35,11 @@
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_type_info_introspection.hpp"
 
-static const char ARA_DELIMITER[] = "_ara_msgs/msg/";
-static const char ROS2_EVENT_NAME[] = "data";
+static constexpr char ARA_DELIMITER[] = "_ara_msgs/msg/";
+static constexpr char ROS2_EVENT_NAME[] = "data";
+static constexpr char ICEORYX_INTROSPECTION_SERVICE[] = "Introspection";
 
-
-std::string to_message_type(const std::string & in)
+inline std::string to_message_type(const std::string & in)
 {
   std::string return_value(in);
 
@@ -52,7 +52,7 @@ std::string to_message_type(const std::string & in)
   return return_value;
 }
 
-void extract_type(
+inline void extract_type(
   const rosidl_message_type_support_t * type_support,
   std::string & service_name,
   std::string & event_name)
@@ -73,27 +73,31 @@ get_name_n_type_from_service_description(
   if (event == ROS2_EVENT_NAME) {
     // ROS 2.0 Naming
     return std::make_tuple(instance, service);
-  } else if (service.find("Introspection") != std::string::npos) {
+  }
+
+  if (service.find(ICEORYX_INTROSPECTION_SERVICE) != std::string::npos) {
     // iceoryx built-in topic handling
+    // mark as hidden with leading `_`
     std::string delimiter_msg = "_iceoryx/";
 
     return std::make_tuple(
       "/" + delimiter_msg + instance + "/" + service + "/" + event,
       "iceoryx_introspection_msgs/msg/" + event);
-  } else {
-    // ARA Naming
-    std::string service_lowercase = service;
-    std::transform(
-      service_lowercase.begin(), service_lowercase.end(),
-      service_lowercase.begin(), ::tolower);
-
-    return std::make_tuple(
-      "/" + instance + "/" + service + "/" + event,
-      service_lowercase + ARA_DELIMITER + event);
   }
+
+  // ARA Naming
+  std::string service_lowercase = service;
+  std::transform(
+    service_lowercase.begin(), service_lowercase.end(),
+    service_lowercase.begin(), ::tolower);
+
+  return std::make_tuple(
+    "/" + instance + "/" + service + "/" + event,
+    service_lowercase + ARA_DELIMITER + event);
 }
 
-std::tuple<std::string, std::string, std::string> get_service_description_from_name_n_type(
+std::tuple<std::string, std::string, std::string>
+get_service_description_from_name_n_type(
   const std::string & topic_name,
   const std::string & type_name)
 {
@@ -101,6 +105,7 @@ std::tuple<std::string, std::string, std::string> get_service_description_from_n
 
   if (position_ara_delimiter == std::string::npos) {
     // ROS 2.0 Naming
+    // TODO(karsten1987): Filter out iceoryx Introspection topics
     return std::make_tuple(type_name, topic_name, ROS2_EVENT_NAME);
   }
 

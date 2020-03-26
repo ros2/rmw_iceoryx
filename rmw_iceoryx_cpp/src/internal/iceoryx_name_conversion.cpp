@@ -36,6 +36,7 @@
 #include "rmw_iceoryx_cpp/iceoryx_type_info_introspection.hpp"
 
 static const char ARA_DELIMITER[] = "_ara_msgs/msg/";
+static const char ROS2_EVENT_NAME[] = "data";
 
 
 std::string to_message_type(const std::string & in)
@@ -69,7 +70,7 @@ get_name_n_type_from_iceoryx_service_description(
   const std::string & instance,
   const std::string & event)
 {
-  if (event == "data") {
+  if (event == ROS2_EVENT_NAME) {
     // ROS 2.0 Naming
     return std::make_tuple(instance, service);
   }
@@ -92,7 +93,7 @@ std::tuple<std::string, std::string, std::string> get_service_description_elemen
 
   if (position_ara_delimiter == std::string::npos) {
     // ROS 2.0 Naming
-    return std::make_tuple(type_name, topic_name, "data");
+    return std::make_tuple(type_name, topic_name, ROS2_EVENT_NAME);
   }
 
   // ARA Naming

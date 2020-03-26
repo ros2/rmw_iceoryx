@@ -79,7 +79,7 @@ get_name_n_type_from_service_description(
 
     return std::make_tuple(
       "/" + delimiter_msg + instance + "/" + service + "/" + event,
-      "iceoryx_introspection/msg/" + event);
+      "iceoryx_introspection_msgs/msg/" + event);
   } else {
     // ARA Naming
     std::string service_lowercase = service;

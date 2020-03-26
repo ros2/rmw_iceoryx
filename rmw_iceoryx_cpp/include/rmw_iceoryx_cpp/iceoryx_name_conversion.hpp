@@ -27,10 +27,15 @@ namespace rmw_iceoryx_cpp
 {
 
 std::tuple<std::string, std::string>
-get_name_n_type_from_iceoryx_service_description(
+get_name_n_type_from_service_description(
   const std::string & service,
   const std::string & instance,
   const std::string & event);
+
+std::tuple<std::string, std::string, std::string>
+get_service_description_from_name_n_type(
+  const std::string & topic_name,
+  const std::string & type_name);
 
 iox::capro::ServiceDescription
 get_iceoryx_service_description(

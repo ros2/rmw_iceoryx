@@ -35,32 +35,9 @@
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_type_info_introspection.hpp"
 
-std::tuple<std::string, std::string, std::string> get_service_description_elements(
-  const std::string & topic_name,
-  const std::string & type_name)
-{
-  std::string delimiter_msg = "_ara_msgs/msg/";
-  auto pos_msg = type_name.find(delimiter_msg);
+static const char ARA_DELIMITER[] = "_ara_msgs/msg/";
+static const char ROS2_EVENT_NAME[] = "data";
 
-  // ROS 2.0 Naming
-  if (pos_msg == std::string::npos) {
-    // service, instance, event
-    return std::make_tuple(type_name, topic_name, "data");
-  }
-
-  // Could check more detailed!!
-  auto service = type_name.substr(0, pos_msg);
-  auto pos_type_name = topic_name.find(type_name);
-  auto pos_package_name = topic_name.find(service);
-  if (pos_type_name == std::string::npos || pos_package_name == std::string::npos) {
-    throw std::runtime_error("message topic and type are inconsistent");
-  }
-
-  auto instance = topic_name.substr(1, pos_package_name - 2);       // / before and after
-  auto event = type_name.substr(pos_msg + delimiter_msg.size(), type_name.size());
-
-  return std::make_tuple(service, instance, event);
-}
 
 std::string to_message_type(const std::string & in)
 {
@@ -88,25 +65,61 @@ namespace rmw_iceoryx_cpp
 {
 
 std::tuple<std::string, std::string>
-get_name_n_type_from_iceoryx_service_description(
+get_name_n_type_from_service_description(
   const std::string & service,
   const std::string & instance,
   const std::string & event)
 {
-  std::string topic_name;
-  std::string type_name;
-
-  if (service.find("/msg/") != std::string::npos) {
+  if (event == ROS2_EVENT_NAME) {
     // ROS 2.0 Naming
     return std::make_tuple(instance, service);
-  } else {
-    // ARA Naming
-    std::string delimiter_msg = "_ara_msgs/msg/";
-
-    return std::make_tuple(
-      "/" + instance + "/" + service + "/" + event,
-      service + delimiter_msg + event);
   }
+  // ARA Naming
+  std::string service_lowercase = service;
+  std::transform(
+    service_lowercase.begin(), service_lowercase.end(),
+    service_lowercase.begin(), ::tolower);
+
+  return std::make_tuple(
+    "/" + instance + "/" + service + "/" + event,
+    service_lowercase + ARA_DELIMITER + event);
+}
+
+std::tuple<std::string, std::string, std::string> get_service_description_from_name_n_type(
+  const std::string & topic_name,
+  const std::string & type_name)
+{
+  auto position_ara_delimiter = type_name.find(ARA_DELIMITER);
+
+  if (position_ara_delimiter == std::string::npos) {
+    // ROS 2.0 Naming
+    return std::make_tuple(type_name, topic_name, ROS2_EVENT_NAME);
+  }
+
+  // ARA Naming
+  // Due to ros package naming conventions the service name packed into
+  // the type name had to be lowercase
+  auto service_lowercase = type_name.substr(0, position_ara_delimiter);
+
+  std::string topic_name_lowercase = topic_name;
+  std::transform(
+    topic_name_lowercase.begin(), topic_name_lowercase.end(),
+    topic_name_lowercase.begin(), ::tolower);
+
+  // Find the lowercase service name in the lowercased topic name
+  auto position_package_name = topic_name_lowercase.find(service_lowercase);
+
+  if (position_package_name == std::string::npos) {
+    throw std::runtime_error("message topic and type are inconsistent");
+  }
+
+  // Get the mixed uppercase and lowercase service name
+  // knowing the strings position in the topic name
+  auto service = topic_name.substr(position_package_name, service_lowercase.length());
+  auto instance = topic_name.substr(1, position_package_name - 2);
+  auto event = type_name.substr(position_ara_delimiter + strlen(ARA_DELIMITER), type_name.size());
+
+  return std::make_tuple(service, instance, event);
 }
 
 iox::capro::ServiceDescription
@@ -119,7 +132,7 @@ get_iceoryx_service_description(
   extract_type(type_supports, package_name, type_name);
   type_name = package_name + "/" + type_name;
 
-  auto serviceDescriptionTuple = get_service_description_elements(topic_name, type_name);
+  auto serviceDescriptionTuple = get_service_description_from_name_n_type(topic_name, type_name);
 
   return iox::capro::ServiceDescription(
     iox::capro::IdString(iox::cxx::TruncateToCapacity, std::get<0>(serviceDescriptionTuple)),

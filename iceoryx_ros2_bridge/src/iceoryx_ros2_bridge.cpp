@@ -225,8 +225,9 @@ int main(int argc, char ** argv)
 
     auto service_desc =
       rmw_iceoryx_cpp::get_iceoryx_service_description(topic, ts);
-    iceoryx_pubs.emplace_back(std::make_shared<iox::popo::Publisher>(
-      service_desc, iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_name)));  
+    iceoryx_pubs.emplace_back(
+      std::make_shared<iox::popo::Publisher>(
+        service_desc, iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_name)));
     iceoryx_pubs.back()->offer();
 
     std::function<void(std::shared_ptr<rmw_serialized_message_t>)> cb =
@@ -269,8 +270,9 @@ int main(int argc, char ** argv)
 
     auto service_desc =
       rmw_iceoryx_cpp::get_iceoryx_service_description(topic, ts);
-    iceoryx_subs.emplace_back(std::make_shared<iox::popo::Subscriber>(
-      service_desc, iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_name)));
+    iceoryx_subs.emplace_back(
+      std::make_shared<iox::popo::Subscriber>(
+        service_desc, iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_name)));
     iceoryx_subs.back()->subscribe(10);  // TODO(karsten1987): find a decent queue size
 
     auto cb =

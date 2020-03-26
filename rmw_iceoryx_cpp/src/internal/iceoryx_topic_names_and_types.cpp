@@ -75,7 +75,7 @@ void fill_topic_containers(
       publishers_topics.clear();
 
       for (auto & receiver : port_sample->m_receiverList) {
-        auto name_and_type = rmw_iceoryx_cpp::get_name_n_type_from_iceoryx_service_description(
+        auto name_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
           std::string(receiver.m_caproServiceID.c_str()),
           std::string(receiver.m_caproInstanceID.c_str()),
           std::string(receiver.m_caproEventMethodID.c_str()));
@@ -86,7 +86,7 @@ void fill_topic_containers(
             name_and_type));
       }
       for (auto & sender : port_sample->m_senderList) {
-        auto name_and_type = rmw_iceoryx_cpp::get_name_n_type_from_iceoryx_service_description(
+        auto name_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
           std::string(sender.m_caproServiceID.c_str()),
           std::string(sender.m_caproInstanceID.c_str()),
           std::string(sender.m_caproEventMethodID.c_str()));

@@ -1,0 +1,37 @@
+name: Integration build rmw_iceoryx
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+          # os: [macOS-latest, ubuntu-18.04, windows-latest]
+          os: [ubuntu-18.04]
+          ros: [eloquent]
+    steps:
+      - name: Setup ROS
+        uses: ros-tooling/setup-ros@0.0.11
+        with:
+          required-ros-distributions: ${{ matrix.ros }}
+        # To build against multiple OSs dependencies installation needs to be OS specific
+      - name: Install Iceoryx Dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+        with:
+          path: src/rmw_iceoryx
+      - name: Checkout Iceoryx
+        uses: actions/checkout@v2
+        with:
+          repository: eclipse/iceoryx
+          path: src/iceoryx
+          ref: master
+      - name: Trigger Build
+        run: "source /opt/ros/${{ matrix.ros }}/setup.bash && colcon build"
+      - name: Execute Tests
+        run: "source /opt/ros/${{ matrix.ros }}/setup.bash && colcon test"
+      - name: Show Test Results
+        run: "source /opt/ros/${{ matrix.ros }}/setup.bash && colcon test-result --verbose"

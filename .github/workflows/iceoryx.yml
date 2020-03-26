@@ -1,0 +1,31 @@
+name: Build iceoryx
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # schedule daily at 03:00
+    - cron: 0 3 * * *
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+          # os: [macOS-latest, ubuntu-18.04, windows-latest]
+          os: [ubuntu-18.04]
+    steps:
+        # To build against multiple OSs dependencies installation needs to be OS specific
+      - name: Install Iceoryx Dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
+      - name: Checkout Iceoryx
+        uses: actions/checkout@v2
+        with:
+          repository: eclipse/iceoryx
+          path: .
+          ref: master
+      - name: Trigger Build
+        run: "./tools/iceoryx_build_test.sh"
+      - name: Execute Tests
+        run: "./tools/iceoryx_build_test.sh test"

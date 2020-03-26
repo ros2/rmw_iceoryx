@@ -56,6 +56,16 @@ TEST(NameConverisonTests, get_name_n_type_from_service_description_revers)
   EXPECT_EQ(std::get<1>(topic_and_type), "TypeName");
 }
 
+TEST(NameConverisonTests, get_hidden_topic)
+{
+  auto topic_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
+    "Introspection",
+    "RouDI_ID",
+    "foo");
+  EXPECT_EQ(std::get<0>(topic_and_type), "/_iceoryx/RouDI_ID/Introspection/foo");
+  EXPECT_EQ(std::get<1>(topic_and_type), "iceoryx_introspection_msgs/msg/foo");
+}
+
 int main(int argc, char ** argv)
 {
   testing::InitGoogleTest(&argc, argv);

@@ -1,6 +1,8 @@
 name: Iceoryx
 
 on:
+  push:
+  pull_request:
   schedule:
     # schedule daily at 03:00
     - cron: 0 3 * * *

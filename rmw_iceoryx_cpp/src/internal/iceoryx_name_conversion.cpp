@@ -80,7 +80,7 @@ get_name_n_type_from_service_description(
     std::string delimiter_msg = "_iceoryx";
 
     return std::make_tuple(
-      delimiter_msg + "/" + instance + "/" + service + "/" + event,
+      "/" + delimiter_msg + "/" + instance + "/" + service + "/" + event,
       std::string(ICEORYX_INTROSPECTION_MSG_PACKAGE) + "/msg/" + event);
   }
 
@@ -109,7 +109,7 @@ get_service_description_from_name_n_type(
   // Filter out inbuilt introspection topics
   auto position_introspection_msgs = type_name.find(ICEORYX_INTROSPECTION_MSG_PACKAGE);
   if (position_introspection_msgs != std::string::npos) {
-    auto tokens = rcpputils::split(topic_name, '/');
+    auto tokens = rcpputils::split(topic_name, '/', true);  // skip_empty for leading `/`
     if (tokens.size() != 4) {  // ['_iceoryx', <instance>, <service>, <event>]
       throw std::runtime_error(std::string("inbuilt topic name is malformed: ") + topic_name);
     }

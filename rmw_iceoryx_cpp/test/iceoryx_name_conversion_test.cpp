@@ -66,7 +66,7 @@ TEST(NameConverisonTests, get_hidden_introspection_topic)
     "Introspection",
     "RouDI_ID",
     "foo");
-  EXPECT_EQ(std::get<0>(topic_and_type), "_iceoryx/RouDI_ID/Introspection/foo");
+  EXPECT_EQ(std::get<0>(topic_and_type), "/_iceoryx/RouDI_ID/Introspection/foo");
   EXPECT_EQ(std::get<1>(topic_and_type), "iceoryx_introspection_msgs/msg/foo");
 }
 
@@ -76,8 +76,8 @@ TEST(NameConverisonTests, flip_flop)
   {{"topic1", "type1"},
     {"topic2", "type2"},
     {"topic3", "type3"},
-    {"_iceoryx/RouDI_1/Introspection/event1", "iceoryx_introspection_msgs/msg/event1"},
-    {"_iceoryx/RouDI_1/Introspection/event2", "iceoryx_introspection_msgs/msg/event2"}};
+    {"/_iceoryx/RouDI_1/Introspection/event1", "iceoryx_introspection_msgs/msg/event1"},
+    {"/_iceoryx/RouDI_1/Introspection/event2", "iceoryx_introspection_msgs/msg/event2"}};
 
   for (auto & tuple : topic_names_and_types) {
     auto service_tuple =

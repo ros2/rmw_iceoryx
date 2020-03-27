@@ -31,6 +31,7 @@ if(NOT iceoryx_posh_FOUND)
   message(WARNING "iceoryx not found - skipping '${PROJECT_NAME}'")
   return()
 endif()
+find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
@@ -64,6 +65,7 @@ target_link_libraries(rmw_iceoryx_name_conversion
   iceoryx_posh::iceoryx_posh
 )
 ament_target_dependencies(rmw_iceoryx_name_conversion
+  rcpputils
   rcutils
   rmw
   rosidl_generator_c

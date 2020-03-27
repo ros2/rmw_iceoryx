@@ -61,7 +61,7 @@ rmw_serialize(
       serialized_message, ros_message, rmw_iceoryx_cpp::iceoryx_get_message_size(type_supports));
   }
 
-  // message is neither loaned nor fixed size, so we have to serialize
+  // it's no fixed size message, so we have to serialize
   std::vector<char> payload_vector{};
 
   // serialize with cpp typesupport

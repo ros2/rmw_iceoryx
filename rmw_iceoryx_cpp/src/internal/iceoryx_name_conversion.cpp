@@ -17,6 +17,8 @@
 #include <string>
 #include <tuple>
 
+#include "rcpputils/split.hpp"
+
 #include "rosidl_generator_c/primitives_sequence.h"
 #include "rosidl_generator_c/primitives_sequence_functions.h"
 
@@ -38,6 +40,7 @@
 static constexpr char ARA_DELIMITER[] = "_ara_msgs/msg/";
 static constexpr char ROS2_EVENT_NAME[] = "data";
 static constexpr char ICEORYX_INTROSPECTION_SERVICE[] = "Introspection";
+static constexpr char ICEORYX_INTROSPECTION_MSG_PACKAGE[] = "iceoryx_introspection_msgs";
 
 inline std::string to_message_type(const std::string & in)
 {
@@ -70,19 +73,21 @@ get_name_n_type_from_service_description(
   const std::string & instance,
   const std::string & event)
 {
-  if (event == ROS2_EVENT_NAME) {
-    // ROS 2.0 Naming
-    return std::make_tuple(instance, service);
-  }
-
+  // Filter out inbuilt introspection topics
   if (service.find(ICEORYX_INTROSPECTION_SERVICE) != std::string::npos) {
     // iceoryx built-in topic handling
     // mark as hidden with leading `_`
-    std::string delimiter_msg = "_iceoryx/";
+    std::string delimiter_msg = "_iceoryx";
 
     return std::make_tuple(
-      "/" + delimiter_msg + instance + "/" + service + "/" + event,
-      "iceoryx_introspection_msgs/msg/" + event);
+      delimiter_msg + "/" + instance + "/" + service + "/" + event,
+      std::string(ICEORYX_INTROSPECTION_MSG_PACKAGE) + "/msg/" + event);
+  }
+
+  // ROS 2.0 Naming
+  if (event == ROS2_EVENT_NAME) {
+    // we simply throw away `event` as it was artificially introduced anyway.
+    return std::make_tuple(instance, service);
   }
 
   // ARA Naming
@@ -101,11 +106,20 @@ get_service_description_from_name_n_type(
   const std::string & topic_name,
   const std::string & type_name)
 {
+  // Filter out inbuilt introspection topics
+  auto position_introspection_msgs = type_name.find(ICEORYX_INTROSPECTION_MSG_PACKAGE);
+  if (position_introspection_msgs != std::string::npos) {
+    auto tokens = rcpputils::split(topic_name, '/');
+    if (tokens.size() != 4) {  // ['_iceoryx', <instance>, <service>, <event>]
+      throw std::runtime_error(std::string("inbuilt topic name is malformed: ") + topic_name);
+    }
+    return std::make_tuple(tokens[2], tokens[1], tokens[3]);
+  }
+
   auto position_ara_delimiter = type_name.find(ARA_DELIMITER);
 
+  // ROS 2.0 Naming
   if (position_ara_delimiter == std::string::npos) {
-    // ROS 2.0 Naming
-    // TODO(karsten1987): Filter out iceoryx Introspection topics
     return std::make_tuple(type_name, topic_name, ROS2_EVENT_NAME);
   }
 

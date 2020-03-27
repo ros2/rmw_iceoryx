@@ -10,6 +10,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>iceoryx_posh</depend>
+  <depend>rcpputils</depend>
   <depend>rcutils</depend>
   <depend>rmw</depend>
   <depend>rmw_implementation</depend>

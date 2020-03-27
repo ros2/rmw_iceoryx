@@ -93,10 +93,10 @@ TEST(NameConverisonTests, flip_flop)
 TEST(NameConverisonTests, flip_flop_reverse)
 {
   std::vector<std::tuple<std::string, std::string, std::string>> topic_names_and_types =
-  {{"instance1", "service1", "event1"},
-    {"instance2", "service2", "event2"},
-    {"RouDI_1", "Introspection", "event1"},
-    {"topic1", "type1", "data"}};
+  {{"service1", "instance1", "event1"},
+    {"service2", "instance2", "event2"},
+    {"Introspection", "RouDI_1", "event1"},
+    {"type1", "topic1", "data"}};
 
   for (auto & tuple : topic_names_and_types) {
     auto ros_tuple = rmw_iceoryx_cpp::get_name_n_type_from_service_description(

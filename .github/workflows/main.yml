@@ -32,3 +32,5 @@ jobs:
           ref: master
       - name: Build & Test
         uses: ros-tooling/action-ros-ci@0.0.13
+        with:
+          package-name: rmw_iceoryx_cpp iceoryx_ros2_bridge

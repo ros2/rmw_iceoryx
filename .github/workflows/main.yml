@@ -1,6 +1,10 @@
 name: Integration build rmw_iceoryx
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   build:

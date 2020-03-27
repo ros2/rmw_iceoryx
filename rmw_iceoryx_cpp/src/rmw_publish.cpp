@@ -63,10 +63,6 @@ rmw_publish(
   const void * ros_message,
   rmw_publisher_allocation_t * allocation)
 {
-  if (!ros_message) {
-    fprintf(stderr, "ros message is empty\n");
-    return RMW_RET_ERROR;
-  }
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_message, RMW_RET_ERROR);
   (void)allocation;
@@ -134,10 +130,28 @@ rmw_publish_serialized_message(
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(serialized_message, RMW_RET_ERROR);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocation, RMW_RET_ERROR);
+  (void) allocation;
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_publish
+    : publisher, publisher->implementation_identifier,
+    rmw_get_implementation_identifier(), return RMW_RET_ERROR);
+
+  auto iceoryx_publisher = static_cast<IceoryxPublisher *>(publisher->data);
+  if (!iceoryx_publisher) {
+    RMW_SET_ERROR_MSG("publisher data is null");
+    return RMW_RET_ERROR;
+  }
+
+  auto iceoryx_sender = iceoryx_publisher->iceoryx_sender_;
+  if (!iceoryx_sender) {
+    RMW_SET_ERROR_MSG("iceoryx_sender is null");
+    return RMW_RET_ERROR;
+  }
+
+  // message is serialized, therefore necessarily fixed size
+  return details::send_payload(
+    iceoryx_sender, serialized_message->buffer, serialized_message->buffer_length);
 }
 
 rmw_ret_t

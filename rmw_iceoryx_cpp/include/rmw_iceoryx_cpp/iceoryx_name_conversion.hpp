@@ -26,12 +26,31 @@ class rosidl_message_type_support_t;
 namespace rmw_iceoryx_cpp
 {
 
+/// Get the pair of ROS topic and type from a given iceoryx service triplet.
+/**
+ * Given a triplet of `service`, `instance`, `event`, convert these to a ROS2 conform
+ * tuple of `topic` and `type`.
+ * For a regular ROS2 pair, the event name should be set to "data".
+ * \param service the iceoryx service description
+ * \param instance the iceoryx instance description
+ * \param event the iceoryx event description
+ * \return tuple of topic and type
+ */
 std::tuple<std::string, std::string>
 get_name_n_type_from_service_description(
   const std::string & service,
   const std::string & instance,
   const std::string & event);
 
+/// Get the iceoryx service triplet description from a given pair of ROS topic and type.
+/**
+ * Given a pair in the form of topic name and type, generate a iceoryx service description triplet.
+ * By convention, the iceoryx event field is set to "data".
+ * \param service the iceoryx service description
+ * \param instance the iceoryx instance description
+ * \param event the iceoryx event description
+ * \return triple of iceoryx `service`, `instance`, `event`.
+ */
 std::tuple<std::string, std::string, std::string>
 get_service_description_from_name_n_type(
   const std::string & topic_name,

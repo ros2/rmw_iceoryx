@@ -5,6 +5,8 @@ on:
     branches:
       - master
   pull_request:
+  schedule:
+    - cron: '0 3 * * *'
 
 jobs:
   build:
@@ -12,15 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          # os: [macOS-latest, ubuntu-18.04, windows-latest]
           os: [ubuntu-18.04]
-          ros: [eloquent]
     steps:
       - name: Setup ROS
-        uses: ros-tooling/setup-ros@0.0.11
-        with:
-          required-ros-distributions: ${{ matrix.ros }}
-        # To build against multiple OSs dependencies installation needs to be OS specific
+        uses: ros-tooling/setup-ros@0.0.15
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
       - name: Checkout Sources
@@ -33,9 +30,5 @@ jobs:
           repository: eclipse/iceoryx
           path: src/iceoryx
           ref: master
-      - name: Trigger Build
-        run: "source /opt/ros/${{ matrix.ros }}/setup.bash && colcon build"
-      - name: Execute Tests
-        run: "source /opt/ros/${{ matrix.ros }}/setup.bash && colcon test"
-      - name: Show Test Results
-        run: "source /opt/ros/${{ matrix.ros }}/setup.bash && colcon test-result --verbose"
+      - name: Build & Test
+        uses: ros-tooling/action-ros-ci@0.0.13

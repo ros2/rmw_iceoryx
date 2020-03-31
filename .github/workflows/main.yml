@@ -16,8 +16,6 @@ jobs:
       matrix:
           os: [ubuntu-18.04]
     steps:
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v2
       - name: Setup ROS
         uses: ros-tooling/setup-ros@0.0.15
       - name: Install Iceoryx Dependencies

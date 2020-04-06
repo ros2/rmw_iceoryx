@@ -21,9 +21,9 @@ jobs:
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
       - name: Build & Test
-        uses: ros-tooling/action-ros-ci@tmoulard/vcs
+        uses: ros-tooling/action-ros-ci@master
         with:
           package-name: rmw_iceoryx_cpp iceoryx_ros2_bridge
           vcs-repo-file-url: |
-            file://${{ github.workspace }}/ros_ws/src/rmw_iceoryx/.github/workflows/additional_repos.repos
+            ${{ github.workspace }}/ros_ws/src/rmw_iceoryx/.github/workflows/additional_repos.repos
             https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos

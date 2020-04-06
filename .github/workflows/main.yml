@@ -25,5 +25,5 @@ jobs:
         with:
           package-name: rmw_iceoryx_cpp iceoryx_ros2_bridge
           vcs-repo-file-url: |
-            file://${{ github.workspace }}/ros_ws/src/rmw_iceoryx/.github/workflows/additional_repos.repos
+            https://gist.githubusercontent.com/Karsten1987/1723f219bb5aa5b81355c7eb1477f867/raw/9dc4d877f6fd0f862070516febdbddea28723b5c/iceoryx.repos
             https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos

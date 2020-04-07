@@ -8,34 +8,17 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-          # os: [macOS-latest, ubuntu-18.04, windows-latest]
-          os: [ubuntu-18.04]
-          ros: [eloquent]
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:bionic
     steps:
       - name: Setup ROS
-        uses: ros-tooling/setup-ros@0.0.11
+        uses: ros-tooling/setup-ros@0.0.19
         with:
-          required-ros-distributions: ${{ matrix.ros }}
-        # To build against multiple OSs dependencies installation needs to be OS specific
+          required-ros-distributions: eloquent
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
-      - name: Checkout Sources
-        uses: actions/checkout@v2
+      - uses: ros-tooling/action-ros-ci@master
         with:
-          path: src/rmw_iceoryx
-      - name: Checkout Iceoryx
-        uses: actions/checkout@v2
-        with:
-          repository: eclipse/iceoryx
-          path: src/iceoryx
-          ref: master
-      - name: Trigger Build
-        run: "source /opt/ros/${{ matrix.ros }}/setup.bash && colcon build"
-      - name: Execute Tests
-        run: "source /opt/ros/${{ matrix.ros }}/setup.bash && colcon test"
-      - name: Show Test Results
-        run: "source /opt/ros/${{ matrix.ros }}/setup.bash && colcon test-result --verbose"
+          package-name: rmw_iceoryx_cpp
+          vcs-repo-file-url: https://raw.githubusercontent.com/ros2/ros2/master/ros2.repo https://gist.githubusercontent.com/thomas-moulard/151c2ce5880a46551b558e7d66dc997d/raw/07eca90bba7d9581b739f9d48c5e908b001d9d80/gistfile1.txt

@@ -128,7 +128,7 @@ fail:
     rcutils_ret = rcutils_string_array_fini(node_names);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        "rmw_connext_cpp",
+        "rmw_iceoryx_cpp",
         "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
       rcutils_reset_error();
     }
@@ -143,5 +143,21 @@ fail:
     }
   }
   return RMW_RET_BAD_ALLOC;
+}
+
+rmw_ret_t
+rmw_get_node_names_with_security_contexts(
+  const rmw_node_t * node,
+  rcutils_string_array_t * node_names,
+  rcutils_string_array_t * node_namespaces,
+  rcutils_string_array_t * security_contexts)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_names, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_namespaces, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(security_contexts, RMW_RET_ERROR);
+
+  RMW_SET_ERROR_MSG("rmw_get_node_names_with_security_contexts is not supported in iceoryx");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

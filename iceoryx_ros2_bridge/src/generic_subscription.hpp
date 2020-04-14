@@ -72,7 +72,7 @@ public:
   std::shared_ptr<rmw_serialized_message_t> create_serialized_message() override;
 
   void handle_message(
-    std::shared_ptr<void> & message, const rmw_message_info_t & message_info) override;
+    std::shared_ptr<void> & message, const rclcpp::MessageInfo & message_info) override;
 
   // Same as return_serialized_message() as the subscription is to serialized_messages only
   void return_message(std::shared_ptr<void> & message) override;
@@ -80,7 +80,7 @@ public:
   void return_serialized_message(std::shared_ptr<rmw_serialized_message_t> & message) override;
 
   void handle_loaned_message(
-    void * loaned_message, const rmw_message_info_t & message_info) override;
+    void * loaned_message, const rclcpp::MessageInfo & message_info) override;
 
 private:
   RCLCPP_DISABLE_COPY(GenericSubscription)

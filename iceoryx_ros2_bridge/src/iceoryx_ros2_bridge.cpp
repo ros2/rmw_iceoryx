@@ -46,7 +46,7 @@ bool deserialize_into(
   const rosidl_typesupport_introspection_cpp::MessageMembers * introspection_ts,
   void * ros_msg)
 {
-  introspection_ts->init_function(ros_msg, rosidl_generator_cpp::MessageInitialization::ALL);
+  introspection_ts->init_function(ros_msg, rosidl_runtime_cpp::MessageInitialization::ALL);
 
   auto ret = rmw_deserialize(serialized_msg, ts, ros_msg);
   if (ret != RMW_RET_OK) {
@@ -139,7 +139,7 @@ void publish_to_ros2(
         ts, rosidl_typesupport_introspection_cpp::typesupport_identifier)->data);
 
     void * ros_msg = malloc(introspection_ts->size_of_);
-    introspection_ts->init_function(ros_msg, rosidl_generator_cpp::MessageInitialization::ALL);
+    introspection_ts->init_function(ros_msg, rosidl_runtime_cpp::MessageInitialization::ALL);
     rmw_iceoryx_cpp::deserialize(static_cast<const char *>(chunk), introspection_ts, ros_msg);
 
     ret = serialize_into(ros_msg, ts, &serialized_msg);

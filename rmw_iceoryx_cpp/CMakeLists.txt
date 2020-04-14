@@ -34,8 +34,8 @@ endif()
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
-find_package(rosidl_generator_c REQUIRED)
-find_package(rosidl_generator_cpp REQUIRED)
+find_package(rosidl_runtime_c REQUIRED)
+find_package(rosidl_runtime_cpp REQUIRED)
 find_package(rosidl_typesupport_cpp REQUIRED)
 find_package(rosidl_typesupport_introspection_c REQUIRED)
 find_package(rosidl_typesupport_introspection_cpp REQUIRED)
@@ -48,8 +48,8 @@ target_include_directories(rmw_iceoryx_serialization
   PUBLIC include
 )
 ament_target_dependencies(rmw_iceoryx_serialization
-  rosidl_generator_c
-  rosidl_generator_cpp
+  rosidl_runtime_c
+  rosidl_runtime_cpp
   rosidl_typesupport_introspection_c
   rosidl_typesupport_introspection_cpp
 )
@@ -68,8 +68,8 @@ ament_target_dependencies(rmw_iceoryx_name_conversion
   rcpputils
   rcutils
   rmw
-  rosidl_generator_c
-  rosidl_generator_cpp
+  rosidl_runtime_c
+  rosidl_runtime_cpp
   rosidl_typesupport_introspection_c
   rosidl_typesupport_introspection_cpp
 )

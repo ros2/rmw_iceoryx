@@ -69,7 +69,7 @@ std::shared_ptr<rmw_serialized_message_t> GenericSubscription::create_serialized
 }
 
 void GenericSubscription::handle_message(
-  std::shared_ptr<void> & message, const rmw_message_info_t & message_info)
+  std::shared_ptr<void> & message, const rclcpp::MessageInfo & message_info)
 {
   (void) message_info;
   auto typed_message = std::static_pointer_cast<rmw_serialized_message_t>(message);
@@ -90,7 +90,7 @@ void GenericSubscription::return_serialized_message(
 
 void GenericSubscription::handle_loaned_message(
   void * loaned_message,
-  const rmw_message_info_t & message_info)
+  const rclcpp::MessageInfo & message_info)
 {
   (void) loaned_message;
   (void) message_info;

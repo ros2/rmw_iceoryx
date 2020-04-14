@@ -25,7 +25,7 @@
 
 #include "Poco/SharedLibrary.h"
 
-#include "rosidl_generator_cpp/message_type_support_decl.hpp"
+#include "rosidl_runtime_cpp/message_type_support_decl.hpp"
 
 namespace iceoryx_ros2_bridge
 {

@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include "rosidl_generator_c/primitives_sequence.h"
+#include "rosidl_runtime_c/string_functions.h"
 
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
 
@@ -66,7 +66,7 @@ size_t get_array_elememts_and_assign_ros_message_field_c(
   void * & subros_message
 )
 {
-  auto data_array = reinterpret_cast<const rosidl_generator_c__char__Sequence *>(ros_message_field);
+  auto data_array = reinterpret_cast<const rosidl_runtime_c__char__Sequence *>(ros_message_field);
   uint32_t array_size = data_array->size;
 
   if (member->is_upper_bound_ && array_size > member->array_size_) {
@@ -107,7 +107,7 @@ void copy_data_array_cpp<bool>(std::vector<char> & payloadVector, const void * r
 template<typename T>
 void copy_data_array_c(std::vector<char> & payloadVector, const void * ros_message_field)
 {
-  auto data_array = reinterpret_cast<const rosidl_generator_c__char__Sequence *>(ros_message_field);
+  auto data_array = reinterpret_cast<const rosidl_runtime_c__char__Sequence *>(ros_message_field);
   uint32_t array_size = data_array->size;
   uint32_t size = sizeof(T) * array_size;
 
@@ -179,7 +179,7 @@ void copy_data_c<std::string>(
       }
     } else {
       auto data_array =
-        reinterpret_cast<const rosidl_generator_c__char__Sequence *>(ros_message_field);
+        reinterpret_cast<const rosidl_runtime_c__char__Sequence *>(ros_message_field);
       uint32_t array_size = data_array->size;  // number of strings in the array
 
       store_array_size(payloadVector, array_size);

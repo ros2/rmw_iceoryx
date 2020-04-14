@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-#include "rosidl_generator_c/primitives_sequence.h"
+#include "rosidl_runtime_c/string_functions.h"
 
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
 
@@ -82,8 +82,8 @@ inline std::pair<const char *, size_t> get_submessage_array_c(
   std::tie(serialized_msg, array_elements) = load_array_size(serialized_msg);
 
   auto data_array =
-    const_cast<rosidl_generator_c__char__Sequence *>(reinterpret_cast<const
-    rosidl_generator_c__char__Sequence
+    const_cast<rosidl_runtime_c__char__Sequence *>(reinterpret_cast<const
+    rosidl_runtime_c__char__Sequence
     *>(ros_message_field));
 
   data_array->data = static_cast<signed char *>(calloc(array_elements, sub_members_size));
@@ -143,8 +143,8 @@ const char * copy_payload_array_c(const char * serialized_msg, void * ros_messag
   uint32_t char_size = size * array_size;
 
   auto data_array =
-    const_cast<rosidl_generator_c__char__Sequence *>(reinterpret_cast<const
-    rosidl_generator_c__char__Sequence
+    const_cast<rosidl_runtime_c__char__Sequence *>(reinterpret_cast<const
+    rosidl_runtime_c__char__Sequence
     *>(ros_message_field));
 
   data_array->data = static_cast<signed char *>(calloc(array_size, size));
@@ -166,8 +166,8 @@ const char * copy_payload_array_c<std::string>(
   serialized_msg = copy_payload_array_c<char>(serialized_msg, ros_message_field);
 
   auto data_array =
-    const_cast<rosidl_generator_c__char__Sequence *>(reinterpret_cast<const
-    rosidl_generator_c__char__Sequence
+    const_cast<rosidl_runtime_c__char__Sequence *>(reinterpret_cast<const
+    rosidl_runtime_c__char__Sequence
     *>(ros_message_field));
 
   --data_array->capacity;

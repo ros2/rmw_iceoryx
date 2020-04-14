@@ -17,8 +17,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include "rosidl_generator_c/primitives_sequence.h"
-
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
 
 #include "rosidl_typesupport_introspection_c/field_types.h"
@@ -251,7 +249,7 @@ void iceoryx_init_message(
   if (ts_cpp != nullptr) {
     auto members =
       static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts_cpp->data);
-    members->init_function(message, rosidl_generator_cpp::MessageInitialization::ALL);
+    members->init_function(message, rosidl_runtime_cpp::MessageInitialization::ALL);
     return;
   }
 

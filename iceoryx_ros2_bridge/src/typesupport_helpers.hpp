@@ -19,7 +19,7 @@
 #include <tuple>
 #include <utility>
 
-#include "rosidl_generator_cpp/message_type_support_decl.hpp"
+struct rosidl_message_type_support_t;
 
 namespace iceoryx_ros2_bridge
 {

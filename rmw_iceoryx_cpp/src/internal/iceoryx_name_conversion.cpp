@@ -19,9 +19,6 @@
 
 #include "rcpputils/split.hpp"
 
-#include "rosidl_generator_c/primitives_sequence.h"
-#include "rosidl_generator_c/primitives_sequence_functions.h"
-
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
 
 #include "rosidl_typesupport_introspection_c/field_types.h"

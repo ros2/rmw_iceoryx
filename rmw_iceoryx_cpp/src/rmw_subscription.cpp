@@ -38,8 +38,8 @@ rmw_init_subscription_allocation(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(message_bounds, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocation, RMW_RET_ERROR);  // might be null
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support subscription allocations.");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t
@@ -47,8 +47,8 @@ rmw_fini_subscription_allocation(rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocation, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support subscription allocations.");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_subscription_t *

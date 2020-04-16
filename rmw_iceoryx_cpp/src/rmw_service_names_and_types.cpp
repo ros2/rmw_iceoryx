@@ -15,6 +15,7 @@
 #include "rcutils/error_handling.h"
 
 #include "rmw/get_service_names_and_types.h"
+#include "rmw/impl/cpp/macros.hpp"
 #include "rmw/names_and_types.h"
 #include "rmw/rmw.h"
 
@@ -30,7 +31,7 @@ rmw_get_service_names_and_types(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocator, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(service_names_and_types, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support services.");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

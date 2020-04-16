@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
 extern "C"
@@ -21,7 +22,7 @@ rmw_set_log_severity(rmw_log_severity_t severity)
 {
   (void)severity;
 
-  assert(false);
-  return RMW_RET_ERROR;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support log severities.");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

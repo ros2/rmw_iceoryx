@@ -14,6 +14,7 @@
 
 #include "rcutils/error_handling.h"
 
+#include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
 extern "C"
@@ -28,7 +29,7 @@ rmw_service_server_is_available(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(is_available, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support services.");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

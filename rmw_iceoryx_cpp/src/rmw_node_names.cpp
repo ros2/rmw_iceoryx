@@ -146,16 +146,16 @@ fail:
 }
 
 rmw_ret_t
-rmw_get_node_names_with_security_contexts(
+rmw_get_node_names_with_enclaves(
   const rmw_node_t * node,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces,
-  rcutils_string_array_t * security_contexts)
+  rcutils_string_array_t * enclaves)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_names, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_namespaces, RMW_RET_ERROR);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(security_contexts, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(enclaves, RMW_RET_ERROR);
 
   RMW_SET_ERROR_MSG("rmw_get_node_names_with_security_contexts is not supported in iceoryx");
   return RMW_RET_UNSUPPORTED;

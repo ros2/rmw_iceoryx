@@ -34,8 +34,8 @@ rmw_get_publishers_info_by_topic(
   (void) no_mangle;
   (void) publishers_info;
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support publishers info.");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t
@@ -52,7 +52,7 @@ rmw_get_subscriptions_info_by_topic(
   (void) no_mangle;
   (void) subscriptions_info;
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support subscriptions info.");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

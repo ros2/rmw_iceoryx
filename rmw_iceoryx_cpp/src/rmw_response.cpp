@@ -14,6 +14,7 @@
 
 #include "rcutils/error_handling.h"
 
+#include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
 extern "C"
@@ -30,8 +31,8 @@ rmw_take_response(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_response, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support responses.");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t
@@ -44,7 +45,7 @@ rmw_send_response(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_response, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support responses.");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

@@ -16,6 +16,7 @@
 
 #include "rcutils/error_handling.h"
 
+#include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
 extern "C"
@@ -32,7 +33,7 @@ rmw_create_client(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(service_name, NULL);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(qos_policies, NULL);
 
-  assert(false);
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support clients.");
   return NULL;
 }
 
@@ -44,7 +45,7 @@ rmw_destroy_client(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support clients.");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

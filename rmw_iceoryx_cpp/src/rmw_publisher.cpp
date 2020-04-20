@@ -37,8 +37,8 @@ rmw_init_publisher_allocation(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(message_bounds, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocation, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support publisher allocations.");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t
@@ -46,8 +46,8 @@ rmw_fini_publisher_allocation(rmw_publisher_allocation_t * allocation)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocation, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support publisher allocations.");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_publisher_t *
@@ -150,8 +150,8 @@ rmw_publisher_assert_liveliness(const rmw_publisher_t * publisher)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support liveliness.");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t

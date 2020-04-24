@@ -132,7 +132,7 @@ rmw_deserialize(
 rmw_ret_t
 rmw_get_serialized_message_size(
   const rosidl_message_type_support_t * type_supports,
-  const rosidl_message_bounds_t * message_bounds,
+  const rosidl_runtime_c__Sequence__bound * message_bounds,
   size_t * size)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(type_supports, RMW_RET_ERROR);

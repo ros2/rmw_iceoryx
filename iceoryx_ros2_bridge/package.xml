@@ -12,8 +12,8 @@
   <depend>ament_index_cpp</depend>
   <depend>iceoryx_posh</depend>
   <depend>iceoryx_utils</depend>
-  <depend>poco_vendor</depend>
   <depend>rclcpp</depend>
+  <depend>rcpputils</depend>
   <depend>rmw_iceoryx_cpp</depend>
   <depend>rosidl_generator_cpp</depend>
   <depend>rosidl_typesupport_cpp</depend>

@@ -20,9 +20,8 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(iceoryx_posh REQUIRED)
 find_package(iceoryx_utils REQUIRED)
-find_package(poco_vendor)
-find_package(Poco COMPONENTS Foundation)
 find_package(rclcpp REQUIRED)
+find_package(rcpputils REQUIRED)
 find_package(rmw_iceoryx_cpp REQUIRED)
 find_package(rosidl_generator_cpp REQUIRED)
 find_package(rosidl_typesupport_cpp REQUIRED)
@@ -33,8 +32,8 @@ add_library(iceoryx_typesupport_helpers
 )
 ament_target_dependencies(iceoryx_typesupport_helpers
   ament_index_cpp
-  Poco
   rclcpp
+  rcpputils
   rosidl_generator_cpp
   rosidl_typesupport_introspection_cpp
   rosidl_typesupport_cpp

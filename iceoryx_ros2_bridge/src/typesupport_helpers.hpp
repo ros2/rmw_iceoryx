@@ -15,9 +15,12 @@
 #ifndef TYPESUPPORT_HELPERS_HPP_
 #define TYPESUPPORT_HELPERS_HPP_
 
+#include <memory>
 #include <string>
 #include <tuple>
 #include <utility>
+
+#include "rcpputils/shared_library.hpp"
 
 struct rosidl_message_type_support_t;
 
@@ -25,7 +28,9 @@ namespace iceoryx_ros2_bridge
 {
 
 const rosidl_message_type_support_t *
-get_typesupport(const std::string & type, const std::string & typesupport_identifier);
+get_typesupport(
+  const std::string & type, const std::string & typesupport_identifier,
+  std::shared_ptr<rcpputils::SharedLibrary> & library);
 
 const std::tuple<std::string, std::string, std::string>
 extract_type_identifier(const std::string & full_type);

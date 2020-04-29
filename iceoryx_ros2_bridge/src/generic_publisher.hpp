@@ -20,6 +20,11 @@
 
 #include "rclcpp/rclcpp.hpp"
 
+namespace rcpputils
+{
+class SharedLibrary;
+}  // namespace rcpputils
+
 namespace iceoryx_ros2_bridge
 {
 
@@ -29,13 +34,17 @@ public:
   GenericPublisher(
     rclcpp::node_interfaces::NodeBaseInterface * node_base,
     const std::string & topic,
-    const rosidl_message_type_support_t & type_support);
+    const rosidl_message_type_support_t & type_support,
+    std::shared_ptr<rcpputils::SharedLibrary> library_handle);
 
   ~GenericPublisher() override = default;
 
   void publish(std::shared_ptr<rmw_serialized_message_t> message);
 
   void publish(const rmw_serialized_message_t * message);
+
+private:
+  std::shared_ptr<rcpputils::SharedLibrary> ts_library_handle_;
 };
 
 }  // namespace iceoryx_ros2_bridge

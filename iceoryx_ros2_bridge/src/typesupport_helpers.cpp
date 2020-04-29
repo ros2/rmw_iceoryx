@@ -15,6 +15,7 @@
 #include "typesupport_helpers.hpp"
 
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -23,7 +24,7 @@
 #include "ament_index_cpp/get_resources.hpp"
 #include "ament_index_cpp/get_package_prefix.hpp"
 
-#include "Poco/SharedLibrary.h"
+#include "rcpputils/shared_library.hpp"
 
 #include "rosidl_runtime_cpp/message_type_support_decl.hpp"
 
@@ -62,6 +63,16 @@ std::string get_typesupport_library_path(
   return library_path;
 }
 
+const std::pair<std::string, std::string> extract_type_and_package(const std::string & full_type)
+{
+  std::string package_name;
+  std::string type_name;
+
+  std::tie(package_name, std::ignore, type_name) = extract_type_identifier(full_type);
+
+  return {package_name, type_name};
+}
+
 const std::tuple<std::string, std::string, std::string>
 extract_type_identifier(const std::string & full_type)
 {
@@ -88,39 +99,46 @@ extract_type_identifier(const std::string & full_type)
 }
 
 const rosidl_message_type_support_t *
-get_typesupport(const std::string & type, const std::string & typesupport_identifier)
+get_typesupport(
+  const std::string & type, const std::string & typesupport_identifier,
+  std::shared_ptr<rcpputils::SharedLibrary> & library)
 {
   std::string package_name;
   std::string middle_module;
   std::string type_name;
   std::tie(package_name, middle_module, type_name) = extract_type_identifier(type);
 
-  std::string poco_dynamic_loading_error = "Something went wrong loading the typesupport library "
-    "for message type " + package_name + "/" + type_name + ".";
+  std::stringstream rcutils_dynamic_loading_error;
+  rcutils_dynamic_loading_error <<
+    "Something went wrong loading the typesupport library for message type " << package_name <<
+    "/" << type_name << ".";
 
   auto library_path = get_typesupport_library_path(package_name, typesupport_identifier);
 
   try {
-    auto typesupport_library = std::make_shared<Poco::SharedLibrary>(library_path);
+    library = std::make_shared<rcpputils::SharedLibrary>(library_path);
 
     auto symbol_name = typesupport_identifier + "__get_message_type_support_handle__" +
       package_name + "__" + (middle_module.empty() ? "msg" : middle_module) + "__" + type_name;
 
-    if (!typesupport_library->hasSymbol(symbol_name)) {
-      throw std::runtime_error(poco_dynamic_loading_error + " Symbol not found.");
+    if (!library->get_symbol(symbol_name)) {
+      throw std::runtime_error{
+              rcutils_dynamic_loading_error.str() +
+              std::string(" Symbol not found.")};
     }
 
     const rosidl_message_type_support_t * (* get_ts)() = nullptr;
-    get_ts = (decltype(get_ts))typesupport_library->getSymbol(symbol_name);
-    auto type_support = get_ts();
+    get_ts = (decltype(get_ts))library->get_symbol(symbol_name);
 
-    if (!type_support) {
-      throw std::runtime_error(poco_dynamic_loading_error + " Symbol of wrong type.");
+    if (!get_ts) {
+      throw std::runtime_error{
+              rcutils_dynamic_loading_error.str() +
+              std::string(" Symbol of wrong type.")};
     }
-
+    auto type_support = get_ts();
     return type_support;
-  } catch (Poco::LibraryLoadException &) {
-    throw std::runtime_error(poco_dynamic_loading_error + " Library could not be found.");
+  } catch (std::runtime_error &) {
+    throw std::runtime_error(rcutils_dynamic_loading_error.str() + " Library could not be found.");
   }
 }
 

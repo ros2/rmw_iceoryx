@@ -21,6 +21,8 @@
 #include "iceoryx_posh/runtime/posh_runtime.hpp"
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/serialization.hpp"
+#include "rclcpp/serialized_message.hpp"
 
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
 
@@ -41,17 +43,15 @@
 using namespace std::chrono_literals;
 
 bool deserialize_into(
-  rmw_serialized_message_t * serialized_msg,
+  rclcpp::SerializedMessage * serialized_msg,
   const rosidl_message_type_support_t * ts,
-  const rosidl_typesupport_introspection_cpp::MessageMembers * introspection_ts,
   void * ros_msg)
 {
-  introspection_ts->init_function(ros_msg, rosidl_runtime_cpp::MessageInitialization::ALL);
-
-  auto ret = rmw_deserialize(serialized_msg, ts, ros_msg);
-  if (ret != RMW_RET_OK) {
-    fprintf(stderr, "failed to deserialize serialized message\n");
-    introspection_ts->fini_function(ros_msg);
+  rclcpp::SerializationBase serializer(ts);
+  try {
+    serializer.deserialize_message(serialized_msg, ros_msg);
+  } catch (const std::exception & e) {
+    fprintf(stderr, "failed to deserialize: %s\n", e.what());
     return false;
   }
 
@@ -59,7 +59,7 @@ bool deserialize_into(
 }
 
 void publish_to_iceoryx(
-  std::shared_ptr<rmw_serialized_message_t> serialized_msg,
+  std::shared_ptr<rclcpp::SerializedMessage> serialized_msg,
   const rosidl_message_type_support_t * ts,
   std::shared_ptr<iox::popo::Publisher> iceoryx_publisher)
 {
@@ -69,22 +69,26 @@ void publish_to_iceoryx(
 
   if (rmw_iceoryx_cpp::iceoryx_is_fixed_size(ts)) {
     void * ros_msg = iceoryx_publisher->allocateChunk(introspection_ts->size_of_);
-    auto ret = deserialize_into(serialized_msg.get(), ts, introspection_ts, ros_msg);
-    if (!ret) {
+    introspection_ts->init_function(ros_msg, rosidl_runtime_cpp::MessageInitialization::ALL);
+
+    if (false == deserialize_into(serialized_msg.get(), ts, ros_msg)) {
       iceoryx_publisher->freeChunk(ros_msg);
       return;
     }
     iceoryx_publisher->sendChunk(ros_msg);
   } else {
     void * ros_msg = malloc(introspection_ts->size_of_);
-    auto ret = deserialize_into(serialized_msg.get(), ts, introspection_ts, ros_msg);
-    if (!ret) {
+    introspection_ts->init_function(ros_msg, rosidl_runtime_cpp::MessageInitialization::ALL);
+    if (false == deserialize_into(serialized_msg.get(), ts, ros_msg)) {
       free(ros_msg);
       return;
     }
 
-    std::vector<char> payload_vector;
-    rmw_iceoryx_cpp::serialize(ros_msg, introspection_ts, payload_vector);
+    std::vector<char> payload_vector{};
+    rmw_iceoryx_cpp::serialize(
+      ros_msg,
+      introspection_ts,
+      payload_vector);
     free(ros_msg);
 
     void * chunk = iceoryx_publisher->allocateChunk(payload_vector.size(), true);
@@ -96,12 +100,13 @@ void publish_to_iceoryx(
 bool serialize_into(
   const void * ros_msg,
   const rosidl_message_type_support_t * ts,
-  rmw_serialized_message_t * serialized_msg)
+  rclcpp::SerializedMessage * serialized_msg)
 {
-  auto ret = rmw_serialize(ros_msg, ts, serialized_msg);
-  if (ret != RMW_RET_OK) {
-    fprintf(stderr, "rmw error: %s\n", rcutils_get_error_string().str);
-    fprintf(stderr, "failed to serialize ros message\n");
+  rclcpp::SerializationBase serializer(ts);
+  try {
+    serializer.serialize_message(ros_msg, serialized_msg);
+  } catch (const std::exception & e) {
+    fprintf(stderr, "failed to serialize ros message %s\n", e.what());
     return false;
   }
 
@@ -113,21 +118,14 @@ void publish_to_ros2(
   const rosidl_message_type_support_t * ts,
   std::shared_ptr<iceoryx_ros2_bridge::GenericPublisher> ros2_publisher)
 {
-  rmw_serialized_message_t serialized_msg = rmw_get_zero_initialized_serialized_message();
-  auto allocator = rcutils_get_default_allocator();
-  auto initial_capacity = 0u;
-  auto ret = rmw_serialized_message_init(
-    &serialized_msg,
-    initial_capacity,
-    &allocator);
+  rclcpp::SerializedMessage serialized_msg;
 
   const void * chunk = nullptr;
   subscriber->getChunk(&chunk);
 
   // ROS2 message is now in chunk. Convert to ROS2 message and then to serialized_message
   if (rmw_iceoryx_cpp::iceoryx_is_fixed_size(ts)) {
-    ret = serialize_into(chunk, ts, &serialized_msg);
-    if (!ret) {
+    if (false == serialize_into(chunk, ts, &serialized_msg)) {
       subscriber->releaseChunk(chunk);
       return;
     }
@@ -140,10 +138,12 @@ void publish_to_ros2(
 
     void * ros_msg = malloc(introspection_ts->size_of_);
     introspection_ts->init_function(ros_msg, rosidl_runtime_cpp::MessageInitialization::ALL);
-    rmw_iceoryx_cpp::deserialize(static_cast<const char *>(chunk), introspection_ts, ros_msg);
+    rmw_iceoryx_cpp::deserialize(
+      static_cast<const char *>(chunk),
+      introspection_ts,
+      ros_msg);
 
-    ret = serialize_into(ros_msg, ts, &serialized_msg);
-    if (!ret) {
+    if (false == serialize_into(ros_msg, ts, &serialized_msg)) {
       subscriber->releaseChunk(chunk);
       return;
     }
@@ -151,12 +151,9 @@ void publish_to_ros2(
     free(ros_msg);
   }
 
-  ros2_publisher->publish(&serialized_msg);
+  fprintf(stderr, "publishing message\n");
+  ros2_publisher->publish(&serialized_msg.get_rcl_serialized_message());
   subscriber->releaseChunk(chunk);
-  ret = rmw_serialized_message_fini(&serialized_msg);
-  if (ret != RMW_RET_OK) {
-    fprintf(stderr, "could not clean up memory for serialized message");
-  }
 }
 
 void usage()
@@ -193,7 +190,11 @@ int main(int argc, char ** argv)
   }
 
   auto node_name = "iceoryx_ros2_bridge";
-  auto node = std::make_shared<rclcpp::Node>(node_name);
+  auto node_options =
+    rclcpp::NodeOptions().enable_rosout(false).start_parameter_services(false).
+    start_parameter_event_publisher(
+    false).enable_topic_statistics(false);
+  auto node = std::make_shared<rclcpp::Node>(node_name, node_options);
   iox::runtime::PoshRuntime::getInstance(std::string("/") + node_name);
 
   /*
@@ -221,7 +222,9 @@ int main(int argc, char ** argv)
     auto type = pair->second[0];
     fprintf(stderr, "subscribing to ros2 topic %s with type %s\n", topic.c_str(), type.c_str());
 
-    auto ts = iceoryx_ros2_bridge::get_typesupport(type, "rosidl_typesupport_cpp");
+    std::shared_ptr<rcpputils::SharedLibrary> library_generic_subscription;
+    auto ts = iceoryx_ros2_bridge::get_typesupport(
+      type, "rosidl_typesupport_cpp", library_generic_subscription);
 
     auto service_desc =
       rmw_iceoryx_cpp::get_iceoryx_service_description(topic, ts);
@@ -230,7 +233,7 @@ int main(int argc, char ** argv)
         service_desc, iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_name)));
     iceoryx_pubs.back()->offer();
 
-    std::function<void(std::shared_ptr<rmw_serialized_message_t>)> cb =
+    std::function<void(std::shared_ptr<rclcpp::SerializedMessage>)> cb =
       std::bind(&publish_to_iceoryx, std::placeholders::_1, ts, iceoryx_pubs.back());
 
     ros2_subs.emplace_back(
@@ -262,11 +265,13 @@ int main(int argc, char ** argv)
     auto type = pair->second;
     fprintf(stderr, "subscribing to iceoryx topic %s with type %s\n", topic.c_str(), type.c_str());
 
-    auto ts = iceoryx_ros2_bridge::get_typesupport(type, "rosidl_typesupport_cpp");
+    std::shared_ptr<rcpputils::SharedLibrary> library_generic_publisher;
+    auto ts = iceoryx_ros2_bridge::get_typesupport(
+      type, "rosidl_typesupport_cpp", library_generic_publisher);
 
     ros2_pubs.emplace_back(
       std::make_shared<iceoryx_ros2_bridge::GenericPublisher>(
-        node->get_node_base_interface().get(), topic, *ts));
+        node->get_node_base_interface().get(), topic, *ts, library_generic_publisher));
 
     auto service_desc =
       rmw_iceoryx_cpp::get_iceoryx_service_description(topic, ts);

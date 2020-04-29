@@ -17,14 +17,18 @@
 #include <memory>
 #include <string>
 
+#include "rcpputils/shared_library.hpp"
+
 namespace iceoryx_ros2_bridge
 {
 
 GenericPublisher::GenericPublisher(
   rclcpp::node_interfaces::NodeBaseInterface * node_base,
   const std::string & topic,
-  const rosidl_message_type_support_t & type_support)
-: rclcpp::PublisherBase(node_base, topic, type_support, rcl_publisher_get_default_options())
+  const rosidl_message_type_support_t & type_support,
+  std::shared_ptr<rcpputils::SharedLibrary> library_handle)
+: rclcpp::PublisherBase(node_base, topic, type_support, rcl_publisher_get_default_options()),
+  ts_library_handle_(library_handle)
 {}
 
 void GenericPublisher::publish(std::shared_ptr<rmw_serialized_message_t> message)

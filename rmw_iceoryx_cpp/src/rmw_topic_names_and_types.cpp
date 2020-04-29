@@ -47,7 +47,7 @@ rmw_get_topic_names_and_types(
 
   rmw_ret_t rmw_ret = rmw_names_and_types_check_zero(topic_names_and_types);
   if (rmw_ret != RMW_RET_OK) {
-    return rmw_ret;
+    return rmw_ret;  // error already set
   }
 
   auto iceoryx_topic_names_and_types = rmw_iceoryx_cpp::get_topic_names_and_types();

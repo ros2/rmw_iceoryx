@@ -320,7 +320,27 @@ rmw_take_event(const rmw_event_t * event_handle, void * event_info, bool * taken
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(event_info, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_ERROR);
 
-  assert(false);
-  return RMW_RET_OK;
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support events.");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_take_sequence(
+  const rmw_subscription_t * subscription,
+  size_t count,
+  rmw_message_sequence_t * message_sequence,
+  rmw_message_info_sequence_t * message_info_sequence,
+  size_t * taken,
+  rmw_subscription_allocation_t * allocation)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_ERROR);
+  (void) count;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(message_sequence, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(message_info_sequence, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocation, RMW_RET_ERROR);
+
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support rmw_take_sequence.");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

@@ -15,25 +15,15 @@
 #ifndef RMW_ICEORYX_CPP__ICEORYX_DESERIALIZE_HPP_
 #define RMW_ICEORYX_CPP__ICEORYX_DESERIALIZE_HPP_
 
-struct rosidl_typesupport_introspection_c__MessageMembers;
-
-namespace rosidl_typesupport_introspection_cpp
-{
-struct MessageMembers;
-}
+struct rosidl_message_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {
 
 // TODO(karsten1987): This should be `uint8`, really
-const char * deserialize(
+void deserialize(
   const char * serialized_msg,
-  const rosidl_typesupport_introspection_c__MessageMembers * members,
-  void * ros_message);
-
-const char * deserialize(
-  const char * serialized_msg,
-  const rosidl_typesupport_introspection_cpp::MessageMembers * members,
+  const rosidl_message_type_support_t * type_supports,
   void * ros_message);
 
 }  // namespace rmw_iceoryx_cpp

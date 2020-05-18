@@ -98,25 +98,7 @@ rmw_publish(
   // message is neither loaned nor fixed size, so we have to serialize
   std::vector<char> payload_vector{};
 
-  // serialize with cpp typesupport
-  auto ts_cpp = get_message_typesupport_handle(
-    &iceoryx_publisher->type_supports_,
-    rosidl_typesupport_introspection_cpp::typesupport_identifier);
-  if (ts_cpp != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts_cpp->data);
-    rmw_iceoryx_cpp::serialize(ros_message, members, payload_vector);
-  }
-
-  // serialize with c typesupport
-  auto ts_c = get_message_typesupport_handle(
-    &iceoryx_publisher->type_supports_,
-    rosidl_typesupport_introspection_c__identifier);
-  if (ts_c != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts_c->data);
-    rmw_iceoryx_cpp::serialize(ros_message, members, payload_vector);
-  }
+  rmw_iceoryx_cpp::serialize(ros_message, &iceoryx_publisher->type_supports_, payload_vector);
 
   // send composed payload
   return details::send_payload(iceoryx_sender, payload_vector.data(), payload_vector.size());

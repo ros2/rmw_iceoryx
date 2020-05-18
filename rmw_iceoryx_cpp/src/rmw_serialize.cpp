@@ -63,26 +63,7 @@ rmw_serialize(
 
   // it's no fixed size message, so we have to serialize
   std::vector<char> payload_vector{};
-
-  // serialize with cpp typesupport
-  auto ts_cpp = get_message_typesupport_handle(
-    type_supports,
-    rosidl_typesupport_introspection_cpp::typesupport_identifier);
-  if (ts_cpp != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts_cpp->data);
-    rmw_iceoryx_cpp::serialize(ros_message, members, payload_vector);
-  }
-
-  // serialize with c typesupport
-  auto ts_c = get_message_typesupport_handle(
-    type_supports,
-    rosidl_typesupport_introspection_c__identifier);
-  if (ts_c != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts_c->data);
-    rmw_iceoryx_cpp::serialize(ros_message, members, payload_vector);
-  }
+  rmw_iceoryx_cpp::serialize(ros_message, type_supports, payload_vector);
 
   return details::copy_payload_into_serialized_message(
     serialized_message, payload_vector.data(), payload_vector.size());
@@ -104,27 +85,8 @@ rmw_deserialize(
     return RMW_RET_OK;
   }
 
-  // deserialize with cpp typesupport
-  auto ts_cpp = get_message_typesupport_handle(
-    type_supports,
-    rosidl_typesupport_introspection_cpp::typesupport_identifier);
-  if (ts_cpp != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts_cpp->data);
-    rmw_iceoryx_cpp::deserialize(
-      reinterpret_cast<const char *>(serialized_message->buffer), members, ros_message);
-  }
-
-  // deserialize with c typesupport
-  auto ts_c = get_message_typesupport_handle(
-    type_supports,
-    rosidl_typesupport_introspection_c__identifier);
-  if (ts_c != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts_c->data);
-    rmw_iceoryx_cpp::deserialize(
-      reinterpret_cast<const char *>(serialized_message->buffer), members, ros_message);
-  }
+  rmw_iceoryx_cpp::deserialize(
+    reinterpret_cast<const char *>(serialized_message->buffer), type_supports, ros_message);
 
   return RMW_RET_OK;
 }

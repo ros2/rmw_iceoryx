@@ -89,6 +89,7 @@ const char * deserialize_element(
 {
   T * data = reinterpret_cast<T *>(ros_message_field);
   memcpy(data, serialized_msg, SizeT);
+  std::cout << "deserialized data: " << *data << std::endl;
   serialized_msg += SizeT;
 
   return serialized_msg;
@@ -103,11 +104,11 @@ const char * deserialize_element<std::string, sizeof(std::string)>(
   std::tie(serialized_msg, string_size) = load_array_size(serialized_msg);
 
   if (string_size > 0) {
-    debug_log("deserialized string with length %u\n", string_size);
     auto string = reinterpret_cast<std::string *>(ros_message_field);
     string->clear();
     string->assign(serialized_msg, serialized_msg + string_size);
 
+    debug_log("deserialized string '%s' with size %zu\n", string->c_str(), string->size());
     serialized_msg += string_size;
   }
   //std::vector<char> vec;
@@ -132,6 +133,31 @@ const char * deserialize_element<std::string, sizeof(std::string)>(
   return serialized_msg;
 }
 
+template<>
+const char * deserialize_element<std::wstring, sizeof(std::wstring)>(
+  const char * serialized_msg,
+  void * ros_message_field)
+{
+  uint32_t string_size = 0;
+  std::tie(serialized_msg, string_size) = load_array_size(serialized_msg);
+
+  if (string_size > 0) {
+    auto string = reinterpret_cast<std::wstring *>(ros_message_field);
+    string->reserve(string_size);
+    for (auto i = 0u; i < string_size; ++i) {
+      wchar_t c{};
+      serialized_msg = deserialize_element<wchar_t>(serialized_msg, &c);
+      string->push_back(c);
+    }
+    //string->assign(serialized_msg, serialized_msg + string_size);
+
+    debug_log("deserialized wstring '%ls' with size %zu\n", string->c_str(), string->size());
+    //serialized_msg += string_size * sizeof(wchar_t);
+  }
+
+  return serialized_msg;
+}
+
 template<
   class T,
   uint32_t SizeT = sizeof(T)
@@ -142,9 +168,9 @@ const char * deserialize_array(
   uint32_t size)
 {
   auto array = reinterpret_cast<std::array<T, 1> *>(ros_message_field);
-  T* dataPtr = array->data();
+  auto dataPtr = reinterpret_cast<char *>(array->data());
   for (auto i = 0u; i < size; ++i) {
-    serialized_msg = deserialize_element<T>(serialized_msg, &dataPtr[i]);
+    serialized_msg = deserialize_element<T>(serialized_msg, dataPtr + i * SizeT);
   }
 
   return serialized_msg;
@@ -164,9 +190,10 @@ const char * deserialize_sequence(
     auto data = reinterpret_cast<std::vector<T> *>(ros_message_field);
     debug_log("resizing data sequence to %zu\n", sequence_size);
     data->resize(sequence_size);
-    auto dataPtr = data->data();
+    //auto dataPtr = data->data();
     for (auto i = 0u; i < sequence_size; ++i) {
-      serialized_msg = deserialize_element<T>(serialized_msg, &dataPtr[i]);
+      char * dataPtr = reinterpret_cast<char *>(&(data->at(i)));
+      serialized_msg = deserialize_element<T>(serialized_msg, dataPtr);
       //serialized_msg = deserialize_element<T>(serialized_msg, &data[i]);
     }
   }
@@ -180,6 +207,18 @@ template<>
 const char * deserialize_sequence<bool, sizeof(bool)>(
     const char * serialized_msg, void * ros_message_field)
 {
+  uint32_t sequence_size = 0;
+  std::tie(serialized_msg, sequence_size) = load_array_size(serialized_msg);
+
+  auto data = reinterpret_cast<std::vector<bool> *>(ros_message_field);
+  data->resize(sequence_size);
+
+  for (auto i = 0u; i < sequence_size; ++i) {
+    bool b{};
+    serialized_msg = deserialize_element<bool>(serialized_msg, &b);
+    data->at(i) = b;
+  }
+
   //uint32_t size = 0;
   //uint32_t array_size = 0;
 
@@ -191,10 +230,11 @@ const char * deserialize_sequence<bool, sizeof(bool)>(
 
   //// Boolean arrays are treated specially for they are stored as single bits
   //memcpy(data->begin()._M_p, serialized_msg, size);
+  //for (auto b : *data) {
+  //  debug_log("extracted bool: %s\n", b ? "true" : "false");
+  //}
   //serialized_msg += size;
 
-  (void) serialized_msg;
-  (void) ros_message_field;
   return serialized_msg;
 }
 
@@ -204,6 +244,7 @@ const char * deserialize_message_field(
   const char * serialized_msg,
   void * ros_message_field)
 {
+  debug_log("deserializing message field %s\n", member->name_);
   if (!member->is_array_) {
     return deserialize_element<T>(serialized_msg, ros_message_field);
   } else if (member->array_size_ > 0 && !member->is_upper_bound_) {

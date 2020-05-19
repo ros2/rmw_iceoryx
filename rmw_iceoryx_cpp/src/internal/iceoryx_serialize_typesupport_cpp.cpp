@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <iostream>
+
 #include <array>
 #include <cassert>
 #include <stdarg.h>
@@ -32,6 +34,7 @@ namespace details_cpp
 
 static inline void debug_log(const char * format, ...)
 {
+  setvbuf(stderr, NULL, _IONBF, BUFSIZ);
   va_list args;
   va_start(args, format);
   fprintf(stderr, "[WRITING] ");
@@ -58,6 +61,7 @@ void serialize_element(
   const char * ros_message_field)
 {
   debug_log("storing single data size %u\n", SizeT);
+  std::cout << "stored data: " << *(reinterpret_cast<const T *>(ros_message_field)) << std::endl;
   payloadVector.insert(payloadVector.end(), ros_message_field, ros_message_field + SizeT);
 }
 
@@ -67,9 +71,23 @@ void serialize_element<std::string, sizeof(std::string)>(
    const char * ros_message_field)
 {
   auto string = reinterpret_cast<const std::string *>(ros_message_field);
-  debug_log("storing string %s with size %zu\n", string->c_str(), string->size());
+  debug_log("storing string '%s' with size %zu\n", string->c_str(), string->size());
   store_sequence_size(payloadVector, string->size());
   payloadVector.insert(payloadVector.end(), string->begin(), string->end());
+}
+
+template<>
+void serialize_element<std::wstring, sizeof(std::wstring)>(
+   std::vector<char> & payloadVector,
+   const char * ros_message_field)
+{
+  auto string = reinterpret_cast<const std::wstring *>(ros_message_field);
+  debug_log("storing wstring '%ls' with size %zu\n", string->c_str(), string->size());
+  store_sequence_size(payloadVector, string->size());
+  for (const wchar_t & c : *string) {
+    auto data = reinterpret_cast<const char *>(&c);
+    serialize_element<wchar_t>(payloadVector, data);
+  }
 }
 
 template<
@@ -97,29 +115,39 @@ void serialize_sequence(std::vector<char> & payloadVector, const void * ros_mess
 {
   auto sequence = reinterpret_cast<const std::vector<T> *>(ros_message_field);
   uint32_t size = sequence->size();
-  const char * dataPtr = reinterpret_cast<const char *>(sequence->data());
 
   store_sequence_size(payloadVector, size);
 
   debug_log("storing data sequence of size %u\n", size);
   for (auto i = 0u; i < size; ++i) {
-    serialize_element<T>(payloadVector, &dataPtr[i]);
+    const char * dataPtr = reinterpret_cast<const char *>(&(sequence->at(i)));
+    serialize_element<T>(payloadVector, dataPtr);
   }
 }
 
 template<>
 void serialize_sequence<bool, sizeof(bool)>(std::vector<char> & payloadVector, const void * ros_message_field)
 {
-  const std::vector<bool> * data_array =
+  const std::vector<bool> * sequence =
     reinterpret_cast<const std::vector<bool> *>(ros_message_field);
-  // booleans are stored bit-wise this way it is possible to get the actual size of the array
-  uint32_t size = data_array->end() - data_array->begin();
+  uint32_t size = sequence->size();
+  store_sequence_size(payloadVector, size);
 
-  store_sequence_size(payloadVector, data_array->size());  // number of booleans
-  store_sequence_size(payloadVector, size);  // size in bytes
+  for (auto i = 0u; i < size; ++i) {
+    bool b = sequence->at(i);
+    auto data = reinterpret_cast<const char *>(&b);
+    serialize_element<bool>(payloadVector, data);
+  }
+  //const std::vector<bool> * data_array =
+  //  reinterpret_cast<const std::vector<bool> *>(ros_message_field);
+  //// booleans are stored bit-wise this way it is possible to get the actual size of the array
+  //uint32_t size = data_array->end() - data_array->begin();
 
-  debug_log("storing bool sequence of size %u\n", size);
-  payloadVector.insert(payloadVector.end(), data_array->begin(), data_array->end());
+  //store_sequence_size(payloadVector, data_array->size());  // number of booleans
+  //store_sequence_size(payloadVector, size);  // size in bytes
+
+  //debug_log("storing bool sequence of size %u\n", size);
+  //payloadVector.insert(payloadVector.end(), data_array->begin(), data_array->end());
   //(void) payloadVector;
   //(void) ros_message_field;
 }
@@ -130,6 +158,7 @@ void serialize_message_field(
   std::vector<char> & payloadVector,
   const char * ros_message_field)
 {
+  debug_log("serializing message field %s\n", member->name_);
   if (!member->is_array_) {
     serialize_element<T>(payloadVector, ros_message_field);
   } else if (member->array_size_ > 0 && !member->is_upper_bound_) {
@@ -258,9 +287,10 @@ void serialize(
           store_sequence_size(payloadVector, sequence_size);
         }
 
-        debug_log("type: %s, array_size: %zu, is_upper_bound %s\n",
-          member->name_, member->array_size_, member->is_upper_bound_ ? "true" : "false");
-        debug_log("adding %zu elements to vector\n", sequence_size);
+        debug_log("\tserializing message field %s\n", member->name_);
+        //debug_log("type: %s, array_size: %zu, is_upper_bound %s\n",
+        //  member->name_, member->array_size_, member->is_upper_bound_ ? "true" : "false");
+        //debug_log("adding %zu elements to vector\n", sequence_size);
         for (auto index = 0u; index < sequence_size; ++index) {
           serialize(subros_message, sub_members, payloadVector);
           subros_message = static_cast<const char *>(subros_message) + sub_members_size;

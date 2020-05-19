@@ -98,7 +98,7 @@ void test_equality(const test_msgs::msg::Arrays & expected, const test_msgs::msg
 template<>
 void test_equality(const test_msgs::msg::UnboundedSequences & expected, const test_msgs::msg::UnboundedSequences & actual)
 {
-  //EXPECT_EQ(expected.bool_values, actual.bool_values);
+  EXPECT_EQ(expected.bool_values, actual.bool_values);
   EXPECT_EQ(expected.byte_values, actual.byte_values);
   EXPECT_EQ(expected.char_values, actual.char_values);
   EXPECT_EQ(expected.float32_values, actual.float32_values);
@@ -115,7 +115,7 @@ void test_equality(const test_msgs::msg::UnboundedSequences & expected, const te
   EXPECT_EQ(expected.basic_types_values, actual.basic_types_values);
   EXPECT_EQ(expected.constants_values, actual.constants_values);
   EXPECT_EQ(expected.defaults_values, actual.defaults_values);
-  //EXPECT_EQ(expected.bool_values_default, actual.bool_values_default);
+  EXPECT_EQ(expected.bool_values_default, actual.bool_values_default);
   EXPECT_EQ(expected.byte_values_default, actual.byte_values_default);
   EXPECT_EQ(expected.char_values_default, actual.char_values_default);
   EXPECT_EQ(expected.float32_values_default, actual.float32_values_default);
@@ -152,7 +152,7 @@ void test_equality(const test_msgs::msg::BoundedSequences & expected, const test
   EXPECT_EQ(expected.basic_types_values, actual.basic_types_values);
   EXPECT_EQ(expected.constants_values, actual.constants_values);
   EXPECT_EQ(expected.defaults_values, actual.defaults_values);
-  //EXPECT_EQ(expected.bool_values_default, actual.bool_values_default);
+  EXPECT_EQ(expected.bool_values_default, actual.bool_values_default);
   EXPECT_EQ(expected.byte_values_default, actual.byte_values_default);
   EXPECT_EQ(expected.char_values_default, actual.char_values_default);
   EXPECT_EQ(expected.float32_values_default, actual.float32_values_default);
@@ -177,7 +177,9 @@ void flip_flop_serialization(MessageFixtureF message_fixture)
   auto ts = rosidl_typesupport_cpp::get_message_type_support_handle<MessageT>();
 
   auto test_msgs = message_fixture();
-  for (auto test_msg : test_msgs) {
+  for (auto i = 0u; i < test_msgs.size(); ++i) {
+    fprintf(stderr, "+++ Message #%u +++\n", i);
+    auto test_msg = test_msgs[i];
     std::vector<char> payload{};
 
     MessageT * msg = test_msg.get();
@@ -199,10 +201,10 @@ TEST(SerializationTests, flip_flop_serialize_basic_types)
   flip_flop_serialization<test_msgs::msg::Defaults>(std::bind(&get_messages_defaults));
   flip_flop_serialization<test_msgs::msg::Strings>(std::bind(&get_messages_strings));
   flip_flop_serialization<test_msgs::msg::Arrays>(std::bind(&get_messages_arrays));
-  //flip_flop_serialization<test_msgs::msg::UnboundedSequences>(std::bind(&get_messages_unbounded_sequences));
-  //flip_flop_serialization<test_msgs::msg::BoundedSequences>(std::bind(&get_messages_bounded_sequences));
+  flip_flop_serialization<test_msgs::msg::UnboundedSequences>(std::bind(&get_messages_unbounded_sequences));
+  flip_flop_serialization<test_msgs::msg::BoundedSequences>(std::bind(&get_messages_bounded_sequences));
   //flip_flop_serialization<test_msgs::msg::MultiNested>(std::bind(&get_messages_multi_nested));
   //flip_flop_serialization<test_msgs::msg::Nested>(std::bind(&get_messages_nested));
   //flip_flop_serialization<test_msgs::msg::Builtins>(std::bind(&get_messages_builtins));
-  //flip_flop_serialization<test_msgs::msg::WStrings>(std::bind(&get_messages_wstrings));
+  flip_flop_serialization<test_msgs::msg::WStrings>(std::bind(&get_messages_wstrings));
 }

@@ -42,7 +42,7 @@ inline void store_sequence_size(std::vector<char> & payloadVector, uint32_t arra
   payloadVector.insert(payloadVector.end(), sizePtr, sizePtr + sizeof(array_size));
 }
 
-inline std::pair<const char *, uint32_t> load_array_size(const char * serialized_msg)
+inline std::pair<const char *, uint32_t> pop_array_size(const char * serialized_msg)
 {
   // This is 64 bit aligned
   // REVIEW: Please discuss
@@ -72,7 +72,7 @@ inline std::pair<const char *, size_t> get_submessage_vector_cpp(
   }
 
   uint32_t vector_elements = 0;
-  std::tie(serialized_msg, vector_elements) = load_array_size(serialized_msg);
+  std::tie(serialized_msg, vector_elements) = pop_array_size(serialized_msg);
   auto vector = reinterpret_cast<std::vector<unsigned char> *>(ros_message_field);
 
   vector->resize(vector_elements * sub_members_size);

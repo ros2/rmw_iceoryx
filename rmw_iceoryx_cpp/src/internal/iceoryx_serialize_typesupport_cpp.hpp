@@ -61,16 +61,7 @@ void serialize_sequence(
   std::vector<char> & payloadVector,
   const void * ros_message_field);
 
-static inline void debug_log(const char * format, ...)
-{
-  setvbuf(stderr, NULL, _IONBF, BUFSIZ);
-  va_list args;
-  va_start(args, format);
-  fprintf(stderr, "[WRITING] ");
-  vfprintf(stderr, format, args);
-  va_end(args);
-}
-
+// Implementation
 template<
   class T,
   uint32_t SizeT = sizeof(T)
@@ -79,8 +70,7 @@ void serialize_element(
   std::vector<char> & payloadVector,
   const char * ros_message_field)
 {
-  debug_log("storing single data size %u\n", SizeT);
-  std::cout << "stored data: " << *(reinterpret_cast<const T *>(ros_message_field)) << std::endl;
+  debug_log("serializing data element of %u bytes\n", SizeT);
   payloadVector.insert(payloadVector.end(), ros_message_field, ros_message_field + SizeT);
 }
 
@@ -98,13 +88,6 @@ void serialize_element<std::wstring, sizeof(std::wstring)>(
    const char * ros_message_field)
 {
   serialize_sequence<wchar_t, sizeof(wchar_t), std::wstring>(payloadVector, ros_message_field);
-  //auto string = reinterpret_cast<const std::wstring *>(ros_message_field);
-  //debug_log("storing wstring '%ls' with size %zu\n", string->c_str(), string->size());
-  //store_sequence_size(payloadVector, string->size());
-  //for (const wchar_t & c : *string) {
-  //  auto data = reinterpret_cast<const char *>(&c);
-  //  serialize_element<wchar_t>(payloadVector, data);
-  //}
 }
 
 template<
@@ -118,7 +101,7 @@ void serialize_array(
 {
   auto array = reinterpret_cast<const std::array<T, 1> *>(ros_message_field);
   auto dataPtr = reinterpret_cast<const char *>(array->data());
-  debug_log("storing data array of size %u\n", size * SizeT);
+  debug_log("serializing data array of size %u\n", size * SizeT);
   for (auto i = 0u; i < size; ++i) {
     serialize_element<T>(payloadVector, dataPtr + i * SizeT);
   }
@@ -133,10 +116,9 @@ void serialize_sequence(std::vector<char> & payloadVector, const void * ros_mess
 {
   auto sequence = reinterpret_cast<const ContainerT *>(ros_message_field);
   uint32_t size = sequence->size();
-
   store_sequence_size(payloadVector, size);
 
-  debug_log("storing data sequence of size %u\n", size);
+  debug_log("serializing data sequence of size %u\n", size);
   for (const T & t : *sequence) {
     const char * dataPtr = reinterpret_cast<const char *>(&t);
     serialize_element<T>(payloadVector, dataPtr);
@@ -245,10 +227,7 @@ void serialize(
           store_sequence_size(payloadVector, sequence_size);
         }
 
-        debug_log("\tserializing message field %s\n", member->name_);
-        //debug_log("type: %s, array_size: %zu, is_upper_bound %s\n",
-        //  member->name_, member->array_size_, member->is_upper_bound_ ? "true" : "false");
-        //debug_log("adding %zu elements to vector\n", sequence_size);
+        debug_log("serializing message field %s\n", member->name_);
         for (auto index = 0u; index < sequence_size; ++index) {
           serialize(subros_message, sub_members, payloadVector);
           subros_message = static_cast<const char *>(subros_message) + sub_members_size;

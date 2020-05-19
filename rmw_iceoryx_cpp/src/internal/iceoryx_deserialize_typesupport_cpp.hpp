@@ -18,7 +18,6 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
-#include <stdarg.h>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -64,15 +63,6 @@ template<>
 const char * deserialize_sequence<wchar_t, sizeof(wchar_t), std::wstring>(
   const char * serialized_msg, void * ros_message_field);
 
-static inline void debug_log(const char * format, ...)
-{
-  va_list args;
-  va_start(args, format);
-  fprintf(stderr, "[READING] ");
-  vfprintf(stderr, format, args);
-  va_end(args);
-}
-
 template<
   class T,
   uint32_t SizeT = sizeof(T)
@@ -83,7 +73,7 @@ const char * deserialize_element(
 {
   T * data = reinterpret_cast<T *>(ros_message_field);
   memcpy(data, serialized_msg, SizeT);
-  std::cout << "deserialized data: " << *data << std::endl;
+  debug_log("deserializing data element with %u bytes\n", SizeT);
   serialized_msg += SizeT;
 
   return serialized_msg;
@@ -103,24 +93,6 @@ const char * deserialize_element<std::wstring, sizeof(std::wstring)>(
   void * ros_message_field)
 {
   return deserialize_sequence<wchar_t, sizeof(wchar_t), std::wstring>(serialized_msg, ros_message_field);
-  //uint32_t string_size = 0;
-  //std::tie(serialized_msg, string_size) = load_array_size(serialized_msg);
-
-  //if (string_size > 0) {
-  //  auto string = reinterpret_cast<std::wstring *>(ros_message_field);
-  //  string->reserve(string_size);
-  //  for (auto i = 0u; i < string_size; ++i) {
-  //    wchar_t c{};
-  //    serialized_msg = deserialize_element<wchar_t>(serialized_msg, &c);
-  //    string->push_back(c);
-  //  }
-  //  //string->assign(serialized_msg, serialized_msg + string_size);
-
-  //  debug_log("deserialized wstring '%ls' with size %zu\n", string->c_str(), string->size());
-  //  //serialized_msg += string_size * sizeof(wchar_t);
-  //}
-
-  //return serialized_msg;
 }
 
 template<
@@ -137,7 +109,6 @@ const char * deserialize_array(
   debug_log("deserializing array of size %zu\n", size);
   for (auto i = 0u; i < size; ++i) {
     serialized_msg = deserialize_element<T>(serialized_msg, dataPtr + i * SizeT);
-    debug_log("array element %u done\n", i);
   }
 
   return serialized_msg;
@@ -155,7 +126,7 @@ const char * deserialize_sequence(
   std::tie(serialized_msg, sequence_size) = load_array_size(serialized_msg);
   if (sequence_size > 0) {
     auto sequence = reinterpret_cast<ContainerT *>(ros_message_field);
-    debug_log("resizing data sequence to %zu\n", sequence_size);
+    debug_log("deserializigng data sequence of size %zu\n", sequence_size);
     sequence->resize(sequence_size);
     for (T & t : *sequence) {
       char * dataPtr = reinterpret_cast<char *>(&t);
@@ -174,7 +145,7 @@ const char * deserialize_sequence<bool, sizeof(bool), std::vector<bool>>(
   std::tie(serialized_msg, sequence_size) = load_array_size(serialized_msg);
   if (sequence_size > 0) {
     auto sequence = reinterpret_cast<std::vector<bool> *>(ros_message_field);
-    debug_log("resizing data sequence to %zu\n", sequence_size);
+    debug_log("deserializing bool sequence of size %zu\n", sequence_size);
     sequence->resize(sequence_size);
     for (auto i = 0u; i < sequence_size; ++i) {
       bool b{};
@@ -196,14 +167,11 @@ const char * deserialize_sequence<wchar_t, sizeof(wchar_t), std::wstring>(
   if (sequence_size > 0) {
     auto sequence = reinterpret_cast<std::wstring *>(ros_message_field);
     std::wstring str;
-    debug_log("resizing wstring sequence to %zu\n", sequence_size);
+    debug_log("deserializing wstring sequence of size %zu\n", sequence_size);
     str.resize(sequence_size);
-    //for (auto i = 0u; i < sequence_size; ++i) {
     for (wchar_t & c : str) {
-      //wchar_t c{};
       char * data = reinterpret_cast<char *>(&c);
       serialized_msg = deserialize_element<wchar_t>(serialized_msg, data);
-      //str.at(i) = c;
     }
     *sequence = str;
   }
@@ -284,7 +252,7 @@ const char * deserialize(
           if (!member->is_array_) {
             serialized_msg = deserialize(serialized_msg, sub_members, ros_message_field);
           } else {
-            fprintf(stderr, "[READING]type: %s, array_size: %zu, is_upper_bound %s\n", member->name_, member->array_size_, member->is_upper_bound_ ? "true" : "false");
+            debug_log("deserializing ROS message %s\n", member->name_);
             void * subros_message = nullptr;
             size_t array_elememts = 0;
             size_t sub_members_size = sub_members->size_of_;
@@ -298,7 +266,6 @@ const char * deserialize(
             }
           }
         }
-        //serialized_msg = copy_payload_cpp_ros_message(member, serialized_msg, ros_message_field);
         break;
       default:
         throw std::runtime_error(std::string("unknown type") + member->name_);

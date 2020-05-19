@@ -14,8 +14,24 @@
 
 #pragma once
 
+#include <stdarg.h>
 #include <tuple>
 #include <vector>
+
+#define DEBUG_LOG 0
+
+static inline void debug_log(const char * format, ...)
+{
+#if DEBUG_LOG
+  va_list args;
+  va_start(args, format);
+  fprintf(stderr, "[READING] ");
+  vfprintf(stderr, format, args);
+  va_end(args);
+#else
+  (void) format;
+#endif
+}
 
 inline void store_sequence_size(std::vector<char> & payloadVector, uint32_t array_size)
 {

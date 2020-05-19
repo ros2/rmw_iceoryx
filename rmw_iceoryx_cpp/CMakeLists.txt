@@ -43,10 +43,8 @@ find_package(rosidl_typesupport_introspection_cpp REQUIRED)
 add_library(rmw_iceoryx_serialization SHARED
   src/internal/iceoryx_deserialize.cpp
   src/internal/iceoryx_deserialize_typesupport_c.cpp
-  src/internal/iceoryx_deserialize_typesupport_cpp.cpp
   src/internal/iceoryx_serialize.cpp
   src/internal/iceoryx_serialize_typesupport_c.cpp
-  src/internal/iceoryx_serialize_typesupport_cpp.cpp
 )
 target_include_directories(rmw_iceoryx_serialization
   PUBLIC include

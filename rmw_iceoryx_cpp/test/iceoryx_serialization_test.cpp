@@ -168,6 +168,7 @@ void test_equality(const test_msgs::msg::BoundedSequences & expected, const test
   EXPECT_EQ(expected.string_values_default, actual.string_values_default);
   EXPECT_EQ(expected.alignment_check, actual.alignment_check);
 }
+
 template<
   class MessageT,
   class MessageFixtureF = std::function<std::vector<std::shared_ptr<MessageT>>(void)>
@@ -178,6 +179,7 @@ void flip_flop_serialization(MessageFixtureF message_fixture)
 
   auto test_msgs = message_fixture();
   for (auto i = 0u; i < test_msgs.size(); ++i) {
+  //for (auto i = 0u; i < 1; ++i) {
     fprintf(stderr, "+++ Message #%u +++\n", i);
     auto test_msg = test_msgs[i];
     std::vector<char> payload{};
@@ -203,8 +205,8 @@ TEST(SerializationTests, flip_flop_serialize_basic_types)
   flip_flop_serialization<test_msgs::msg::Arrays>(std::bind(&get_messages_arrays));
   flip_flop_serialization<test_msgs::msg::UnboundedSequences>(std::bind(&get_messages_unbounded_sequences));
   flip_flop_serialization<test_msgs::msg::BoundedSequences>(std::bind(&get_messages_bounded_sequences));
-  //flip_flop_serialization<test_msgs::msg::MultiNested>(std::bind(&get_messages_multi_nested));
-  //flip_flop_serialization<test_msgs::msg::Nested>(std::bind(&get_messages_nested));
-  //flip_flop_serialization<test_msgs::msg::Builtins>(std::bind(&get_messages_builtins));
+  flip_flop_serialization<test_msgs::msg::MultiNested>(std::bind(&get_messages_multi_nested));
+  flip_flop_serialization<test_msgs::msg::Nested>(std::bind(&get_messages_nested));
+  flip_flop_serialization<test_msgs::msg::Builtins>(std::bind(&get_messages_builtins));
   flip_flop_serialization<test_msgs::msg::WStrings>(std::bind(&get_messages_wstrings));
 }

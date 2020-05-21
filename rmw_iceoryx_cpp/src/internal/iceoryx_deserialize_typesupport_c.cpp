@@ -20,6 +20,8 @@
 #include <tuple>
 #include <vector>
 
+#include "rosidl_typesupport_c/message_type_support.h"
+
 #include "rosidl_runtime_c/string_functions.h"
 
 #include "rosidl_typesupport_introspection_c/field_types.h"
@@ -32,6 +34,11 @@ namespace rmw_iceoryx_cpp
 {
 namespace details_c
 {
+
+const char * deserialize(
+  const char * serialized_msg,
+  const rosidl_typesupport_introspection_c__MessageMembers * members,
+  void * ros_message);
 
 std::pair<const char *, uint32_t> load_array_size(const char * serialized_msg)
 {

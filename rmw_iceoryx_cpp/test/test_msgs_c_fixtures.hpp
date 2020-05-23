@@ -12,7 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef TEST_MSGS_C_FIXTURES_HPP_
+#define TEST_MSGS_C_FIXTURES_HPP_
+
+#include <memory>
+#include <limits>
+#include <string>
+#include <vector>
 
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
@@ -35,11 +41,12 @@ get_messages_empty_c()
   using T = test_msgs__msg__Empty;
   std::vector<std::shared_ptr<T>> vec{};
   {
-    auto empty = std::shared_ptr<T>(new T, [](T * msg) {
+    auto empty = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__Empty__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__Empty__init(empty.get());
     vec.push_back(empty);
   }
@@ -64,11 +71,12 @@ get_messages_basic_types_c()
   using T = test_msgs__msg__BasicTypes;
   std::vector<std::shared_ptr<T>> vec{};
   {
-    auto basic_type = std::shared_ptr<T>(new T, [](T * msg) {
+    auto basic_type = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__BasicTypes__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__BasicTypes__init(basic_type.get());
     basic_type->bool_value = false;
     basic_type->byte_value = 0;
@@ -87,11 +95,12 @@ get_messages_basic_types_c()
     vec.push_back(basic_type);
   }
   {
-    auto basic_type = std::shared_ptr<T>(new T, [](T * msg) {
+    auto basic_type = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__BasicTypes__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__BasicTypes__init(basic_type.get());
     basic_type->bool_value = true;
     basic_type->byte_value = 255;
@@ -110,11 +119,12 @@ get_messages_basic_types_c()
     vec.push_back(basic_type);
   }
   {
-    auto basic_type = std::shared_ptr<T>(new T, [](T * msg) {
+    auto basic_type = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__BasicTypes__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__BasicTypes__init(basic_type.get());
     basic_type->bool_value = false;
     basic_type->byte_value = 0;
@@ -133,11 +143,12 @@ get_messages_basic_types_c()
     vec.push_back(basic_type);
   }
   {
-    auto basic_type = std::shared_ptr<T>(new T, [](T * msg) {
+    auto basic_type = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__BasicTypes__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__BasicTypes__init(basic_type.get());
     basic_type->bool_value = true;
     basic_type->byte_value = 1;
@@ -161,19 +172,19 @@ get_messages_basic_types_c()
 
 bool operator==(const test_msgs__msg__BasicTypes & lhs, const test_msgs__msg__BasicTypes & rhs)
 {
-  if (lhs.bool_value != rhs.bool_value) { return false; }
-  if (lhs.byte_value != rhs.byte_value) { return false; }
-  if (lhs.char_value != rhs.char_value) { return false; }
-  if (lhs.float32_value != rhs.float32_value) { return false; }
-  if (lhs.float64_value != rhs.float64_value) { return false; }
-  if (lhs.int8_value != rhs.int8_value) { return false; }
-  if (lhs.uint8_value != rhs.uint8_value) { return false; }
-  if (lhs.int16_value != rhs.int16_value) { return false; }
-  if (lhs.uint16_value != rhs.uint16_value) { return false; }
-  if (lhs.int32_value != rhs.int32_value) { return false; }
-  if (lhs.uint32_value != rhs.uint32_value) { return false; }
-  if (lhs.int64_value != rhs.int64_value) { return false; }
-  if (lhs.uint64_value != rhs.uint64_value) { return false; }
+  if (lhs.bool_value != rhs.bool_value) {return false;}
+  if (lhs.byte_value != rhs.byte_value) {return false;}
+  if (lhs.char_value != rhs.char_value) {return false;}
+  if (lhs.float32_value != rhs.float32_value) {return false;}
+  if (lhs.float64_value != rhs.float64_value) {return false;}
+  if (lhs.int8_value != rhs.int8_value) {return false;}
+  if (lhs.uint8_value != rhs.uint8_value) {return false;}
+  if (lhs.int16_value != rhs.int16_value) {return false;}
+  if (lhs.uint16_value != rhs.uint16_value) {return false;}
+  if (lhs.int32_value != rhs.int32_value) {return false;}
+  if (lhs.uint32_value != rhs.uint32_value) {return false;}
+  if (lhs.int64_value != rhs.int64_value) {return false;}
+  if (lhs.uint64_value != rhs.uint64_value) {return false;}
 
   return true;
 }
@@ -189,11 +200,12 @@ get_messages_constants_c()
   using T = test_msgs__msg__Constants;
   std::vector<std::shared_ptr<T>> vec{};
   {
-    auto constants = std::shared_ptr<T>(new T, [](T * msg) {
+    auto constants = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__Constants__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__Constants__init(constants.get());
     vec.push_back(constants);
   }
@@ -205,21 +217,6 @@ bool operator==(const test_msgs__msg__Constants & lhs, const test_msgs__msg__Con
 {
   (void) lhs;
   (void) rhs;
-
-  //TODO(karsten1987) Not sure how a equal operator should look like here
-  //if (lhs.BOOL_CONST, true);
-  //if (lhs.BYTE_CONST, 50);
-  //if (lhs.CHAR_CONST, 100);
-  //if (lhs.FLOAT32_CONST, 1.125);
-  //if (lhs.FLOAT64_CONST, 1.125);
-  //if (lhs.INT8_CONST, -50);
-  //if (lhs.UINT8_CONST, 200u);
-  //if (lhs.INT16_CONST, -1000);
-  //if (lhs.UINT16_CONST, 2000u);
-  //if (lhs.INT32_CONST, -30000);
-  //if (lhs.UINT32_CONST, 60000u);
-  //if (lhs.INT64_CONST, -40000000);
-  //if (lhs.UINT64_CONST, 50000000u);
 
   return true;
 }
@@ -235,11 +232,12 @@ get_messages_defaults_c()
   using T = test_msgs__msg__Defaults;
   std::vector<std::shared_ptr<T>> vec{};
   {
-    auto defaults = std::shared_ptr<T>(new T, [](T * msg) {
+    auto defaults = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__Defaults__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__Defaults__init(defaults.get());
     vec.push_back(defaults);
   }
@@ -249,19 +247,19 @@ get_messages_defaults_c()
 
 bool operator==(const test_msgs__msg__Defaults & lhs, const test_msgs__msg__Defaults & rhs)
 {
-  if (lhs.bool_value != rhs.bool_value) { return false; }
-  if (lhs.byte_value != rhs.byte_value) { return false; }
-  if (lhs.char_value != rhs.char_value) { return false; }
-  if (lhs.float32_value != rhs.float32_value) { return false; }
-  if (lhs.float64_value != rhs.float64_value) { return false; }
-  if (lhs.int8_value != rhs.int8_value) { return false; }
-  if (lhs.uint8_value != rhs.uint8_value) { return false; }
-  if (lhs.int16_value != rhs.int16_value) { return false; }
-  if (lhs.uint16_value != rhs.uint16_value) { return false; }
-  if (lhs.int32_value != rhs.int32_value) { return false; }
-  if (lhs.uint32_value != rhs.uint32_value) { return false; }
-  if (lhs.int64_value != rhs.int64_value) { return false; }
-  if (lhs.uint64_value != rhs.uint64_value) { return false; }
+  if (lhs.bool_value != rhs.bool_value) {return false;}
+  if (lhs.byte_value != rhs.byte_value) {return false;}
+  if (lhs.char_value != rhs.char_value) {return false;}
+  if (lhs.float32_value != rhs.float32_value) {return false;}
+  if (lhs.float64_value != rhs.float64_value) {return false;}
+  if (lhs.int8_value != rhs.int8_value) {return false;}
+  if (lhs.uint8_value != rhs.uint8_value) {return false;}
+  if (lhs.int16_value != rhs.int16_value) {return false;}
+  if (lhs.uint16_value != rhs.uint16_value) {return false;}
+  if (lhs.int32_value != rhs.int32_value) {return false;}
+  if (lhs.uint32_value != rhs.uint32_value) {return false;}
+  if (lhs.int64_value != rhs.int64_value) {return false;}
+  if (lhs.uint64_value != rhs.uint64_value) {return false;}
 
   return true;
 }
@@ -277,44 +275,48 @@ get_messages_strings_c()
   using T = test_msgs__msg__Strings;
   std::vector<std::shared_ptr<T>> vec{};
   {
-    auto string = std::shared_ptr<T>(new T, [](T * msg) {
+    auto string = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__Strings__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__Strings__init(string.get());
     rosidl_runtime_c__String__assign(&string->string_value, "");
     rosidl_runtime_c__String__assign(&string->bounded_string_value, "");
     vec.push_back(string);
   }
   {
-    auto string = std::shared_ptr<T>(new T, [](T * msg) {
+    auto string = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__Strings__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__Strings__init(string.get());
     rosidl_runtime_c__String__assign(&string->string_value, "Hello world!");
     rosidl_runtime_c__String__assign(&string->bounded_string_value, "Hello world!");
     vec.push_back(string);
   }
   {
-    auto string = std::shared_ptr<T>(new T, [](T * msg) {
+    auto string = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__Strings__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__Strings__init(string.get());
     rosidl_runtime_c__String__assign(&string->string_value, u8"Hell\u00F6 W\u00F6rld!");
     rosidl_runtime_c__String__assign(&string->bounded_string_value, u8"Hell\u00F6 W\u00F6rld!");
     vec.push_back(string);
   }
   {
-    auto string = std::shared_ptr<T>(new T, [](T * msg) {
+    auto string = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__Strings__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__Strings__init(string.get());
     char string_value[20000] = {};
     for (uint32_t i = 0; i < 20000; i++) {
@@ -335,8 +337,8 @@ get_messages_strings_c()
 
 bool operator==(const test_msgs__msg__Strings & lhs, const test_msgs__msg__Strings & rhs)
 {
-  if (0 != strcmp(lhs.string_value.data, rhs.string_value.data)) { return false; }
-  if (0 != strcmp(lhs.bounded_string_value.data, rhs.bounded_string_value.data)) { return false; }
+  if (0 != strcmp(lhs.string_value.data, rhs.string_value.data)) {return false;}
+  if (0 != strcmp(lhs.bounded_string_value.data, rhs.bounded_string_value.data)) {return false;}
 
   return true;
 }
@@ -352,11 +354,12 @@ get_messages_arrays_c()
   using T = test_msgs__msg__Arrays;
   std::vector<std::shared_ptr<T>> vec{};
   {
-    auto arrays = std::shared_ptr<T>(new T, [](T * msg) {
+    auto arrays = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__Arrays__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__Arrays__init(arrays.get());
     arrays->bool_values[0] = false;
     arrays->bool_values[1] = true;
@@ -421,54 +424,54 @@ get_messages_arrays_c()
 
 bool operator==(const test_msgs__msg__Arrays & lhs, const test_msgs__msg__Arrays & rhs)
 {
-  if (lhs.bool_values[0] != rhs.bool_values[0]) { return false; }
-  if (lhs.bool_values[1] != rhs.bool_values[1]) { return false; }
-  if (lhs.bool_values[2] != rhs.bool_values[2]) { return false; }
-  if (lhs.byte_values[0] != rhs.byte_values[0]) { return false; }
-  if (lhs.byte_values[1] != rhs.byte_values[1]) { return false; }
-  if (lhs.byte_values[2] != rhs.byte_values[2]) { return false; }
-  if (lhs.char_values[0] != rhs.char_values[0]) { return false; }
-  if (lhs.char_values[1] != rhs.char_values[1]) { return false; }
-  if (lhs.char_values[2] != rhs.char_values[2]) { return false; }
-  if (lhs.float32_values[0] != rhs.float32_values[0]) { return false; }
-  if (lhs.float32_values[1] != rhs.float32_values[1]) { return false; }
-  if (lhs.float32_values[2] != rhs.float32_values[2]) { return false; }
-  if (lhs.float64_values[0] != rhs.float64_values[0]) { return false; }
-  if (lhs.float64_values[1] != rhs.float64_values[1]) { return false; }
-  if (lhs.float64_values[2] != rhs.float64_values[2]) { return false; }
-  if (lhs.int8_values[0] != rhs.int8_values[0]) { return false; }
-  if (lhs.int8_values[1] != rhs.int8_values[1]) { return false; }
-  if (lhs.int8_values[2] != rhs.int8_values[2]) { return false; }
-  if (lhs.uint8_values[0] != rhs.uint8_values[0]) { return false; }
-  if (lhs.uint8_values[1] != rhs.uint8_values[1]) { return false; }
-  if (lhs.uint8_values[2] != rhs.uint8_values[2]) { return false; }
-  if (lhs.int16_values[0] != rhs.int16_values[0]) { return false; }
-  if (lhs.int16_values[1] != rhs.int16_values[1]) { return false; }
-  if (lhs.int16_values[2] != rhs.int16_values[2]) { return false; }
-  if (lhs.uint16_values[0] != rhs.uint16_values[0]) { return false; }
-  if (lhs.uint16_values[1] != rhs.uint16_values[1]) { return false; }
-  if (lhs.uint16_values[2] != rhs.uint16_values[2]) { return false; }
-  if (lhs.int32_values[0] != rhs.int32_values[0]) { return false; }
-  if (lhs.int32_values[1] != rhs.int32_values[1]) { return false; }
-  if (lhs.int32_values[2] != rhs.int32_values[2]) { return false; }
-  if (lhs.uint32_values[0] != rhs.uint32_values[0]) { return false; }
-  if (lhs.uint32_values[1] != rhs.uint32_values[1]) { return false; }
-  if (lhs.uint32_values[2] != rhs.uint32_values[2]) { return false; }
-  if (lhs.int64_values[0] != rhs.int64_values[0]) { return false; }
-  if (lhs.int64_values[1] != rhs.int64_values[1]) { return false; }
-  if (lhs.int64_values[2] != rhs.int64_values[2]) { return false; }
-  if (lhs.uint64_values[0] != rhs.uint64_values[0]) { return false; }
-  if (lhs.uint64_values[1] != rhs.uint64_values[1]) { return false; }
-  if (lhs.uint64_values[2] != rhs.uint64_values[2]) { return false; }
-  if (lhs.basic_types_values[0] != rhs.basic_types_values[0]) { return false; }
-  if (lhs.basic_types_values[1] != rhs.basic_types_values[1]) { return false; }
-  if (lhs.basic_types_values[2] != rhs.basic_types_values[2]) { return false; }
-  if (lhs.constants_values[0] != rhs.constants_values[0]) { return false; }
-  if (lhs.constants_values[1] != rhs.constants_values[1]) { return false; }
-  if (lhs.constants_values[2] != rhs.constants_values[2]) { return false; }
-  if (lhs.defaults_values[0] != rhs.defaults_values[0]) { return false; }
-  if (lhs.defaults_values[1] != rhs.defaults_values[1]) { return false; }
-  if (lhs.defaults_values[2] != rhs.defaults_values[2]) { return false; }
+  if (lhs.bool_values[0] != rhs.bool_values[0]) {return false;}
+  if (lhs.bool_values[1] != rhs.bool_values[1]) {return false;}
+  if (lhs.bool_values[2] != rhs.bool_values[2]) {return false;}
+  if (lhs.byte_values[0] != rhs.byte_values[0]) {return false;}
+  if (lhs.byte_values[1] != rhs.byte_values[1]) {return false;}
+  if (lhs.byte_values[2] != rhs.byte_values[2]) {return false;}
+  if (lhs.char_values[0] != rhs.char_values[0]) {return false;}
+  if (lhs.char_values[1] != rhs.char_values[1]) {return false;}
+  if (lhs.char_values[2] != rhs.char_values[2]) {return false;}
+  if (lhs.float32_values[0] != rhs.float32_values[0]) {return false;}
+  if (lhs.float32_values[1] != rhs.float32_values[1]) {return false;}
+  if (lhs.float32_values[2] != rhs.float32_values[2]) {return false;}
+  if (lhs.float64_values[0] != rhs.float64_values[0]) {return false;}
+  if (lhs.float64_values[1] != rhs.float64_values[1]) {return false;}
+  if (lhs.float64_values[2] != rhs.float64_values[2]) {return false;}
+  if (lhs.int8_values[0] != rhs.int8_values[0]) {return false;}
+  if (lhs.int8_values[1] != rhs.int8_values[1]) {return false;}
+  if (lhs.int8_values[2] != rhs.int8_values[2]) {return false;}
+  if (lhs.uint8_values[0] != rhs.uint8_values[0]) {return false;}
+  if (lhs.uint8_values[1] != rhs.uint8_values[1]) {return false;}
+  if (lhs.uint8_values[2] != rhs.uint8_values[2]) {return false;}
+  if (lhs.int16_values[0] != rhs.int16_values[0]) {return false;}
+  if (lhs.int16_values[1] != rhs.int16_values[1]) {return false;}
+  if (lhs.int16_values[2] != rhs.int16_values[2]) {return false;}
+  if (lhs.uint16_values[0] != rhs.uint16_values[0]) {return false;}
+  if (lhs.uint16_values[1] != rhs.uint16_values[1]) {return false;}
+  if (lhs.uint16_values[2] != rhs.uint16_values[2]) {return false;}
+  if (lhs.int32_values[0] != rhs.int32_values[0]) {return false;}
+  if (lhs.int32_values[1] != rhs.int32_values[1]) {return false;}
+  if (lhs.int32_values[2] != rhs.int32_values[2]) {return false;}
+  if (lhs.uint32_values[0] != rhs.uint32_values[0]) {return false;}
+  if (lhs.uint32_values[1] != rhs.uint32_values[1]) {return false;}
+  if (lhs.uint32_values[2] != rhs.uint32_values[2]) {return false;}
+  if (lhs.int64_values[0] != rhs.int64_values[0]) {return false;}
+  if (lhs.int64_values[1] != rhs.int64_values[1]) {return false;}
+  if (lhs.int64_values[2] != rhs.int64_values[2]) {return false;}
+  if (lhs.uint64_values[0] != rhs.uint64_values[0]) {return false;}
+  if (lhs.uint64_values[1] != rhs.uint64_values[1]) {return false;}
+  if (lhs.uint64_values[2] != rhs.uint64_values[2]) {return false;}
+  if (lhs.basic_types_values[0] != rhs.basic_types_values[0]) {return false;}
+  if (lhs.basic_types_values[1] != rhs.basic_types_values[1]) {return false;}
+  if (lhs.basic_types_values[2] != rhs.basic_types_values[2]) {return false;}
+  if (lhs.constants_values[0] != rhs.constants_values[0]) {return false;}
+  if (lhs.constants_values[1] != rhs.constants_values[1]) {return false;}
+  if (lhs.constants_values[2] != rhs.constants_values[2]) {return false;}
+  if (lhs.defaults_values[0] != rhs.defaults_values[0]) {return false;}
+  if (lhs.defaults_values[1] != rhs.defaults_values[1]) {return false;}
+  if (lhs.defaults_values[2] != rhs.defaults_values[2]) {return false;}
 
   return true;
 }
@@ -484,11 +487,12 @@ get_messages_unbounded_sequences_c()
   using T = test_msgs__msg__UnboundedSequences;
   std::vector<std::shared_ptr<T>> vec{};
   {
-    auto unbounded = std::shared_ptr<T>(new T, [](T * msg) {
+    auto unbounded = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__UnboundedSequences__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__UnboundedSequences__init(unbounded.get());
 
     rosidl_runtime_c__bool__Sequence__init(&unbounded->bool_values, 0);
@@ -511,11 +515,12 @@ get_messages_unbounded_sequences_c()
     vec.push_back(unbounded);
   }
   {
-    auto unbounded = std::shared_ptr<T>(new T, [](T * msg) {
+    auto unbounded = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__UnboundedSequences__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__UnboundedSequences__init(unbounded.get());
 
     rosidl_runtime_c__bool__Sequence__init(&unbounded->bool_values, 1);
@@ -552,11 +557,12 @@ get_messages_unbounded_sequences_c()
     vec.push_back(unbounded);
   }
   {
-    auto unbounded = std::shared_ptr<T>(new T, [](T * msg) {
+    auto unbounded = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__UnboundedSequences__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__UnboundedSequences__init(unbounded.get());
 
     rosidl_runtime_c__bool__Sequence__init(&unbounded->bool_values, 2);
@@ -614,11 +620,12 @@ get_messages_unbounded_sequences_c()
     vec.push_back(unbounded);
   }
   {
-    auto unbounded = std::shared_ptr<T>(new T, [](T * msg) {
+    auto unbounded = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__UnboundedSequences__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__UnboundedSequences__init(unbounded.get());
 
     size_t size = 2000;
@@ -663,11 +670,12 @@ get_messages_unbounded_sequences_c()
     vec.push_back(unbounded);
   }
   {
-    auto unbounded = std::shared_ptr<T>(new T, [](T * msg) {
+    auto unbounded = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__UnboundedSequences__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__UnboundedSequences__init(unbounded.get());
 
     rosidl_runtime_c__bool__Sequence__init(&unbounded->bool_values, 0);
@@ -693,71 +701,77 @@ get_messages_unbounded_sequences_c()
   return vec;
 }
 
-bool operator==(const test_msgs__msg__UnboundedSequences & lhs, const test_msgs__msg__UnboundedSequences & rhs)
+bool operator==(
+  const test_msgs__msg__UnboundedSequences & lhs,
+  const test_msgs__msg__UnboundedSequences & rhs)
 {
-  if (lhs.bool_values.size != rhs.bool_values.size) { return false; }
-  if (lhs.byte_values.size != rhs.byte_values.size) { return false; }
-  if (lhs.char_values.size != rhs.char_values.size) { return false; }
-  if (lhs.float32_values.size != rhs.float32_values.size) { return false; }
-  if (lhs.float64_values.size != rhs.float64_values.size) { return false; }
-  if (lhs.int8_values.size != rhs.int8_values.size) { return false; }
-  if (lhs.uint8_values.size != rhs.uint8_values.size) { return false; }
-  if (lhs.int16_values.size != rhs.int16_values.size) { return false; }
-  if (lhs.uint16_values.size != rhs.uint16_values.size) { return false; }
-  if (lhs.int32_values.size != rhs.int32_values.size) { return false; }
-  if (lhs.uint32_values.size != rhs.uint32_values.size) { return false; }
-  if (lhs.int64_values.size != rhs.int64_values.size) { return false; }
-  if (lhs.uint64_values.size != rhs.uint64_values.size) { return false; }
+  if (lhs.bool_values.size != rhs.bool_values.size) {return false;}
+  if (lhs.byte_values.size != rhs.byte_values.size) {return false;}
+  if (lhs.char_values.size != rhs.char_values.size) {return false;}
+  if (lhs.float32_values.size != rhs.float32_values.size) {return false;}
+  if (lhs.float64_values.size != rhs.float64_values.size) {return false;}
+  if (lhs.int8_values.size != rhs.int8_values.size) {return false;}
+  if (lhs.uint8_values.size != rhs.uint8_values.size) {return false;}
+  if (lhs.int16_values.size != rhs.int16_values.size) {return false;}
+  if (lhs.uint16_values.size != rhs.uint16_values.size) {return false;}
+  if (lhs.int32_values.size != rhs.int32_values.size) {return false;}
+  if (lhs.uint32_values.size != rhs.uint32_values.size) {return false;}
+  if (lhs.int64_values.size != rhs.int64_values.size) {return false;}
+  if (lhs.uint64_values.size != rhs.uint64_values.size) {return false;}
 
-  if (lhs.alignment_check != rhs.alignment_check) { fprintf(stderr, "two messages are not aligend\n"); return false; }
+  if (lhs.alignment_check != rhs.alignment_check) {
+    fprintf(stderr, "two messages are not aligend\n"); return false;
+  }
 
   for (size_t i = 0; i < lhs.bool_values.size; ++i) {
-    if (lhs.bool_values.data[i] != rhs.bool_values.data[i]) { return false; }
+    if (lhs.bool_values.data[i] != rhs.bool_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.byte_values.size; ++i) {
-    if (lhs.byte_values.data[i] != rhs.byte_values.data[i]) { return false; }
+    if (lhs.byte_values.data[i] != rhs.byte_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.char_values.size; ++i) {
-    if (lhs.char_values.data[i] != rhs.char_values.data[i]) { return false; }
+    if (lhs.char_values.data[i] != rhs.char_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.float32_values.size; ++i) {
-    if (lhs.float32_values.data[i] != rhs.float32_values.data[i]) { return false; }
+    if (lhs.float32_values.data[i] != rhs.float32_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.float64_values.size; ++i) {
-    if (lhs.float64_values.data[i] != rhs.float64_values.data[i]) { return false; }
+    if (lhs.float64_values.data[i] != rhs.float64_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.int8_values.size; ++i) {
-    if (lhs.int8_values.data[i] != rhs.int8_values.data[i]) { return false; }
+    if (lhs.int8_values.data[i] != rhs.int8_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.uint8_values.size; ++i) {
-    if (lhs.uint8_values.data[i] != rhs.uint8_values.data[i]) { return false; }
+    if (lhs.uint8_values.data[i] != rhs.uint8_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.int16_values.size; ++i) {
-    if (lhs.int16_values.data[i] != rhs.int16_values.data[i]) { return false; }
+    if (lhs.int16_values.data[i] != rhs.int16_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.uint16_values.size; ++i) {
-    if (lhs.uint16_values.data[i] != rhs.uint16_values.data[i]) { return false; }
+    if (lhs.uint16_values.data[i] != rhs.uint16_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.int32_values.size; ++i) {
-    if (lhs.int32_values.data[i] != rhs.int32_values.data[i]) { return false; }
+    if (lhs.int32_values.data[i] != rhs.int32_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.uint32_values.size; ++i) {
-    if (lhs.uint32_values.data[i] != rhs.uint32_values.data[i]) { return false; }
+    if (lhs.uint32_values.data[i] != rhs.uint32_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.int64_values.size; ++i) {
-    if (lhs.int64_values.data[i] != rhs.int64_values.data[i]) { return false; }
+    if (lhs.int64_values.data[i] != rhs.int64_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.uint64_values.size; ++i) {
-    if (lhs.uint64_values.data[i] != rhs.uint64_values.data[i]) { return false; }
+    if (lhs.uint64_values.data[i] != rhs.uint64_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.string_values.size; ++i) {
-    if (0 != strcmp(lhs.string_values.data[i].data, rhs.string_values.data[i].data)) { return false; }
+    if (0 != strcmp(lhs.string_values.data[i].data, rhs.string_values.data[i].data)) {return false;}
   }
 
   return true;
 }
 
-bool operator!=(const test_msgs__msg__UnboundedSequences & lhs, const test_msgs__msg__UnboundedSequences & rhs)
+bool operator!=(
+  const test_msgs__msg__UnboundedSequences & lhs,
+  const test_msgs__msg__UnboundedSequences & rhs)
 {
   return !(lhs == rhs);
 }
@@ -768,11 +782,12 @@ get_messages_bounded_sequences_c()
   using T = test_msgs__msg__BoundedSequences;
   std::vector<std::shared_ptr<T>> vec{};
   {
-    auto bounded = std::shared_ptr<T>(new T, [](T * msg) {
+    auto bounded = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__BoundedSequences__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__BoundedSequences__init(bounded.get());
 
     rosidl_runtime_c__bool__Sequence__init(&bounded->bool_values, 3);
@@ -837,11 +852,12 @@ get_messages_bounded_sequences_c()
     vec.push_back(bounded);
   }
   {
-    auto bounded = std::shared_ptr<T>(new T, [](T * msg) {
+    auto bounded = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__BoundedSequences__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__BoundedSequences__init(bounded.get());
 
     rosidl_runtime_c__bool__Sequence__init(&bounded->bool_values, 0);
@@ -867,55 +883,59 @@ get_messages_bounded_sequences_c()
   return vec;
 }
 
-bool operator==(const test_msgs__msg__BoundedSequences & lhs, const test_msgs__msg__BoundedSequences & rhs)
+bool operator==(
+  const test_msgs__msg__BoundedSequences & lhs,
+  const test_msgs__msg__BoundedSequences & rhs)
 {
   for (size_t i = 0; i < lhs.bool_values.size; ++i) {
-    if (lhs.bool_values.data[i] != rhs.bool_values.data[i]) { return false; }
+    if (lhs.bool_values.data[i] != rhs.bool_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.byte_values.size; ++i) {
-    if (lhs.byte_values.data[i] != rhs.byte_values.data[i]) { return false; }
+    if (lhs.byte_values.data[i] != rhs.byte_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.char_values.size; ++i) {
-    if (lhs.char_values.data[i] != rhs.char_values.data[i]) { return false; }
+    if (lhs.char_values.data[i] != rhs.char_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.float32_values.size; ++i) {
-    if (lhs.float32_values.data[i] != rhs.float32_values.data[i]) { return false; }
+    if (lhs.float32_values.data[i] != rhs.float32_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.float64_values.size; ++i) {
-    if (lhs.float64_values.data[i] != rhs.float64_values.data[i]) { return false; }
+    if (lhs.float64_values.data[i] != rhs.float64_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.int8_values.size; ++i) {
-    if (lhs.int8_values.data[i] != rhs.int8_values.data[i]) { return false; }
+    if (lhs.int8_values.data[i] != rhs.int8_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.uint8_values.size; ++i) {
-    if (lhs.uint8_values.data[i] != rhs.uint8_values.data[i]) { return false; }
+    if (lhs.uint8_values.data[i] != rhs.uint8_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.int16_values.size; ++i) {
-    if (lhs.int16_values.data[i] != rhs.int16_values.data[i]) { return false; }
+    if (lhs.int16_values.data[i] != rhs.int16_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.uint16_values.size; ++i) {
-    if (lhs.uint16_values.data[i] != rhs.uint16_values.data[i]) { return false; }
+    if (lhs.uint16_values.data[i] != rhs.uint16_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.int32_values.size; ++i) {
-    if (lhs.int32_values.data[i] != rhs.int32_values.data[i]) { return false; }
+    if (lhs.int32_values.data[i] != rhs.int32_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.uint32_values.size; ++i) {
-    if (lhs.uint32_values.data[i] != rhs.uint32_values.data[i]) { return false; }
+    if (lhs.uint32_values.data[i] != rhs.uint32_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.int64_values.size; ++i) {
-    if (lhs.int64_values.data[i] != rhs.int64_values.data[i]) { return false; }
+    if (lhs.int64_values.data[i] != rhs.int64_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.uint64_values.size; ++i) {
-    if (lhs.uint64_values.data[i] != rhs.uint64_values.data[i]) { return false; }
+    if (lhs.uint64_values.data[i] != rhs.uint64_values.data[i]) {return false;}
   }
   for (size_t i = 0; i < lhs.string_values.size; ++i) {
-    if (0 != strcmp(lhs.string_values.data[i].data, rhs.string_values.data[i].data)) { return false; }
+    if (0 != strcmp(lhs.string_values.data[i].data, rhs.string_values.data[i].data)) {return false;}
   }
 
   return true;
 }
 
-bool operator!=(const test_msgs__msg__BoundedSequences & lhs, const test_msgs__msg__BoundedSequences & rhs)
+bool operator!=(
+  const test_msgs__msg__BoundedSequences & lhs,
+  const test_msgs__msg__BoundedSequences & rhs)
 {
   return !(lhs == rhs);
 }
@@ -928,11 +948,12 @@ get_messages_nested_c()
   {
     auto basic_types = get_messages_basic_types_c();
     for (auto basic_type : basic_types) {
-      auto nested = std::shared_ptr<T>(new T, [](T * msg) {
+      auto nested = std::shared_ptr<T>(
+        new T, [](T * msg) {
           test_msgs__msg__Nested__fini(msg);
           delete msg;
           msg = NULL;
-          });
+        });
       test_msgs__msg__Nested__init(nested.get());
 
       test_msgs__msg__BasicTypes__init(&nested->basic_types_value);
@@ -955,7 +976,8 @@ bool operator!=(const test_msgs__msg__Nested & lhs, const test_msgs__msg__Nested
 }
 
 // TODO(karsten1987): This requires some sort of deep-copy operator for arrays and sequences,
-// especially their strings as the shared ptr will cleanup the strings and eventually lead to memory leaks.
+// especially their strings as the shared ptr will cleanup the strings
+// and eventually lead to memory leaks.
 /*
 std::vector<std::shared_ptr<test_msgs__msg__MultiNested>>
 get_messages_multi_nested_c()
@@ -982,10 +1004,12 @@ get_messages_multi_nested_c()
       multinested->array_of_arrays[i] = *arrays_msgs[i % num_arrays];
     }
     for (size_t i = 0u; i < array_size; ++i) {
-      multinested->array_of_bounded_sequences[i] = *bounded_sequences_msgs[i % num_bounded_sequences];
+      multinested->array_of_bounded_sequences[i] =
+ *bounded_sequences_msgs[i % num_bounded_sequences];
     }
     for (size_t i = 0u; i < array_size; ++i) {
-      multinested->array_of_unbounded_sequences[i] = *unbounded_sequences_msgs[i % num_unbounded_sequences];
+      multinested->array_of_unbounded_sequences[i] =
+ *unbounded_sequences_msgs[i % num_unbounded_sequences];
     }
 
     const size_t sequence_size = 3;
@@ -1005,7 +1029,8 @@ get_messages_multi_nested_c()
       multinested->bounded_sequence_of_unbounded_sequences.data[i] =
         *unbounded_sequences_msgs[i % num_unbounded_sequences];
     }
-    test_msgs__msg__Arrays__Sequence__init(&multinested->unbounded_sequence_of_arrays, sequence_size);
+    test_msgs__msg__Arrays__Sequence__init(
+    &multinested->unbounded_sequence_of_arrays, sequence_size);
     for (std::size_t i = 0u; i < sequence_size; ++i) {
       multinested->unbounded_sequence_of_arrays.data[i] = *arrays_msgs[i % num_arrays];
     }
@@ -1034,13 +1059,22 @@ bool operator==(const test_msgs__msg__MultiNested & lhs, const test_msgs__msg__M
   for (size_t i = 0; i < sequence_size; ++i) {
     if (lhs.array_of_arrays[i] != rhs.array_of_arrays[i]) { return false; }
     if (lhs.array_of_bounded_sequences[i] != rhs.array_of_bounded_sequences[i]) { return false; }
-    if (lhs.array_of_unbounded_sequences[i] != rhs.array_of_unbounded_sequences[i]) { return false; }
-    if (lhs.bounded_sequence_of_arrays.data[i] != rhs.bounded_sequence_of_arrays.data[i]) { return false; }
-    if (lhs.bounded_sequence_of_bounded_sequences.data[i] != rhs.bounded_sequence_of_bounded_sequences.data[i]) { return false; }
-    if (lhs.bounded_sequence_of_unbounded_sequences.data[i] != rhs.bounded_sequence_of_unbounded_sequences.data[i]) { return false; }
-    if (lhs.unbounded_sequence_of_arrays.data[i] != rhs.unbounded_sequence_of_arrays.data[i]) { return false; }
-    if (lhs.unbounded_sequence_of_bounded_sequences.data[i] != rhs.unbounded_sequence_of_bounded_sequences.data[i]) { return false; }
-    if (lhs.unbounded_sequence_of_unbounded_sequences.data[i] != rhs.unbounded_sequence_of_unbounded_sequences.data[i]) { return false; }
+    if (lhs.array_of_unbounded_sequences[i] != rhs.array_of_unbounded_sequences[i]) {
+      return false;
+    }
+    if (lhs.bounded_sequence_of_arrays.data[i] != rhs.bounded_sequence_of_arrays.data[i]) {
+      return false;
+    }
+    if (lhs.bounded_sequence_of_bounded_sequences.data[i] !=
+        rhs.bounded_sequence_of_bounded_sequences.data[i]) { return false; }
+    if (lhs.bounded_sequence_of_unbounded_sequences.data[i] !=
+        rhs.bounded_sequence_of_unbounded_sequences.data[i]) { return false; }
+    if (lhs.unbounded_sequence_of_arrays.data[i] !=
+        rhs.unbounded_sequence_of_arrays.data[i]) { return false; }
+    if (lhs.unbounded_sequence_of_bounded_sequences.data[i] !=
+        rhs.unbounded_sequence_of_bounded_sequences.data[i]) { return false; }
+    if (lhs.unbounded_sequence_of_unbounded_sequences.data[i] !=
+        rhs.unbounded_sequence_of_unbounded_sequences.data[i]) { return false; }
   }
 
   return true;
@@ -1058,11 +1092,12 @@ get_messages_builtins_c()
   using T = test_msgs__msg__Builtins;
   std::vector<std::shared_ptr<T>> vec{};
   {
-    auto builtins = std::shared_ptr<T>(new T, [](T * msg) {
+    auto builtins = std::shared_ptr<T>(
+      new T, [](T * msg) {
         test_msgs__msg__Builtins__fini(msg);
         delete msg;
         msg = NULL;
-        });
+      });
     test_msgs__msg__Builtins__init(builtins.get());
     builtins->duration_value.sec = -1234567890;
     builtins->duration_value.nanosec = 123456789;
@@ -1076,10 +1111,10 @@ get_messages_builtins_c()
 
 bool operator==(const test_msgs__msg__Builtins & lhs, const test_msgs__msg__Builtins & rhs)
 {
-  if (lhs.duration_value.sec != rhs.duration_value.sec) { return false; }
-  if (lhs.duration_value.nanosec != rhs.duration_value.nanosec) { return false; }
-  if (lhs.time_value.sec != rhs.time_value.sec) { return false; }
-  if (lhs.time_value.nanosec != rhs.time_value.nanosec) { return false; }
+  if (lhs.duration_value.sec != rhs.duration_value.sec) {return false;}
+  if (lhs.duration_value.nanosec != rhs.duration_value.nanosec) {return false;}
+  if (lhs.time_value.sec != rhs.time_value.sec) {return false;}
+  if (lhs.time_value.nanosec != rhs.time_value.nanosec) {return false;}
 
   return true;
 }
@@ -1088,3 +1123,5 @@ bool operator!=(const test_msgs__msg__Builtins & lhs, const test_msgs__msg__Buil
 {
   return !(lhs == rhs);
 }
+
+#endif  // TEST_MSGS_C_FIXTURES_HPP_

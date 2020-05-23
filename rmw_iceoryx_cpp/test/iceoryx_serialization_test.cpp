@@ -17,7 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include <typeinfo>
+#include <memory>
+#include <string>
 #include <vector>
 
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
@@ -48,9 +49,9 @@ std::string to_string<test_msgs::msg::Strings>(const test_msgs::msg::Strings & m
 template<class MessageT>
 void test_equality(const MessageT & expected, const MessageT & actual)
 {
-  EXPECT_EQ(expected, actual)
-    << "expected: " << to_string(expected)
-    << "got: " << to_string(actual);
+  EXPECT_EQ(expected, actual) <<
+    "expected: " << to_string(expected) <<
+    "got: " << to_string(actual);
 }
 
 template<>
@@ -117,12 +118,18 @@ TEST(SerializationTests, cpp_flip_flop_serialize_arrays)
 
 TEST(SerializationTests, cpp_flip_flop_serialize_unbounded_sequences)
 {
-  flip_flop_serialization<test_msgs::msg::UnboundedSequences>(std::bind(&get_messages_unbounded_sequences));
+  flip_flop_serialization<test_msgs::msg::UnboundedSequences>(
+    std::bind(
+      &
+      get_messages_unbounded_sequences));
 }
 
 TEST(SerializationTests, cpp_flip_flop_serialize_bounded_sequences)
 {
-  flip_flop_serialization<test_msgs::msg::BoundedSequences>(std::bind(&get_messages_bounded_sequences));
+  flip_flop_serialization<test_msgs::msg::BoundedSequences>(
+    std::bind(
+      &
+      get_messages_bounded_sequences));
 }
 
 TEST(SerializationTests, cpp_flip_flop_serialize_multi_nested)
@@ -140,10 +147,10 @@ TEST(SerializationTests, cpp_flip_flop_serialize_builtins)
   flip_flop_serialization<test_msgs::msg::Builtins>(std::bind(&get_messages_builtins));
 }
 
-TEST(SerializationTests, cpp_flip_flop_serialize_wstrings)
-{
-  flip_flop_serialization<test_msgs::msg::WStrings>(std::bind(&get_messages_wstrings));
-}
+// TEST(SerializationTests, cpp_flip_flop_serialize_wstrings)
+// {
+//   flip_flop_serialization<test_msgs::msg::WStrings>(std::bind(&get_messages_wstrings));
+// }
 
 template<
   class MessageT,
@@ -172,8 +179,8 @@ void flip_flop_serialization(
 
 TEST(SerializationTests, c_flip_flop_serialize_empty)
 {
-    auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Empty);
-    flip_flop_serialization<test_msgs__msg__Empty>(std::bind(&get_messages_empty_c), ts);
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Empty);
+  flip_flop_serialization<test_msgs__msg__Empty>(std::bind(&get_messages_empty_c), ts);
 }
 
 TEST(SerializationTests, c_flip_flop_serialize_basic_types)
@@ -194,29 +201,31 @@ TEST(SerializationTests, c_flip_flop_serialize_defaults)
   flip_flop_serialization<test_msgs__msg__Defaults>(std::bind(&get_messages_defaults_c), ts);
 }
 
-//TEST(SerializationTests, c_flip_flop_serialize_strings)
-//{
-//  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-//  flip_flop_serialization<test_msgs__msg__Strings>(std::bind(&get_messages_strings_c), ts);
-//}
+TEST(SerializationTests, c_flip_flop_serialize_strings)
+{
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  flip_flop_serialization<test_msgs__msg__Strings>(std::bind(&get_messages_strings_c), ts);
+}
 
-//TEST(SerializationTests, c_flip_flop_serialize_arrays)
-//{
-//  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Arrays);
-//  flip_flop_serialization<test_msgs__msg__Arrays>(std::bind(&get_messages_arrays_c), ts);
-//}
+TEST(SerializationTests, c_flip_flop_serialize_arrays)
+{
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Arrays);
+  flip_flop_serialization<test_msgs__msg__Arrays>(std::bind(&get_messages_arrays_c), ts);
+}
 
-//TEST(SerializationTests, c_flip_flop_serialize_unbounded_sequences)
-//{
-//  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, UnboundedSequences);
-//  flip_flop_serialization<test_msgs__msg__UnboundedSequences>(std::bind(&get_messages_unbounded_sequences_c), ts);
-//}
-//
-//TEST(SerializationTests, c_flip_flop_serialize_bounded_sequences)
-//{
-//  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BoundedSequences);
-//  flip_flop_serialization<test_msgs__msg__BoundedSequences>(std::bind(&get_messages_bounded_sequences_c), ts);
-//}
+TEST(SerializationTests, c_flip_flop_serialize_unbounded_sequences)
+{
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, UnboundedSequences);
+  flip_flop_serialization<test_msgs__msg__UnboundedSequences>(
+    std::bind(&get_messages_unbounded_sequences_c), ts);
+}
+
+TEST(SerializationTests, c_flip_flop_serialize_bounded_sequences)
+{
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BoundedSequences);
+  flip_flop_serialization<test_msgs__msg__BoundedSequences>(
+    std::bind(&get_messages_bounded_sequences_c), ts);
+}
 
 TEST(SerializationTests, c_flip_flop_serialize_nested)
 {
@@ -224,11 +233,12 @@ TEST(SerializationTests, c_flip_flop_serialize_nested)
   flip_flop_serialization<test_msgs__msg__Nested>(std::bind(&get_messages_nested_c), ts);
 }
 
-//TEST(SerializationTests, c_flip_flop_serialize_multinested)
-//{
-//  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, MultiNested);
-//  flip_flop_serialization<test_msgs__msg__MultiNested>(std::bind(&get_messages_multi_nested_c), ts);
-//}
+// TEST(SerializationTests, c_flip_flop_serialize_multinested)
+// {
+//   auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, MultiNested);
+//   flip_flop_serialization<test_msgs__msg__MultiNested>(
+//     std::bind(&get_messages_multi_nested_c), ts);
+// }
 
 TEST(SerializationTests, c_flip_flop_serialize_builtins)
 {

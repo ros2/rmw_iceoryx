@@ -42,7 +42,6 @@ void serialize(
   if (ts_cpp != nullptr) {
     auto members =
       static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts_cpp->data);
-    fprintf(stderr, "let's go with %s\n", members->message_name_);
     rmw_iceoryx_cpp::details_cpp::serialize(ros_message, members, payload_vector);
   }
 

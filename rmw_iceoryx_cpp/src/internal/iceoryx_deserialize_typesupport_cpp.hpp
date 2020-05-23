@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef INTERNAL__ICEORYX_DESERIALIZE_TYPESUPPORT_CPP_HPP_
+#define INTERNAL__ICEORYX_DESERIALIZE_TYPESUPPORT_CPP_HPP_
 
 #include <array>
 #include <cassert>
@@ -92,7 +93,9 @@ const char * deserialize_element<std::wstring, sizeof(std::wstring)>(
   const char * serialized_msg,
   void * ros_message_field)
 {
-  return deserialize_sequence<wchar_t, sizeof(wchar_t), std::wstring>(serialized_msg, ros_message_field);
+  return deserialize_sequence<wchar_t, sizeof(wchar_t), std::wstring>(
+    serialized_msg,
+    ros_message_field);
 }
 
 template<
@@ -123,7 +126,7 @@ const char * deserialize_sequence(
   const char * serialized_msg, void * ros_message_field)
 {
   uint32_t sequence_size = 0;
-  std::tie(serialized_msg, sequence_size) = pop_array_size(serialized_msg);
+  std::tie(serialized_msg, sequence_size) = pop_sequence_size(serialized_msg);
   if (sequence_size > 0) {
     debug_log("deserializigng data sequence of size %zu\n", sequence_size);
     auto sequence = reinterpret_cast<ContainerT *>(ros_message_field);
@@ -142,7 +145,7 @@ const char * deserialize_sequence<bool, sizeof(bool), std::vector<bool>>(
   const char * serialized_msg, void * ros_message_field)
 {
   uint32_t sequence_size = 0;
-  std::tie(serialized_msg, sequence_size) = pop_array_size(serialized_msg);
+  std::tie(serialized_msg, sequence_size) = pop_sequence_size(serialized_msg);
   if (sequence_size > 0) {
     auto sequence = reinterpret_cast<std::vector<bool> *>(ros_message_field);
     debug_log("deserializing bool sequence of size %zu\n", sequence_size);
@@ -163,7 +166,7 @@ const char * deserialize_sequence<wchar_t, sizeof(wchar_t), std::wstring>(
   const char * serialized_msg, void * ros_message_field)
 {
   uint32_t sequence_size = 0;
-  std::tie(serialized_msg, sequence_size) = pop_array_size(serialized_msg);
+  std::tie(serialized_msg, sequence_size) = pop_sequence_size(serialized_msg);
   if (sequence_size > 0) {
     debug_log("deserializing wstring sequence of size %zu\n", sequence_size);
     auto sequence = reinterpret_cast<std::wstring *>(ros_message_field);
@@ -188,7 +191,9 @@ const char * deserialize_message_field(
   if (!member->is_array_) {
     return deserialize_element<T>(serialized_msg, ros_message_field);
   } else if (member->array_size_ > 0 && !member->is_upper_bound_) {
-    return serialized_msg = deserialize_array<T>(serialized_msg, ros_message_field, member->array_size_);
+    return serialized_msg = deserialize_array<T>(
+             serialized_msg, ros_message_field,
+             member->array_size_);
   } else {
     return serialized_msg = deserialize_sequence<T>(serialized_msg, ros_message_field);
   }
@@ -209,61 +214,90 @@ const char * deserialize(
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_BYTE:
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT8:
-        serialized_msg = deserialize_message_field<uint8_t>(member, serialized_msg, ros_message_field);
+        serialized_msg = deserialize_message_field<uint8_t>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_CHAR:
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT8:
         serialized_msg = deserialize_message_field<char>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT32:
-        serialized_msg = deserialize_message_field<float>(member, serialized_msg, ros_message_field);
+        serialized_msg =
+          deserialize_message_field<float>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT64:
-        serialized_msg = deserialize_message_field<double>(member, serialized_msg, ros_message_field);
+        serialized_msg =
+          deserialize_message_field<double>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT16:
-        serialized_msg = deserialize_message_field<int16_t>(member, serialized_msg, ros_message_field);
+        serialized_msg = deserialize_message_field<int16_t>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT16:
-        serialized_msg = deserialize_message_field<uint16_t>(member, serialized_msg, ros_message_field);
+        serialized_msg = deserialize_message_field<uint16_t>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT32:
-        serialized_msg = deserialize_message_field<int32_t>(member, serialized_msg, ros_message_field);
+        serialized_msg = deserialize_message_field<int32_t>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT32:
-        serialized_msg = deserialize_message_field<uint32_t>(member, serialized_msg, ros_message_field);
+        serialized_msg = deserialize_message_field<uint32_t>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT64:
-        serialized_msg = deserialize_message_field<int64_t>(member, serialized_msg, ros_message_field);
+        serialized_msg = deserialize_message_field<int64_t>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT64:
-        serialized_msg = deserialize_message_field<uint64_t>(member, serialized_msg, ros_message_field);
+        serialized_msg = deserialize_message_field<uint64_t>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_STRING:
-        serialized_msg = deserialize_message_field<std::string>(member, serialized_msg, ros_message_field);
+        serialized_msg = deserialize_message_field<std::string>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_WSTRING:
-        serialized_msg = deserialize_message_field<std::wstring>(member, serialized_msg, ros_message_field);
+        serialized_msg = deserialize_message_field<std::wstring>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_MESSAGE:
         {
           auto sub_members =
             (const rosidl_typesupport_introspection_cpp::MessageMembers *)member->members_->data;
+
+          void * subros_message = nullptr;
+          size_t sequence_size = 0;
+          size_t sub_members_size = sub_members->size_of_;
+          // It's a single message
           if (!member->is_array_) {
-            serialized_msg = deserialize(serialized_msg, sub_members, ros_message_field);
+            subros_message = ros_message_field;
+            sequence_size = 1;
+          } else if (member->array_size_ > 0 && !member->is_upper_bound_) {
+            subros_message = ros_message_field;
+            sequence_size = member->array_size_;
           } else {
             debug_log("deserializing ROS message %s\n", member->name_);
-            void * subros_message = nullptr;
-            size_t array_elememts = 0;
-            size_t sub_members_size = sub_members->size_of_;
 
-            std::tie(serialized_msg, array_elememts) = get_submessage_vector_cpp(
-                member, serialized_msg, ros_message_field, subros_message, sub_members_size);
+            std::tie(serialized_msg, sequence_size) = pop_sequence_size(serialized_msg);
 
-            for (size_t index = 0; index < array_elememts; ++index) {
-              serialized_msg = deserialize(serialized_msg, sub_members, subros_message);
-              subros_message = static_cast<char *>(subros_message) + sub_members_size;
-            }
+            auto sequence = reinterpret_cast<std::vector<unsigned char> *>(ros_message_field);
+            sequence->resize(sequence_size * sub_members_size);
+            subros_message = reinterpret_cast<void *>(sequence->data());
+          }
+
+          for (size_t index = 0; index < sequence_size; ++index) {
+            serialized_msg = deserialize(serialized_msg, sub_members, subros_message);
+            subros_message = static_cast<char *>(subros_message) + sub_members_size;
           }
         }
         break;
@@ -276,3 +310,4 @@ const char * deserialize(
 
 }  // namespace details_cpp
 }  // namespace rmw_iceoryx_cpp
+#endif  // INTERNAL__ICEORYX_DESERIALIZE_TYPESUPPORT_CPP_HPP_

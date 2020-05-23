@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef INTERNAL__ICEORYX_SERIALIZATION_COMMON_HPP_
+#define INTERNAL__ICEORYX_SERIALIZATION_COMMON_HPP_
 
 #include <stdarg.h>
 #include <tuple>
+#include <utility>
 #include <vector>
+
+namespace rmw_iceoryx_cpp
+{
 
 #define DEBUG_LOG 0
 
@@ -33,7 +38,7 @@ static inline void debug_log(const char * format, ...)
 #endif
 }
 
-inline void store_sequence_size(std::vector<char> & payloadVector, uint32_t array_size)
+inline void push_sequence_size(std::vector<char> & payloadVector, uint32_t array_size)
 {
   const uint32_t check = 101;
   const char * sizePtr = reinterpret_cast<const char *>(&array_size);
@@ -42,7 +47,7 @@ inline void store_sequence_size(std::vector<char> & payloadVector, uint32_t arra
   payloadVector.insert(payloadVector.end(), sizePtr, sizePtr + sizeof(array_size));
 }
 
-inline std::pair<const char *, uint32_t> pop_array_size(const char * serialized_msg)
+inline std::pair<const char *, uint32_t> pop_sequence_size(const char * serialized_msg)
 {
   // This is 64 bit aligned
   // REVIEW: Please discuss
@@ -57,25 +62,93 @@ inline std::pair<const char *, uint32_t> pop_array_size(const char * serialized_
   return std::make_pair(serialized_msg, array_size);
 }
 
-// FIXME: Use proper templating here! + add allocator handling
-inline std::pair<const char *, size_t> get_submessage_vector_cpp(
-  const rosidl_typesupport_introspection_cpp::MessageMember * member,
-  const char * serialized_msg,
-  char * ros_message_field,
-  void * & subros_message,
-  size_t sub_members_size)
+namespace details_c
 {
-  if (member->array_size_ > 0 && !member->is_upper_bound_) {
-    size_t array_elements = member->array_size_;
-    subros_message = ros_message_field;
-    return std::make_pair(serialized_msg, array_elements);
-  }
+namespace traits
+{
 
-  uint32_t vector_elements = 0;
-  std::tie(serialized_msg, vector_elements) = pop_array_size(serialized_msg);
-  auto vector = reinterpret_cast<std::vector<unsigned char> *>(ros_message_field);
+template<class T>
+struct sequence_type;
 
-  vector->resize(vector_elements * sub_members_size);
-  subros_message = reinterpret_cast<void *>(vector->data());
-  return std::make_pair(serialized_msg, vector_elements);
-}
+template<>
+struct sequence_type<bool>
+{
+  using type = rosidl_runtime_c__boolean__Sequence;
+};
+
+template<>
+struct sequence_type<char>
+{
+  using type = rosidl_runtime_c__char__Sequence;
+};
+
+template<>
+struct sequence_type<float>
+{
+  using type = rosidl_runtime_c__float__Sequence;
+};
+
+template<>
+struct sequence_type<double>
+{
+  using type = rosidl_runtime_c__double__Sequence;
+};
+
+template<>
+struct sequence_type<int8_t>
+{
+  using type = rosidl_runtime_c__int8__Sequence;
+};
+
+template<>
+struct sequence_type<uint8_t>
+{
+  using type = rosidl_runtime_c__uint8__Sequence;
+};
+
+template<>
+struct sequence_type<int16_t>
+{
+  using type = rosidl_runtime_c__int16__Sequence;
+};
+
+template<>
+struct sequence_type<uint16_t>
+{
+  using type = rosidl_runtime_c__uint16__Sequence;
+};
+
+template<>
+struct sequence_type<int32_t>
+{
+  using type = rosidl_runtime_c__int32__Sequence;
+};
+
+template<>
+struct sequence_type<uint32_t>
+{
+  using type = rosidl_runtime_c__uint32__Sequence;
+};
+
+template<>
+struct sequence_type<int64_t>
+{
+  using type = rosidl_runtime_c__int64__Sequence;
+};
+
+template<>
+struct sequence_type<uint64_t>
+{
+  using type = rosidl_runtime_c__uint64__Sequence;
+};
+
+template<>
+struct sequence_type<rosidl_runtime_c__String>
+{
+  using type = rosidl_runtime_c__String__Sequence;
+};
+
+}  // namespace traits
+}  // namespace details_c
+}  // namespace rmw_iceoryx_cpp
+#endif  // INTERNAL__ICEORYX_SERIALIZATION_COMMON_HPP_

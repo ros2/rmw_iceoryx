@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef INTERNAL__ICEORYX_SERIALIZE_TYPESUPPORT_C_HPP_
+#define INTERNAL__ICEORYX_SERIALIZE_TYPESUPPORT_C_HPP_
 
 #include <array>
 #include <cassert>
@@ -24,146 +25,91 @@
 #include "rosidl_typesupport_introspection_c/field_types.h"
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
 
-// forward declarations for recursion
-#include "iceoryx_serialize_typesupport_c.hpp"
+#include "./iceoryx_serialization_common.hpp"
 
 namespace rmw_iceoryx_cpp
 {
 namespace details_c
 {
 
-void serialize(
-  const void * ros_message,
-  const rosidl_typesupport_introspection_c__MessageMembers * members,
-  std::vector<char> & payloadVector);
+template<
+  class T,
+  size_t SizeT = sizeof(T)
+>
+void serialize_sequence(std::vector<char> & serialized_msg, const void * ros_message_field);
 
-void store_array_size(std::vector<char> & payloadVector, uint32_t array_size)
+template<
+  class T,
+  size_t SizeT = sizeof(T)
+>
+void serialize_element(
+  std::vector<char> & serialized_msg,
+  const char * ros_message_field)
 {
-  const uint32_t check = 101;
-  const char * sizePtr = reinterpret_cast<const char *>(&array_size);
-  const char * checkPtr = reinterpret_cast<const char *>(&check);
-  payloadVector.insert(payloadVector.end(), checkPtr, checkPtr + sizeof(check));
-  payloadVector.insert(payloadVector.end(), sizePtr, sizePtr + sizeof(array_size));
-}
-
-size_t get_array_elememts_and_assign_ros_message_field_c(
-  const rosidl_typesupport_introspection_c__MessageMember * member,
-  const void * ros_message_field,
-  void * & subros_message
-)
-{
-  auto data_array = reinterpret_cast<const rosidl_runtime_c__char__Sequence *>(ros_message_field);
-  uint32_t array_size = data_array->size;
-
-  if (member->is_upper_bound_ && array_size > member->array_size_) {
-    throw std::runtime_error("vector overcomes the maximum length");
-  }
-  // create ptr to content of vector to enable recursion
-  subros_message = const_cast<void *>(reinterpret_cast<const void *>(data_array->data));
-  return array_size;
-}
-
-template<typename T>
-void copy_data_array_c(std::vector<char> & payloadVector, const void * ros_message_field)
-{
-  auto data_array = reinterpret_cast<const rosidl_runtime_c__char__Sequence *>(ros_message_field);
-  uint32_t array_size = data_array->size;
-  uint32_t size = sizeof(T) * array_size;
-
-  store_array_size(payloadVector, array_size);
-
-  const char * arrayPtr = reinterpret_cast<const char *>(data_array->data);
-  payloadVector.insert(payloadVector.end(), arrayPtr, arrayPtr + size);
-}
-
-template<typename T>
-void copy_data_fixed_array(
-  std::vector<char> & payloadVector, const void * ros_message_field,
-  uint32_t size)
-{
-  auto fixed_array = reinterpret_cast<const std::array<T, 1> *>(ros_message_field);
-  auto dataPtr = reinterpret_cast<const char *>(fixed_array->data());
-  payloadVector.insert(payloadVector.end(), dataPtr, dataPtr + size * sizeof(T));
-}
-
-template<typename T>
-void copy_data_c(
-  const rosidl_typesupport_introspection_c__MessageMember * member,
-  std::vector<char> & payloadVector, const char * ros_message_field)
-{
-  if (!member->is_array_) {
-    uint32_t size = sizeof(T);
-    payloadVector.insert(payloadVector.end(), ros_message_field, ros_message_field + size);
-  } else {
-    if (member->array_size_ > 0 && !member->is_upper_bound_) {
-      copy_data_fixed_array<T>(payloadVector, ros_message_field, member->array_size_);
-    } else {
-      copy_data_array_c<T>(payloadVector, ros_message_field);
-    }
-  }
+  debug_log("serializing data element of %u bytes\n", SizeT);
+  serialized_msg.insert(serialized_msg.end(), ros_message_field, ros_message_field + SizeT);
 }
 
 template<>
-void copy_data_c<std::string>(
-  const rosidl_typesupport_introspection_c__MessageMember * member,
-  std::vector<char> & payloadVector, const char * ros_message_field)
+void serialize_element<rosidl_runtime_c__String, sizeof(rosidl_runtime_c__String)>(
+  std::vector<char> & serialized_msg,
+  const char * ros_message_field)
 {
-  if (!member->is_array_) {
-    copy_data_array_c<char>(payloadVector, ros_message_field);
-  } else {
-    if (member->array_size_ > 0 && !member->is_upper_bound_) {
-      auto data = reinterpret_cast<const std::array<std::string, 1> *>(ros_message_field);
-      auto array_size = static_cast<uint32_t>(member->array_size_);
-      for (auto i = 0u; i < array_size; ++i) {
-        std::string data_element = data->data()[i];
-        copy_data_array_c<char>(payloadVector, data_element.c_str());
-      }
-    } else {
-      auto data_array =
-        reinterpret_cast<const rosidl_runtime_c__char__Sequence *>(ros_message_field);
-      uint32_t array_size = data_array->size;  // number of strings in the array
+  auto string = reinterpret_cast<const rosidl_runtime_c__String *>(ros_message_field);
+  push_sequence_size(serialized_msg, string->size);
+  serialized_msg.insert(serialized_msg.end(), string->data, string->data + string->size);
+}
 
-      store_array_size(payloadVector, array_size);
-
-      auto dataPtr = reinterpret_cast<const char *>(data_array->data);
-
-      for (uint32_t i = 0; i < array_size; ++i) {
-        copy_data_array_c<char>(payloadVector, dataPtr);
-        dataPtr += sizeof(std::string);
-      }
-    }
+template<
+  class T,
+  size_t SizeT = sizeof(T)
+>
+void serialize_array(
+  std::vector<char> & serialized_msg,
+  const void * ros_message_field,
+  uint32_t size)
+{
+  auto array = reinterpret_cast<const T *>(ros_message_field);
+  for (size_t i = 0; i < size; ++i) {
+    auto data = reinterpret_cast<const char *>(&array[i]);
+    serialize_element<T>(serialized_msg, data);
   }
 }
 
-void copy_data_c_ros_message(
-  const rosidl_typesupport_introspection_c__MessageMember * member,
-  std::vector<char> & payloadVector, const char * ros_message_field)
+template<
+  class T,
+  size_t SizeT = sizeof(T)
+>
+void serialize_sequence(std::vector<char> & serialized_msg, const void * ros_message_field)
 {
-  auto sub_members =
-    static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(member->members_->data);
+  auto sequence =
+    reinterpret_cast<const typename traits::sequence_type<T>::type *>(ros_message_field);
+  uint32_t sequence_size = sequence->size;
+
+  push_sequence_size(serialized_msg, sequence_size);
+
+  serialize_array<T>(serialized_msg, sequence->data, sequence_size);
+}
+
+template<typename T>
+void serialize_message_field(
+  const rosidl_typesupport_introspection_c__MessageMember * member,
+  std::vector<char> & serialized_msg, const char * ros_message_field)
+{
+  debug_log("serializing message field %s\n", member->name_);
   if (!member->is_array_) {
-    serialize(ros_message_field, sub_members, payloadVector);
+    serialize_element<T>(serialized_msg, ros_message_field);
+  } else if (member->array_size_ > 0 && !member->is_upper_bound_) {
+    serialize_array<T>(serialized_msg, ros_message_field, member->array_size_);
   } else {
-    void * subros_message = nullptr;
-    size_t sub_members_size = sub_members->size_of_;
-    size_t array_elememts = get_array_elememts_and_assign_ros_message_field_c(
-      member,
-      ros_message_field,
-      subros_message);
-
-    store_array_size(payloadVector, array_elememts);
-
-    for (size_t index = 0; index < array_elememts; ++index) {
-      serialize(subros_message, sub_members, payloadVector);
-      subros_message = static_cast<char *>(subros_message) + sub_members_size;
-    }
+    serialize_sequence<T>(serialized_msg, ros_message_field);
   }
 }
 
 void serialize(
   const void * ros_message,
   const rosidl_typesupport_introspection_c__MessageMembers * members,
-  std::vector<char> & payloadVector)
+  std::vector<char> & serialized_msg)
 {
   assert(members);
   assert(ros_message);
@@ -173,46 +119,87 @@ void serialize(
     const char * ros_message_field = static_cast<const char *>(ros_message) + member->offset_;
     switch (member->type_id_) {
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_BOOL:
-        copy_data_c<bool>(member, payloadVector, ros_message_field);
+        serialize_message_field<bool>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_BYTE:
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_UINT8:
-        copy_data_c<uint8_t>(member, payloadVector, ros_message_field);
+        serialize_message_field<uint8_t>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_CHAR:
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_INT8:
-        copy_data_c<char>(member, payloadVector, ros_message_field);
+        serialize_message_field<char>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_FLOAT32:
-        copy_data_c<float>(member, payloadVector, ros_message_field);
+        serialize_message_field<float>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_FLOAT64:
-        copy_data_c<double>(member, payloadVector, ros_message_field);
+        serialize_message_field<double>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_INT16:
-        copy_data_c<int16_t>(member, payloadVector, ros_message_field);
+        serialize_message_field<int16_t>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_UINT16:
-        copy_data_c<uint16_t>(member, payloadVector, ros_message_field);
+        serialize_message_field<uint16_t>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_INT32:
-        copy_data_c<int32_t>(member, payloadVector, ros_message_field);
+        serialize_message_field<int32_t>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_UINT32:
-        copy_data_c<uint32_t>(member, payloadVector, ros_message_field);
+        serialize_message_field<uint32_t>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_INT64:
-        copy_data_c<int64_t>(member, payloadVector, ros_message_field);
+        serialize_message_field<int64_t>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_UINT64:
-        copy_data_c<uint64_t>(member, payloadVector, ros_message_field);
+        serialize_message_field<uint64_t>(member, serialized_msg, ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_STRING:
-        copy_data_c<std::string>(member, payloadVector, ros_message_field);
-
+        serialize_message_field<rosidl_runtime_c__String>(
+          member, serialized_msg,
+          ros_message_field);
         break;
       case ::rosidl_typesupport_introspection_c__ROS_TYPE_MESSAGE:
-        copy_data_c_ros_message(member, payloadVector, ros_message_field);
+        {
+          // Iterate recursively over the complex ROS messages
+          auto sub_members =
+            static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(member->members_
+            ->data);
+
+          const void * subros_message = nullptr;
+          size_t sequence_size = 0;
+          size_t sub_members_size = sub_members->size_of_;
+          // It's a single message
+          if (!member->is_array_) {
+            subros_message = ros_message_field;
+            sequence_size = 1;
+            // It's a fixed size array of messages
+          } else if (member->array_size_ > 0 && !member->is_upper_bound_) {
+            subros_message = ros_message_field;
+            sequence_size = member->array_size_;
+            // It's a dynamic sequence of messages
+          } else {
+            // Cast current ros_message_field ptr as vector "definition"
+            auto vector =
+              reinterpret_cast<const rosidl_runtime_c__char__Sequence *>(ros_message_field);
+            // Vector size points to content of vector and returns number of bytes
+            // submembersize is the size of one element in the vector
+            // (it is provided by type support)
+            sequence_size = vector->size / sub_members_size;
+            if (member->is_upper_bound_ && sequence_size > member->array_size_) {
+              throw std::runtime_error("vector overcomes the maximum length");
+            }
+            // create ptr to content of vector to enable recursion
+            subros_message = reinterpret_cast<const void *>(vector->data);
+            // store the number of elements
+            push_sequence_size(serialized_msg, sequence_size);
+          }
+
+          debug_log("serializing message field %s\n", member->name_);
+          for (auto index = 0u; index < sequence_size; ++index) {
+            serialize(subros_message, sub_members, serialized_msg);
+            subros_message = static_cast<const char *>(subros_message) + sub_members_size;
+          }
+        }
         break;
       default:
         throw std::runtime_error("unknown type");
@@ -222,3 +209,4 @@ void serialize(
 
 }  // namespace details_c
 }  // namespace rmw_iceoryx_cpp
+#endif  // INTERNAL__ICEORYX_SERIALIZE_TYPESUPPORT_C_HPP_

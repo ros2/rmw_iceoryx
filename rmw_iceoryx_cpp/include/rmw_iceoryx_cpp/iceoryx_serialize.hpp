@@ -17,25 +17,15 @@
 
 #include <vector>
 
-struct rosidl_typesupport_introspection_c__MessageMembers;
-
-namespace rosidl_typesupport_introspection_cpp
-{
-struct MessageMembers;
-}
+struct rosidl_message_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {
 
 void serialize(
   const void * ros_message,
-  const rosidl_typesupport_introspection_c__MessageMembers * members,
-  std::vector<char> & payloadVector);
-
-void serialize(
-  const void * ros_message,
-  const rosidl_typesupport_introspection_cpp::MessageMembers * members,
-  std::vector<char> & payloadVector);
+  const rosidl_message_type_support_t * type_supports,
+  std::vector<char> & payload_vector);
 
 }  // namespace rmw_iceoryx_cpp
 #endif  // RMW_ICEORYX_CPP__ICEORYX_SERIALIZE_HPP_

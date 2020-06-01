@@ -90,31 +90,12 @@ rmw_take(
     return RMW_RET_OK;
   }
 
-  // deserialize with cpp typesupport
-  auto ts_cpp = get_message_typesupport_handle(
+  rmw_iceoryx_cpp::deserialize(
+    static_cast<const char *>(chunk_header->payload()),
     &iceoryx_subscription->type_supports_,
-    rosidl_typesupport_introspection_cpp::typesupport_identifier);
-  if (ts_cpp != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts_cpp->data);
-    rmw_iceoryx_cpp::deserialize(
-      static_cast<const char *>(chunk_header->payload()), members, ros_message);
-    iceoryx_receiver->releaseChunk(chunk_header);
-    *taken = true;
-  }
-
-  // deserialize with c typesupport
-  auto ts_c = get_message_typesupport_handle(
-    &iceoryx_subscription->type_supports_,
-    rosidl_typesupport_introspection_c__identifier);
-  if (ts_c != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts_c->data);
-    rmw_iceoryx_cpp::deserialize(
-      static_cast<const char *>(chunk_header->payload()), members, ros_message);
-    iceoryx_receiver->releaseChunk(chunk_header);
-    *taken = true;
-  }
+    ros_message);
+  iceoryx_receiver->releaseChunk(chunk_header);
+  *taken = true;
 
   return RMW_RET_OK;
 }

@@ -87,7 +87,7 @@ void publish_to_iceoryx(
     std::vector<char> payload_vector{};
     rmw_iceoryx_cpp::serialize(
       ros_msg,
-      introspection_ts,
+      ts,
       payload_vector);
     free(ros_msg);
 
@@ -140,7 +140,7 @@ void publish_to_ros2(
     introspection_ts->init_function(ros_msg, rosidl_runtime_cpp::MessageInitialization::ALL);
     rmw_iceoryx_cpp::deserialize(
       static_cast<const char *>(chunk),
-      introspection_ts,
+      ts,
       ros_msg);
 
     if (false == serialize_into(ros_msg, ts, &serialized_msg)) {

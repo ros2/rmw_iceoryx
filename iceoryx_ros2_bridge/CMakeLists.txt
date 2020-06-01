@@ -27,38 +27,22 @@ find_package(rosidl_generator_cpp REQUIRED)
 find_package(rosidl_typesupport_cpp REQUIRED)
 find_package(rosidl_typesupport_introspection_cpp REQUIRED)
 
-add_library(iceoryx_typesupport_helpers
+add_executable(iceoryx_ros2_bridge
+  src/iceoryx_ros2_bridge.cpp
+  src/generic_publisher.cpp
+  src/generic_subscription.cpp
   src/typesupport_helpers.cpp
 )
-ament_target_dependencies(iceoryx_typesupport_helpers
+target_link_libraries(iceoryx_ros2_bridge
+  iceoryx_posh::iceoryx_posh
+)
+ament_target_dependencies(iceoryx_ros2_bridge
   ament_index_cpp
   rclcpp
   rcpputils
   rosidl_generator_cpp
   rosidl_typesupport_introspection_cpp
   rosidl_typesupport_cpp
-)
-
-add_library(iceoryx_generic_transport
-  src/generic_publisher.cpp
-  src/generic_subscription.cpp
-)
-target_link_libraries(iceoryx_generic_transport
-  iceoryx_typesupport_helpers
-)
-ament_target_dependencies(iceoryx_generic_transport
-  rclcpp
-)
-
-add_executable(iceoryx_ros2_bridge
-  src/iceoryx_ros2_bridge.cpp
-)
-target_link_libraries(iceoryx_ros2_bridge
-  iceoryx_generic_transport
-  iceoryx_posh::iceoryx_posh
-)
-ament_target_dependencies(iceoryx_ros2_bridge
-  rclcpp
   rmw_iceoryx_cpp
 )
 install(

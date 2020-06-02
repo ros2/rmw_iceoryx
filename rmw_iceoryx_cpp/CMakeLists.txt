@@ -143,12 +143,19 @@ if(BUILD_TESTING)
 
   find_package(ament_cmake_gtest REQUIRED)
   find_package(test_msgs REQUIRED)
+
   ament_add_gtest(test_name_conversion test/iceoryx_name_conversion_test.cpp)
   target_link_libraries(test_name_conversion ${PROJECT_NAME})
 
   ament_add_gtest(test_message_serialization test/iceoryx_serialization_test.cpp)
   target_link_libraries(test_message_serialization ${PROJECT_NAME})
   ament_target_dependencies(test_message_serialization
+    test_msgs
+  )
+
+  ament_add_gtest(test_fixed_size_messages test/iceoryx_fixed_size_messages_test.cpp)
+  target_link_libraries(test_fixed_size_messages ${PROJECT_NAME})
+  ament_target_dependencies(test_fixed_size_messages
     test_msgs
   )
 endif()

@@ -60,19 +60,18 @@ bool is_fixed_size(const rosidl_typesupport_introspection_cpp::MessageMembers * 
     if (is_complex_type(member)) {
       auto result = is_fixed_size(
         (const rosidl_typesupport_introspection_cpp::MessageMembers *)member->members_->data);
-      cache.insert({name, result});
       // early exit
       if (!result) {
+        cache.insert({name, result});
         return false;
       }
     } else if (is_vector_type(member)) {
       cache.insert({name, false});
       return false;
-    } else {
-      cache.insert({name, true});
     }
   }
 
+  cache.insert({name, true});
   return true;
 }
 }  // namespace details_cpp
@@ -108,19 +107,18 @@ bool is_fixed_size(const rosidl_typesupport_introspection_c__MessageMembers * me
     if (is_complex_type(member)) {
       auto result = is_fixed_size(
         (const rosidl_typesupport_introspection_c__MessageMembers *)member->members_->data);
-      cache.insert({name, result});
       // early exit
       if (!result) {
+        cache.insert({name, result});
         return false;
       }
     } else if (is_vector_type(member)) {
       cache.insert({name, false});
       return false;
-    } else {
-      cache.insert({name, true});
     }
   }
 
+  cache.insert({name, true});
   return true;
 }
 }  // namespace details_c

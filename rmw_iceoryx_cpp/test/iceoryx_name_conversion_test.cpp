@@ -108,9 +108,3 @@ TEST(NameConverisonTests, flip_flop_reverse)
     EXPECT_EQ(tuple, flip_flop_tuple);
   }
 }
-
-int main(int argc, char ** argv)
-{
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

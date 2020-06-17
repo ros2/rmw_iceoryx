@@ -34,7 +34,7 @@ namespace details_c
 
 template<
   class T,
-  size_t SizeT = sizeof(T)
+  size_t SizeT
 >
 void serialize_sequence(std::vector<char> & serialized_msg, const void * ros_message_field);
 

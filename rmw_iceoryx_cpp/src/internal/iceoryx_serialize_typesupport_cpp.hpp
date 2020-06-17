@@ -37,7 +37,7 @@ namespace details_cpp
 // Forward declarations
 template<
   class T,
-  uint32_t SizeT = sizeof(T)
+  uint32_t SizeT
 >
 void serialize_element(
   std::vector<char> & serialized_msg,
@@ -45,7 +45,7 @@ void serialize_element(
 
 template<
   class T,
-  uint32_t SizeT = sizeof(T)
+  uint32_t SizeT
 >
 void serialize_element(
   std::vector<char> & serialized_msg,
@@ -54,8 +54,8 @@ void serialize_element(
 
 template<
   class T,
-  uint32_t SizeT = sizeof(T),
-  class ContainerT = std::vector<T>
+  uint32_t SizeT,
+  class ContainerT
 >
 void serialize_sequence(
   std::vector<char> & serialized_msg,

@@ -58,6 +58,7 @@ rmw_create_guard_condition(rmw_context_t * context)
     iceoryx_guard_condition,
     iceoryx_guard_condition,
     goto fail,
+    // cppcheck-suppress syntaxError
     IceoryxGuardCondition, )
   guard_condition->data = iceoryx_guard_condition;
 

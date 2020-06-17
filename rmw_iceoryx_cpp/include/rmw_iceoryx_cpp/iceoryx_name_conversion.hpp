@@ -21,7 +21,7 @@
 #include "iceoryx_posh/capro/service_description.hpp"
 #include "iceoryx_utils/cxx/string.hpp"
 
-class rosidl_message_type_support_t;
+struct rosidl_message_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {

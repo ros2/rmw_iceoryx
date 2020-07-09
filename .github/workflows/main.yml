@@ -17,7 +17,7 @@ jobs:
           os: [ubuntu-18.04]
     steps:
       - name: Setup ROS
-        uses: ros-tooling/setup-ros@0.0.15
+        uses: ros-tooling/setup-ros@0.0.23
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
       - name: Build & Test

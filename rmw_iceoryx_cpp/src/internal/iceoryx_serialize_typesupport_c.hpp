@@ -34,9 +34,9 @@ namespace details_c
 
 template<
   class T,
-  size_t SizeT
+  size_t SizeT = sizeof(T)
 >
-void serialize_sequence(std::vector<char> & serialized_msg, const void * ros_message_field);
+void serialize_sequence(std::vector<char> & serialized_msg, const char * ros_message_field);
 
 template<
   class T,
@@ -66,7 +66,7 @@ template<
 >
 void serialize_array(
   std::vector<char> & serialized_msg,
-  const void * ros_message_field,
+  const char * ros_message_field,
   uint32_t size)
 {
   auto array = reinterpret_cast<const T *>(ros_message_field);
@@ -78,9 +78,9 @@ void serialize_array(
 
 template<
   class T,
-  size_t SizeT = sizeof(T)
+  size_t SizeT
 >
-void serialize_sequence(std::vector<char> & serialized_msg, const void * ros_message_field)
+void serialize_sequence(std::vector<char> & serialized_msg, const char * ros_message_field)
 {
   auto sequence =
     reinterpret_cast<const typename traits::sequence_type<T>::type *>(ros_message_field);
@@ -88,13 +88,14 @@ void serialize_sequence(std::vector<char> & serialized_msg, const void * ros_mes
 
   push_sequence_size(serialized_msg, sequence_size);
 
-  serialize_array<T>(serialized_msg, sequence->data, sequence_size);
+  serialize_array<T>(serialized_msg, reinterpret_cast<const char *>(sequence->data), sequence_size);
 }
 
 template<typename T>
 void serialize_message_field(
   const rosidl_typesupport_introspection_c__MessageMember * member,
-  std::vector<char> & serialized_msg, const char * ros_message_field)
+  std::vector<char> & serialized_msg,
+  const char * ros_message_field)
 {
   debug_log("serializing message field %s\n", member->name_);
   if (!member->is_array_) {

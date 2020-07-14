@@ -26,17 +26,11 @@ rmw_node_t *
 rmw_create_node(
   rmw_context_t * context,
   const char * name,
-  const char * namespace_,
-  size_t domain_id,
-  bool localhost_only)
+  const char * namespace_)
 {
-  (void)domain_id;
-  (void)localhost_only;  // funny ;)
-
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(name, nullptr);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(namespace_, nullptr);
-
 
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     rmw_create_node

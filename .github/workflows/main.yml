@@ -3,7 +3,7 @@ name: Integration build rmw_iceoryx
 on:
   push:
     branches:
-      - master
+      - foxy
   pull_request:
   schedule:
     - cron: '0 3 * * *'
@@ -18,10 +18,12 @@ jobs:
     steps:
       - name: Setup ROS
         uses: ros-tooling/setup-ros@0.0.23
+        with:
+          required-ros-distributions: foxy
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
       - name: Build & Test
-        uses: ros-tooling/action-ros-ci@master
+        uses: ros-tooling/action-ros-ci@0.0.17
         with:
           package-name: rmw_iceoryx_cpp iceoryx_ros2_bridge
           vcs-repo-file-url: |

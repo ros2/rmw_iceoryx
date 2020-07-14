@@ -37,7 +37,7 @@ namespace details_cpp
 // Forward declarations
 template<
   class T,
-  uint32_t SizeT = sizeof(T)
+  uint32_t SizeT
 >
 void serialize_element(
   std::vector<char> & serialized_msg,
@@ -45,7 +45,7 @@ void serialize_element(
 
 template<
   class T,
-  uint32_t SizeT = sizeof(T)
+  uint32_t SizeT
 >
 void serialize_array(
   std::vector<char> & serialized_msg,
@@ -54,8 +54,8 @@ void serialize_array(
 
 template<
   class T,
-  uint32_t SizeT = sizeof(T),
-  class ContainerT = std::vector<T>
+  uint32_t SizeT,
+  class ContainerT
 >
 void serialize_sequence(
   std::vector<char> & serialized_msg,
@@ -64,7 +64,7 @@ void serialize_sequence(
 // Implementation
 template<
   class T,
-  uint32_t SizeT
+  uint32_t SizeT = sizeof(T)
 >
 void serialize_element(
   std::vector<char> & serialized_msg,
@@ -109,8 +109,8 @@ void serialize_array(
 
 template<
   class T,
-  uint32_t SizeT,
-  class ContainerT
+  uint32_t SizeT = sizeof(T),
+  class ContainerT = std::vector<T>
 >
 void serialize_sequence(std::vector<char> & serialized_msg, const void * ros_message_field)
 {

@@ -35,7 +35,7 @@ class GenericSubscription : public rclcpp::SubscriptionBase
 {
 public:
   // cppcheck-suppress unknownMacro
-  RCLCPP_SMART_PTR_DEFINITIONS(GenericSubscription)  // NOLINT
+  RCLCPP_SMART_PTR_DEFINITIONS(GenericSubscription)
 
   /**
    * Constructor. In order to properly subscribe to a topic, this subscription needs to be added to

@@ -34,6 +34,7 @@ namespace iceoryx_ros2_bridge
 class GenericSubscription : public rclcpp::SubscriptionBase
 {
 public:
+  // cppcheck-suppress unknownMacro
   RCLCPP_SMART_PTR_DEFINITIONS(GenericSubscription)
 
   /**
@@ -83,6 +84,7 @@ public:
     void * loaned_message, const rclcpp::MessageInfo & message_info) override;
 
 private:
+  // cppcheck-suppress unknownMacro
   RCLCPP_DISABLE_COPY(GenericSubscription)
 
   std::shared_ptr<rclcpp::SerializedMessage> borrow_serialized_message(size_t capacity);

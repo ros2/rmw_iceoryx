@@ -74,7 +74,7 @@ rmw_create_publisher(
 
   std::string node_full_name = std::string(node->namespace_) + std::string(node->name);
   rmw_publisher_t * rmw_publisher = nullptr;
-  iox::popo::Publisher * iceoryx_sender = nullptr;
+  iox::popo::UntypedPublisher * iceoryx_sender = nullptr;
   IceoryxPublisher * iceoryx_publisher = nullptr;
 
   // allocate rmw_publisher
@@ -86,17 +86,19 @@ rmw_create_publisher(
 
   // allocate iceoryx_sender
   iceoryx_sender =
-    static_cast<iox::popo::Publisher *>(rmw_allocate(
-      sizeof(iox::popo::Publisher)));
+    static_cast<iox::popo::UntypedPublisher *>(rmw_allocate(
+      sizeof(iox::popo::UntypedPublisher)));
   if (!iceoryx_sender) {
     RMW_SET_ERROR_MSG("failed to allocate memory for iceoryx sender");
     goto fail;
   }
 
   RMW_TRY_PLACEMENT_NEW(
-    iceoryx_sender, iceoryx_sender,
-    goto fail, iox::popo::Publisher, service_description,
-    iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_full_name));
+      iceoryx_sender, iceoryx_sender,
+      goto fail, iox::popo::UntypedPublisher, service_description,
+      iox::popo::PublisherOptions{
+          0U, iox::cxx::string<100>(iox::cxx::TruncateToCapacity, node_full_name)});
+
   iceoryx_sender->offer();  // make the sender visible
 
   // allocate iceoryx_publisher
@@ -128,7 +130,7 @@ fail:
   if (rmw_publisher) {
     if (iceoryx_sender) {
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        iceoryx_sender->~Publisher(), iox::popo::Publisher)
+        iceoryx_sender->~UntypedPublisherImpl(), iox::popo::UntypedPublisher)
       rmw_free(iceoryx_sender);
     }
     if (iceoryx_publisher) {
@@ -185,7 +187,7 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
   if (iceoryx_publisher) {
     if (iceoryx_publisher->iceoryx_sender_) {
       RMW_TRY_DESTRUCTOR(
-        iceoryx_publisher->iceoryx_sender_->~Publisher(),
+        iceoryx_publisher->iceoryx_sender_->~UntypedPublisherImpl(),
         iceoryx_publisher->iceoryx_sender_,
         result = RMW_RET_ERROR)
       rmw_free(iceoryx_publisher->iceoryx_sender_);

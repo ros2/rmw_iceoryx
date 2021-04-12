@@ -96,7 +96,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   // create a name for the process to register with the RouDi daemon
   extern char * __progname;
   auto progName = std::string(__progname);
-  auto name = std::string("/") + progName + "_" + std::to_string(getpid());
+  auto name = progName + "_" + std::to_string(getpid());
 
   // TODO(mphnl) Would it make sense to check if thr RouDi daemon is running
   // and to start it here if not?
@@ -104,7 +104,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   // This call creates a runtime object.
   // It regisers with the RouDi daemon and gets the configuration
   // for setting up the shared memeory
-  iox::runtime::PoshRuntime::getInstance(name);
+  iox::runtime::PoshRuntime::initRuntime(iox::cxx::string<100>(iox::cxx::TruncateToCapacity, name));
 
   return RMW_RET_OK;
 }

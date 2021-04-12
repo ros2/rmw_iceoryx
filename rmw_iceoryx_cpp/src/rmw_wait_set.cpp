@@ -38,8 +38,8 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
   // Untill we have something better in the iceoryx API,
   // we use the process introspection and its semaphore for notification in the ros waitset
   rmw_wait_set_t * rmw_wait_set = nullptr;
-  iox::popo::Subscriber * process_receiver = nullptr;
-  iox::posix::Semaphore * semaphore = nullptr;
+  iox::popo::UntypedSubscriber * process_receiver = nullptr;
+  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *waitset = nullptr;
   IceoryxWaitSet * iceoryx_wait_set = nullptr;
 
   rmw_wait_set = rmw_wait_set_allocate();
@@ -50,8 +50,8 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
 
   rmw_wait_set->implementation_identifier = rmw_get_implementation_identifier();
 
-  process_receiver = static_cast<iox::popo::Subscriber *>(
-    rmw_allocate(sizeof(iox::popo::Subscriber)));
+  process_receiver = static_cast<iox::popo::UntypedSubscriber *>(
+    rmw_allocate(sizeof(iox::popo::UntypedSubscriber)));
   if (!process_receiver) {
     RMW_SET_ERROR_MSG("failed to allocate memory for wait_set data");
     goto fail;
@@ -60,14 +60,28 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     process_receiver,
     process_receiver,
     goto fail,
-    iox::popo::Subscriber,
+    iox::popo::UntypedSubscriber,
     iox::roudi::IntrospectionProcessService)
 
-  semaphore = process_receiver->getSemaphore();
+  // create waitset
+  waitset = static_cast<iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *>(
+    rmw_allocate(sizeof(iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>)));
+  if (!waitset) {
+    RMW_SET_ERROR_MSG("failed to allocate memory for wait_set data");
+    goto fail;
+  }
+  RMW_TRY_PLACEMENT_NEW(
+    waitset,
+    waitset,
+    goto fail,
+    iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>,);
 
-  // Set semaphore and subscribe for having wait_set triggers if a new process appears
-  process_receiver->setChunkReceiveSemaphore(semaphore);
-  process_receiver->subscribe(1);
+  // attach subscriber to waitset
+  waitset->attachState(*process_receiver, iox::popo::SubscriberState::HAS_DATA).or_else([](auto) {
+    RMW_SET_ERROR_MSG("failed to attach subscriber");
+    // goto fail;
+  });
+  process_receiver->subscribe();
 
   iceoryx_wait_set = static_cast<IceoryxWaitSet *>(rmw_allocate(sizeof(IceoryxWaitSet)));
   if (!iceoryx_wait_set) {
@@ -75,7 +89,7 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     goto fail;
   }
   RMW_TRY_PLACEMENT_NEW(
-    iceoryx_wait_set, iceoryx_wait_set, goto fail, IceoryxWaitSet, semaphore, process_receiver)
+    iceoryx_wait_set, iceoryx_wait_set, goto fail, IceoryxWaitSet, waitset, process_receiver)
 
   rmw_wait_set->data = static_cast<void *>(iceoryx_wait_set);
   return rmw_wait_set;
@@ -84,9 +98,16 @@ fail:
   if (rmw_wait_set) {
     if (process_receiver) {
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        process_receiver->~Subscriber(),
-        iox::popo::Subscriber)
+        process_receiver->~UntypedSubscriberImpl(),
+        iox::popo::UntypedSubscriber)
       rmw_free(process_receiver);
+    }
+
+    if (waitset) {
+      RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
+        waitset->~WaitSet(),
+        iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>)
+      rmw_free(waitset);
     }
 
     if (iceoryx_wait_set) {
@@ -116,10 +137,17 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
   if (iceoryx_wait_set) {
     if (iceoryx_wait_set->iceoryx_receiver_) {
       RMW_TRY_DESTRUCTOR(
-        iceoryx_wait_set->iceoryx_receiver_->~Subscriber(),
+        iceoryx_wait_set->iceoryx_receiver_->~UntypedSubscriberImpl(),
         iceoryx_wait_set->iceoryx_receiver_,
         result = RMW_RET_ERROR)
       rmw_free(iceoryx_wait_set->iceoryx_receiver_);
+    }
+    if (iceoryx_wait_set->waitset_) {
+      RMW_TRY_DESTRUCTOR(
+        iceoryx_wait_set->waitset_->~WaitSet(),
+        iceoryx_wait_set->waitset_,
+        result = RMW_RET_ERROR)
+      rmw_free(iceoryx_wait_set->waitset_);
     }
     RMW_TRY_DESTRUCTOR(
       iceoryx_wait_set->~IceoryxWaitSet(), iceoryx_wait_set, result = RMW_RET_ERROR)

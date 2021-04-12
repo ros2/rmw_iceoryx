@@ -75,7 +75,7 @@ rmw_create_subscription(
 
   std::string node_full_name = std::string(node->namespace_) + std::string(node->name);
   rmw_subscription_t * rmw_subscription = nullptr;
-  iox::popo::Subscriber * iceoryx_receiver = nullptr;
+  iox::popo::UntypedSubscriber * iceoryx_receiver = nullptr;
   IceoryxSubscription * iceoryx_subscription = nullptr;
 
   rmw_subscription = rmw_subscription_allocate();
@@ -85,18 +85,22 @@ rmw_create_subscription(
   }
 
   iceoryx_receiver =
-    static_cast<iox::popo::Subscriber *>(rmw_allocate(
-      sizeof(iox::popo::Subscriber)));
+    static_cast<iox::popo::UntypedSubscriber *>(rmw_allocate(
+      sizeof(iox::popo::UntypedSubscriber)));
   if (!iceoryx_receiver) {
     RMW_SET_ERROR_MSG("failed to allocate memory for iceoryx receiver");
     goto fail;
   }
+  // todo:
   RMW_TRY_PLACEMENT_NEW(
     iceoryx_receiver, iceoryx_receiver, goto fail,
-    iox::popo::Subscriber, service_description,
-    iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_full_name))
+    iox::popo::UntypedSubscriber, service_description,
+    iox::popo::SubscriberOptions{
+          10U, 0U, iox::cxx::string<100>(iox::cxx::TruncateToCapacity, node_full_name)});
+
   // instant subscribe, queue size form qos settings
-  iceoryx_receiver->subscribe(qos_policies->depth);
+  // todo:
+  iceoryx_receiver->subscribe();
 
   iceoryx_subscription =
     static_cast<IceoryxSubscription *>(rmw_allocate(sizeof(IceoryxSubscription)));
@@ -126,7 +130,7 @@ fail:
   if (rmw_subscription) {
     if (iceoryx_receiver) {
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        iceoryx_receiver->~Subscriber(), iox::popo::Subscriber)
+        iceoryx_receiver->~UntypedSubscriberImpl(), iox::popo::UntypedSubscriber)
       rmw_free(iceoryx_receiver);
     }
     if (iceoryx_subscription) {
@@ -177,7 +181,7 @@ rmw_destroy_subscription(
   if (iceoryx_subscription) {
     if (iceoryx_subscription->iceoryx_receiver_) {
       RMW_TRY_DESTRUCTOR(
-        iceoryx_subscription->iceoryx_receiver_->~Subscriber(),
+        iceoryx_subscription->iceoryx_receiver_->~UntypedSubscriberImpl(),
         iceoryx_subscription->iceoryx_receiver_,
         result = RMW_RET_ERROR)
       rmw_free(iceoryx_subscription->iceoryx_receiver_);

@@ -14,7 +14,7 @@
 
 #include <time.h>
 
-#include "iceoryx_posh/popo/subscriber.hpp"
+#include "iceoryx_posh/popo/untyped_subscriber.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -27,6 +27,17 @@
 
 extern "C"
 {
+
+using namespace std::chrono;
+
+constexpr nanoseconds timespecToDuration(timespec ts)
+{
+    auto duration = seconds{ts.tv_sec}
+        + nanoseconds{ts.tv_nsec};
+
+    return duration_cast<nanoseconds>(duration);
+}
+
 rmw_ret_t
 rmw_wait(
   rmw_subscriptions_t * subscriptions,
@@ -54,40 +65,44 @@ rmw_wait(
     return RMW_RET_ERROR;
   }
 
-  iox::posix::Semaphore * semaphore = iceoryx_wait_set->semaphore_;
-  if (!semaphore) {
+  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *waitset  = iceoryx_wait_set->waitset_;
+  if (!waitset) {
     return RMW_RET_ERROR;
   }
 
-  // attach semaphore to all iceoryx receivers
+  // attach waitset to all iceoryx receivers
   for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
     auto iceoryx_subscription =
       static_cast<IceoryxSubscription * const>(subscriptions->subscribers[i]);
     auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
     // indicate that we do not have to wait if there is already a new sample
-    if (iceoryx_receiver->hasNewChunks()) {
+    if (iceoryx_receiver->hasData()) {
       goto after_wait;
     }
 
-    iceoryx_receiver->setChunkReceiveSemaphore(semaphore);
+    // attach subscriber to waitset
+    waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else([](auto) {
+      // RMW_SET_ERROR_MSG("failed to attach subscriber");
+      // goto after_wait;
+    });
   }
+  // todo: how to deal with that
+  // // attach semaphore to all guard conditions
+  // for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
+  //   auto iceoryx_guard_condition =
+  //     static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
 
-  // attach semaphore to all guard conditions
-  for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
-    auto iceoryx_guard_condition =
-      static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
+  //   // indicate that we do not have to wait if there is already a triggered guard condition
+  //   if (iceoryx_guard_condition->hasTriggered()) {
+  //     goto after_wait;
+  //   }
 
-    // indicate that we do not have to wait if there is already a triggered guard condition
-    if (iceoryx_guard_condition->hasTriggered()) {
-      goto after_wait;
-    }
-
-    iceoryx_guard_condition->attachSemaphore(semaphore);
-  }
+  //   iceoryx_guard_condition->attachSemaphore(semaphore);
+  // }
 
   if (!wait_timeout) {
-    semaphore->wait();
+    auto notificationVector = waitset->wait();
   } else {
     struct timespec ts_start;
     struct timespec ts_end;
@@ -100,7 +115,8 @@ rmw_wait(
       ts_end.tv_sec = ts_start.tv_sec + wait_timeout->sec;
     }
     ts_end.tv_nsec = nsec;
-    semaphore->timedWait(&ts_end, true);
+
+    auto notificationVector = waitset->timedWait(iox::units::Duration(ts_end));
 
     // // for debugging
     // struct timespec ts_diff;
@@ -123,34 +139,35 @@ after_wait:
   for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
     auto iceoryx_subscription =
       static_cast<IceoryxSubscription * const>(subscriptions->subscribers[i]);
-    iox::popo::Subscriber * iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
+    iox::popo::UntypedSubscriber * iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
-    // remove semaphore from all receivers because next call a new waitset could be provided
-    iceoryx_receiver->unsetChunkReceiveSemaphore();
+    // remove waitset from all receivers because next call a new waitset could be provided
+    // waitset->detachState(*iceoryx_receiver);
 
-    if (!iceoryx_receiver->hasNewChunks()) {
+    if (!iceoryx_receiver->hasData()) {
       subscriptions->subscribers[i] = nullptr;
     }
   }
 
-  // reset all the guard_conditions that have not triggered
-  for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
-    auto iceoryx_guard_condition =
-      static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
+  // todo: dealing with guard_conditons
+  // // reset all the guard_conditions that have not triggered
+  // for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
+  //   auto iceoryx_guard_condition =
+  //     static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
 
-    iceoryx_guard_condition->detachSemaphore();
+  //   iceoryx_guard_condition->detachSemaphore();
 
-    if (iceoryx_guard_condition->hasTriggered()) {
-      iceoryx_guard_condition->resetTriggerIndication();
-    } else {
-      guard_conditions->guard_conditions[i] = nullptr;
-    }
-  }
+  //   if (iceoryx_guard_condition->hasTriggered()) {
+  //     iceoryx_guard_condition->resetTriggerIndication();
+  //   } else {
+  //     guard_conditions->guard_conditions[i] = nullptr;
+  //   }
+  // }
 
-  // clear the semaphore
-  // events that triggered it and where not yet collected will be seen on next rmw_wait
-  while (semaphore->tryWait()) {
-  }
+  // // clear the semaphore
+  // // events that triggered it and where not yet collected will be seen on next rmw_wait
+  // while (semaphore->tryWait()) {
+  // }
 
   return RMW_RET_OK;
 }

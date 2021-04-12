@@ -15,7 +15,7 @@
 #include <set>
 #include <string>
 
-#include "iceoryx_posh/popo/subscriber.hpp"
+#include "iceoryx_posh/popo/untyped_subscriber.hpp"
 #include "iceoryx_posh/roudi/introspection_types.hpp"
 
 #include "rcutils/error_handling.h"
@@ -43,45 +43,67 @@ rmw_get_node_names(
     : node, node->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
-  static iox::popo::Subscriber process_receiver(iox::roudi::IntrospectionProcessService);
+  static iox::popo::UntypedSubscriber process_receiver(iox::roudi::IntrospectionProcessService);
   static std::set<std::string> node_names_set;
 
   bool updated = false;
-  if (iox::popo::SubscriptionState::SUBSCRIBED != process_receiver.getSubscriptionState()) {
-    process_receiver.subscribe(1);
+  if (iox::SubscribeState::SUBSCRIBED != process_receiver.getSubscriptionState()) {
+    process_receiver.subscribe();
     // wait for delivery on subscribe
-    while (!process_receiver.hasNewChunks()) {
+    while (!process_receiver.hasData()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     updated = true;
   } else {
-    updated = process_receiver.hasNewChunks();
+    updated = process_receiver.hasData();
   }
 
   if (updated) {
-    // get the latest sample
     const iox::mepoo::ChunkHeader * chunk_header = nullptr;
     const iox::mepoo::ChunkHeader * latest_chunk_header = nullptr;
-
-    while (process_receiver.getChunk(&chunk_header)) {
-      if (latest_chunk_header) {
-        process_receiver.releaseChunk(latest_chunk_header);
+    // while (1) {
+    //   process_receiver.take()
+    //       .and_then([&](auto &userPayload) {
+    //         chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(userPayload);
+    //         if (latest_chunk_header)
+    //         {
+    //           process_receiver.release(latest_chunk_header);
+    //         }
+    //         latest_chunk_header = chunk_header;
+    //       })
+    //       .if_empty([] { break; })
+    //       .or_else([](iox::popo::ChunkReceiveResult) { break; });
+    // }
+    while(1)
+    {
+      auto result = process_receiver.take();
+      if (!result.has_error())
+      {
+        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(result.value());
+        if (latest_chunk_header)
+        {
+          process_receiver.release(latest_chunk_header);
+        }
+        latest_chunk_header = chunk_header;
       }
-      latest_chunk_header = chunk_header;
+      else
+      {
+        break;
+      }
     }
 
     if (latest_chunk_header) {
       const iox::roudi::ProcessIntrospectionFieldTopic * process_sample =
         static_cast<const iox::roudi::ProcessIntrospectionFieldTopic *>(latest_chunk_header->
-        payload());
+        userPayload());
 
       node_names_set.clear();
       for (auto & process : process_sample->m_processList) {
-        for (auto & runnable : process.m_runnables) {
+        for (auto & runnable : process.m_nodes) {
           node_names_set.insert(std::string(runnable.c_str()));
         }
       }
-      process_receiver.releaseChunk(latest_chunk_header);
+      process_receiver.release(latest_chunk_header);
     }
   }
 

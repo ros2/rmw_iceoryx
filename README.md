@@ -27,6 +27,8 @@ Assuming you have ROS2 installed correctly, you can compile the iceoryx workspac
 cd ~/iceoryx_ws/
 source /opt/ros/eloquent/setup.bash  # alternatively source your own ROS2 workspace
 colcon build
+# or with more options
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
 ```
 
 That's it! You've installed iceoryx and are ready to rumble.

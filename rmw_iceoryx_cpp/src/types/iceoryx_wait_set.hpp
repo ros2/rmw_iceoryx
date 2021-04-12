@@ -15,8 +15,8 @@
 #ifndef TYPES__ICEORYX_WAIT_SET_HPP_
 #define TYPES__ICEORYX_WAIT_SET_HPP_
 
-#include "iceoryx_posh/popo/subscriber.hpp"
-#include "iceoryx_utils/posix_wrapper/semaphore.hpp"
+#include "iceoryx_posh/popo/untyped_subscriber.hpp"
+#include "iceoryx_posh/popo/wait_set.hpp"
 
 #include "rmw/rmw.h"
 #include "rmw/types.h"
@@ -24,13 +24,15 @@
 struct IceoryxWaitSet
 {
   IceoryxWaitSet(
-    iox::posix::Semaphore * const semaphore,
-    iox::popo::Subscriber * const iceoryx_receiver)
-  : semaphore_(semaphore), iceoryx_receiver_(iceoryx_receiver)
+    iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> * const waitset,
+    iox::popo::UntypedSubscriber * const iceoryx_receiver)
+  : waitset_(waitset), iceoryx_receiver_(iceoryx_receiver)
   {}
 
-  iox::posix::Semaphore * const semaphore_;
-  iox::popo::Subscriber * const iceoryx_receiver_;
+  // iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET
+  // todo: number of waitset?
+  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> * const waitset_;
+  iox::popo::UntypedSubscriber * const iceoryx_receiver_;
 };
 
 #endif  // TYPES__ICEORYX_WAIT_SET_HPP_

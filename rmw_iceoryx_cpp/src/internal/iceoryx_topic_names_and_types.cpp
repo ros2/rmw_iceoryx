@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "iceoryx_posh/popo/subscriber.hpp"
+#include "iceoryx_posh/popo/untyped_subscriber.hpp"
 #include "iceoryx_posh/roudi/introspection_types.hpp"
 
 #include "rcutils/logging_macros.h"
@@ -27,6 +27,8 @@
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_topic_names_and_types.hpp"
 
+// #include "typestring.hh"
+
 namespace rmw_iceoryx_cpp
 {
 
@@ -36,21 +38,21 @@ void fill_topic_containers(
   std::map<std::string, std::vector<std::string>> & subscribers_topics_,
   std::map<std::string, std::vector<std::string>> & publishers_topics_)
 {
-  static iox::popo::Subscriber port_receiver(iox::roudi::IntrospectionPortService);
+  static iox::popo::UntypedSubscriber port_receiver(iox::roudi::IntrospectionPortService);
   static std::map<std::string, std::string> names_n_types;
   static std::map<std::string, std::vector<std::string>> subscribers_topics;
   static std::map<std::string, std::vector<std::string>> publishers_topics;
 
   bool updated = false;
-  if (iox::popo::SubscriptionState::SUBSCRIBED != port_receiver.getSubscriptionState()) {
-    port_receiver.subscribe(1);
+  if (iox::SubscribeState::SUBSCRIBED != port_receiver.getSubscriptionState()) {
+    port_receiver.subscribe();
     // wait for delivery on subscribe
-    while (!port_receiver.hasNewChunks()) {
+    while (!port_receiver.hasData()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     updated = true;
   } else {
-    updated = port_receiver.hasNewChunks();
+    updated = port_receiver.hasData();
   }
 
   if (updated) {
@@ -58,45 +60,56 @@ void fill_topic_containers(
     const iox::mepoo::ChunkHeader * chunk_header = nullptr;
     const iox::mepoo::ChunkHeader * latest_chunk_header = nullptr;
 
-    while (port_receiver.getChunk(&chunk_header)) {
-      if (latest_chunk_header) {
-        port_receiver.releaseChunk(latest_chunk_header);
+    while(1)
+    {
+      auto result = port_receiver.take();
+      if (!result.has_error())
+      {
+        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(result.value());
+        if (latest_chunk_header)
+        {
+          port_receiver.release(latest_chunk_header);
+        }
+        latest_chunk_header = chunk_header;
       }
-      latest_chunk_header = chunk_header;
+      else
+      {
+        break;
+      }
     }
 
     if (latest_chunk_header) {
       const iox::roudi::PortIntrospectionFieldTopic * port_sample =
         static_cast<const iox::roudi::PortIntrospectionFieldTopic *>(latest_chunk_header->
-        payload());
+        userPayload());
 
       names_n_types.clear();
       subscribers_topics.clear();
       publishers_topics.clear();
 
-      for (auto & receiver : port_sample->m_receiverList) {
+      for (auto & receiver : port_sample->m_subscriberList) {
         auto name_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
           std::string(receiver.m_caproServiceID.c_str()),
           std::string(receiver.m_caproInstanceID.c_str()),
           std::string(receiver.m_caproEventMethodID.c_str()));
 
         names_n_types[std::get<0>(name_and_type)] = std::get<1>(name_and_type);
-        subscribers_topics[std::string(receiver.m_runnable.c_str())].push_back(
+        subscribers_topics[std::string(receiver.m_node.c_str())].push_back(
           std::get<0>(
             name_and_type));
       }
-      for (auto & sender : port_sample->m_senderList) {
+      for (auto & sender : port_sample->m_publisherList) {
         auto name_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
           std::string(sender.m_caproServiceID.c_str()),
           std::string(sender.m_caproInstanceID.c_str()),
           std::string(sender.m_caproEventMethodID.c_str()));
 
         names_n_types[std::get<0>(name_and_type)] = std::get<1>(name_and_type);
-        publishers_topics[std::string(sender.m_runnable.c_str())].push_back(
+        publishers_topics[std::string(sender.m_node.c_str())].push_back(
           std::get<0>(
             name_and_type));
       }
-      port_receiver.releaseChunk(latest_chunk_header);
+      port_receiver.release(latest_chunk_header);
     }
   }
 

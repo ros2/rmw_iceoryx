@@ -89,7 +89,7 @@ For a fully working implementation, please have a look at [this demo node](https
 ```c++
 auto pub = node->create_publisher<std_msgs::msg::String>("/chatter", 1);
 // Ask the publisher to loan a String message
-auto loaned_msg = pub_->borrow_loaned_message();
+auto pod_loaned_msg = pub_->borrow_loaned_message();
 pod_loaned_msg.get().data = "Hello World";
 // Return ownership of that string message
 pod_pub_->publish(std::move(pod_loaned_msg));
@@ -110,7 +110,7 @@ Thus, in order to make our demo work with zero copy, we can alternatively send a
 ```c++
 auto pub = node->create_publisher<std_msgs::msg::Float64>("/float", 1);
 // Ask the publisher to loan a Float64 message
-auto loaned_msg = pub_->borrow_loaned_message();
+auto pod_loaned_msg = pub_->borrow_loaned_message();
 pod_loaned_msg.get().data = 123.456f;
 // Return ownership of that Float64 message
 pod_pub_->publish(std::move(pod_loaned_msg));

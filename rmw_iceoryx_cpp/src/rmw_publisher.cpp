@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -97,7 +98,7 @@ rmw_create_publisher(
       iceoryx_sender, iceoryx_sender,
       goto fail, iox::popo::UntypedPublisher, service_description,
       iox::popo::PublisherOptions{
-          0U, iox::cxx::string<100>(iox::cxx::TruncateToCapacity, node_full_name)});
+          0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
 
   iceoryx_sender->offer();  // make the sender visible
 

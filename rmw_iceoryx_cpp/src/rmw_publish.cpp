@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +15,6 @@
 
 #include <vector>
 
-#include "iceoryx_posh/mepoo/chunk_header.hpp"
 #include "iceoryx_posh/popo/untyped_publisher.hpp"
 
 #include "rcutils/error_handling.h"
@@ -47,16 +47,19 @@ send_payload(
     RMW_SET_ERROR_MSG("serialized message pointer is null");
     return RMW_RET_ERROR;
   }
+  rmw_ret_t ret = RMW_RET_ERROR;
   iceoryx_publisher->loan(size)
       .and_then([&](auto& userPayload) {
         auto chunk = reinterpret_cast<void*>(userPayload);
         memcpy(chunk, serialized_ros_msg, size);
         iceoryx_publisher->publish(chunk);
+        ret = RMW_RET_OK;
       })
-      .or_else([](iox::popo::AllocationError) {
+      .or_else([&](iox::popo::AllocationError) {
         RMW_SET_ERROR_MSG("send_payload error!");
+        ret = RMW_RET_ERROR;
       });
-  return RMW_RET_OK;
+  return ret;
 }
 }  // namespace details
 
@@ -145,7 +148,7 @@ rmw_borrow_loaned_message(
   const rosidl_message_type_support_t * type_support,
   void ** ros_message)
 {
-  rmw_ret_t ret = RMW_RET_OK;
+  rmw_ret_t ret = RMW_RET_ERROR;
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(type_support, RMW_RET_ERROR);
 
@@ -173,13 +176,13 @@ rmw_borrow_loaned_message(
   }
 
   iceoryx_sender->loan(iceoryx_publisher->message_size_)
-      .and_then([&](auto& userPayload) mutable {
+      .and_then([&](auto& userPayload) {
         auto msg_memory = reinterpret_cast<void*>(userPayload);
         rmw_iceoryx_cpp::iceoryx_init_message(&iceoryx_publisher->type_supports_, msg_memory);
         *ros_message = msg_memory;
         ret = RMW_RET_OK;
       })
-      .or_else([ret](iox::popo::AllocationError) mutable {
+      .or_else([&](iox::popo::AllocationError) {
         RMW_SET_ERROR_MSG("rmw_borrow_loaned_message error!");
         ret = RMW_RET_ERROR;
       });

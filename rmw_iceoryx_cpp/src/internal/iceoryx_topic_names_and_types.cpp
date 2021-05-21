@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +27,6 @@
 
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_topic_names_and_types.hpp"
-
-// #include "typestring.hh"
 
 namespace rmw_iceoryx_cpp
 {
@@ -57,31 +56,26 @@ void fill_topic_containers(
 
   if (updated) {
     // get the latest sample
-    const iox::mepoo::ChunkHeader * chunk_header = nullptr;
-    const iox::mepoo::ChunkHeader * latest_chunk_header = nullptr;
+    const void * user_payload = nullptr;
+    const void * previous_user_payload = nullptr;
 
-    while(1)
+    // @todo add error handling branch
+    while (port_receiver.take()
+               .and_then([&](auto &userPayload) {
+
+                 user_payload = iox::mepoo::ChunkHeader::fromUserPayload(userPayload);
+                 if (previous_user_payload)
+                 {
+                   port_receiver.release(previous_user_payload);
+                 }
+                 previous_user_payload = user_payload;
+               }))
     {
-      auto result = port_receiver.take();
-      if (!result.has_error())
-      {
-        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(result.value());
-        if (latest_chunk_header)
-        {
-          port_receiver.release(latest_chunk_header);
-        }
-        latest_chunk_header = chunk_header;
-      }
-      else
-      {
-        break;
-      }
     }
 
-    if (latest_chunk_header) {
+    if (previous_user_payload) {
       const iox::roudi::PortIntrospectionFieldTopic * port_sample =
-        static_cast<const iox::roudi::PortIntrospectionFieldTopic *>(latest_chunk_header->
-        userPayload());
+        static_cast<const iox::roudi::PortIntrospectionFieldTopic *>(previous_user_payload);
 
       names_n_types.clear();
       subscribers_topics.clear();
@@ -109,7 +103,7 @@ void fill_topic_containers(
           std::get<0>(
             name_and_type));
       }
-      port_receiver.release(latest_chunk_header);
+      port_receiver.release(previous_user_payload);
     }
   }
 

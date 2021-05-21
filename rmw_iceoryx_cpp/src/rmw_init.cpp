@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -96,6 +97,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   // create a name for the process to register with the RouDi daemon
   extern char * __progname;
   auto progName = std::string(__progname);
+  /// @todo we could check with the introspection topics beforehand if the name is already used
   auto name = progName + "_" + std::to_string(getpid());
 
   // TODO(mphnl) Would it make sense to check if thr RouDi daemon is running
@@ -104,7 +106,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   // This call creates a runtime object.
   // It regisers with the RouDi daemon and gets the configuration
   // for setting up the shared memeory
-  iox::runtime::PoshRuntime::initRuntime(iox::cxx::string<100>(iox::cxx::TruncateToCapacity, name));
+  iox::runtime::PoshRuntime::initRuntime(iox::RuntimeName_t(iox::cxx::TruncateToCapacity, name));
 
   return RMW_RET_OK;
 }

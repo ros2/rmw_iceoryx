@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,43 +60,25 @@ rmw_get_node_names(
   }
 
   if (updated) {
-    const iox::mepoo::ChunkHeader * chunk_header = nullptr;
-    const iox::mepoo::ChunkHeader * latest_chunk_header = nullptr;
-    // while (1) {
-    //   process_receiver.take()
-    //       .and_then([&](auto &userPayload) {
-    //         chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(userPayload);
-    //         if (latest_chunk_header)
-    //         {
-    //           process_receiver.release(latest_chunk_header);
-    //         }
-    //         latest_chunk_header = chunk_header;
-    //       })
-    //       .if_empty([] { break; })
-    //       .or_else([](iox::popo::ChunkReceiveResult) { break; });
-    // }
-    while(1)
+    const void * user_payload = nullptr;
+    const void * previous_user_payload = nullptr;
+
+    // @todo add error handling branch
+    while (process_receiver.take()
+               .and_then([&](auto &userPayload) {
+                 user_payload = iox::mepoo::ChunkHeader::fromUserPayload(userPayload);
+                 if (previous_user_payload)
+                 {
+                   process_receiver.release(previous_user_payload);
+                 }
+                 previous_user_payload = user_payload;
+               }))
     {
-      auto result = process_receiver.take();
-      if (!result.has_error())
-      {
-        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(result.value());
-        if (latest_chunk_header)
-        {
-          process_receiver.release(latest_chunk_header);
-        }
-        latest_chunk_header = chunk_header;
-      }
-      else
-      {
-        break;
-      }
     }
 
-    if (latest_chunk_header) {
+    if (previous_user_payload) {
       const iox::roudi::ProcessIntrospectionFieldTopic * process_sample =
-        static_cast<const iox::roudi::ProcessIntrospectionFieldTopic *>(latest_chunk_header->
-        userPayload());
+        static_cast<const iox::roudi::ProcessIntrospectionFieldTopic *>(previous_user_payload);
 
       node_names_set.clear();
       for (auto & process : process_sample->m_processList) {
@@ -103,7 +86,7 @@ rmw_get_node_names(
           node_names_set.insert(std::string(runnable.c_str()));
         }
       }
-      process_receiver.release(latest_chunk_header);
+      process_receiver.release(previous_user_payload);
     }
   }
 

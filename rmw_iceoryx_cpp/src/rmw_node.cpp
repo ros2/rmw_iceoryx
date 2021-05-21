@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -86,7 +87,7 @@ rmw_create_node(
   RMW_TRY_PLACEMENT_NEW(
     iceoryx_runnable, iceoryx_runnable,
     goto fail, iox::runtime::Node,
-    iox::cxx::string<100>(iox::cxx::TruncateToCapacity, full_name));
+    iox::NodeName_t(iox::cxx::TruncateToCapacity, full_name));
 
   node_info = static_cast<IceoryxNodeInfo *>(rmw_allocate(sizeof(IceoryxNodeInfo)));
   if (!node_info) {

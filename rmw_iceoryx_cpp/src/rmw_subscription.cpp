@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -96,10 +97,9 @@ rmw_create_subscription(
     iceoryx_receiver, iceoryx_receiver, goto fail,
     iox::popo::UntypedSubscriber, service_description,
     iox::popo::SubscriberOptions{
-          10U, 0U, iox::cxx::string<100>(iox::cxx::TruncateToCapacity, node_full_name)});
+          qos_policies->depth, 0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
 
   // instant subscribe, queue size form qos settings
-  // todo:
   iceoryx_receiver->subscribe();
 
   iceoryx_subscription =
@@ -129,6 +129,7 @@ rmw_create_subscription(
 fail:
   if (rmw_subscription) {
     if (iceoryx_receiver) {
+      // @todo Can we avoid to use the impl here?
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
         iceoryx_receiver->~UntypedSubscriberImpl(), iox::popo::UntypedSubscriber)
       rmw_free(iceoryx_receiver);
@@ -180,6 +181,7 @@ rmw_destroy_subscription(
     static_cast<IceoryxSubscription *>(subscription->data);
   if (iceoryx_subscription) {
     if (iceoryx_subscription->iceoryx_receiver_) {
+      // @todo Can we avoid to use the impl here?
       RMW_TRY_DESTRUCTOR(
         iceoryx_subscription->iceoryx_receiver_->~UntypedSubscriberImpl(),
         iceoryx_subscription->iceoryx_receiver_,

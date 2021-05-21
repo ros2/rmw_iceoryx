@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -78,31 +79,43 @@ rmw_take(
   }
 
   const iox::mepoo::ChunkHeader * chunk_header = nullptr;
+  const void* user_payload = nullptr;
 
   iceoryx_receiver->take()
       .and_then([&](auto &userPayload) {
-        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(userPayload);
+        user_payload = userPayload;
+        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
+        ret = RMW_RET_OK;
       })
-      .or_else([ret](iox::popo::ChunkReceiveResult) mutable {
+      .or_else([&](iox::popo::ChunkReceiveResult) {
         RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
         ret =  RMW_RET_ERROR;
       });
 
+  /// @todo move this to lambda in a function?
+  if(ret == RMW_RET_ERROR)
+  {
+    return ret;
+  }
+
   // if fixed size, we fetch the data via memcpy
   if (iceoryx_subscription->is_fixed_size_)
   {
-    memcpy(ros_message, chunk_header->userPayload(), chunk_header->userPayloadSize());
-    iceoryx_receiver->release(chunk_header);
+    memcpy(ros_message, user_payload, chunk_header->userPayloadSize());
+    iceoryx_receiver->release(user_payload);
     *taken = true;
     ret = RMW_RET_OK;
   }
-
-  rmw_iceoryx_cpp::deserialize(
-      static_cast<const char *>(chunk_header->userPayload()),
-      &iceoryx_subscription->type_supports_,
-      ros_message);
-  iceoryx_receiver->release(chunk_header);
-  *taken = true;
+  else
+  {
+    rmw_iceoryx_cpp::deserialize(
+        static_cast<const char *>(user_payload),
+        &iceoryx_subscription->type_supports_,
+        ros_message);
+    iceoryx_receiver->release(user_payload);
+    *taken = true;
+    ret = RMW_RET_OK;
+  }
 
   return ret;
 }
@@ -170,11 +183,14 @@ rmw_take_serialized_message(
   }
 
   const iox::mepoo::ChunkHeader * chunk_header = nullptr;
+  const void * user_payload = nullptr;
+
   iceoryx_receiver->take()
       .and_then([&](auto &userPayload) {
-        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(userPayload);
+        user_payload = userPayload;
+        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
       })
-      .or_else([ret](iox::popo::ChunkReceiveResult) mutable {
+      .or_else([&](iox::popo::ChunkReceiveResult) {
         RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
         ret =  RMW_RET_ERROR;
       });
@@ -182,9 +198,9 @@ rmw_take_serialized_message(
   // all incoming data is serialzed already in memory, so simply call memcopy
   ret = rmw_serialized_message_resize(serialized_message, chunk_header->userPayloadSize());
   if (RMW_RET_OK == ret) {
-    memcpy(serialized_message->buffer, chunk_header->userPayload(), chunk_header->userPayloadSize());
+    memcpy(serialized_message->buffer, user_payload, chunk_header->userPayloadSize());
     serialized_message->buffer_length = chunk_header->userPayloadSize();
-    iceoryx_receiver->release(chunk_header);
+    iceoryx_receiver->release(user_payload);
     *taken = true;
   }
 

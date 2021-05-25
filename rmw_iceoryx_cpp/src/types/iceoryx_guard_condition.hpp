@@ -20,6 +20,7 @@
 
 #include "iceoryx_utils/posix_wrapper/semaphore.hpp"
 
+/// @todo remove this files and replace occurences with UserTrigger
 class IceoryxGuardCondition
 {
 public:

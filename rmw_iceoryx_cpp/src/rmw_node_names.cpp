@@ -44,7 +44,8 @@ rmw_get_node_names(
     : node, node->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
-  static iox::popo::UntypedSubscriber process_receiver(iox::roudi::IntrospectionProcessService);
+  static iox::popo::UntypedSubscriber process_receiver(iox::roudi::IntrospectionProcessService,
+                                                       iox::popo::SubscriberOptions{1U, 1U, "", true});
   static std::set<std::string> node_names_set;
 
   bool updated = false;

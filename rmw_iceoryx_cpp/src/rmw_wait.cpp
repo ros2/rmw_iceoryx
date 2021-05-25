@@ -15,6 +15,7 @@
 #include <time.h>
 
 #include "iceoryx_posh/popo/untyped_subscriber.hpp"
+#include "iceoryx_posh/popo/wait_set.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -23,7 +24,6 @@
 
 #include "./types/iceoryx_guard_condition.hpp"
 #include "./types/iceoryx_subscription.hpp"
-#include "./types/iceoryx_wait_set.hpp"
 
 extern "C"
 {
@@ -60,12 +60,7 @@ rmw_wait(
     : waitset, wait_set->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
-  auto iceoryx_wait_set = static_cast<IceoryxWaitSet *>(wait_set->data);
-  if (!iceoryx_wait_set) {
-    return RMW_RET_ERROR;
-  }
-
-  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *waitset  = iceoryx_wait_set->waitset_;
+  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *waitset  = static_cast<iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *>(wait_set->data);
   if (!waitset) {
     return RMW_RET_ERROR;
   }
@@ -77,15 +72,16 @@ rmw_wait(
     auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
     // indicate that we do not have to wait if there is already a new sample
-    if (iceoryx_receiver->hasData()) {
+    //if (iceoryx_receiver->hasData()) {
       goto after_wait;
-    }
+    //}
 
+    /// @todo use attachEvent?
     // attach subscriber to waitset
-    waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else([](auto) {
-      // RMW_SET_ERROR_MSG("failed to attach subscriber");
+    //waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else([](auto) {
+      /// @todo RMW_SET_ERROR_MSG("failed to attach subscriber");
       // goto after_wait;
-    });
+    //});
   }
   // todo: how to deal with that
   // // attach semaphore to all guard conditions
@@ -133,8 +129,6 @@ rmw_wait(
   }
 
 after_wait:
-
-
   // reset all the subscriptions that don't have new data
   for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
     auto iceoryx_subscription =

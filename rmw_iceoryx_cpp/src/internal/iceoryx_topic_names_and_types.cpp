@@ -37,7 +37,8 @@ void fill_topic_containers(
   std::map<std::string, std::vector<std::string>> & subscribers_topics_,
   std::map<std::string, std::vector<std::string>> & publishers_topics_)
 {
-  static iox::popo::UntypedSubscriber port_receiver(iox::roudi::IntrospectionPortService);
+  static iox::popo::UntypedSubscriber port_receiver(iox::roudi::IntrospectionPortService,
+                                                    iox::popo::SubscriberOptions{1U, 1U, "", true});
   static std::map<std::string, std::string> names_n_types;
   static std::map<std::string, std::vector<std::string>> subscribers_topics;
   static std::map<std::string, std::vector<std::string>> publishers_topics;

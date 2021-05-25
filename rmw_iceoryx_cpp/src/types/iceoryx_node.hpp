@@ -77,10 +77,13 @@ public:
 private:
   // must be a static method to be convertable to c function pointer
   // second argument (self) is the this pointer of the current object
-  static void callback(iox::popo::UntypedSubscriber*, IceoryxGraphChangeNotifier * self)
+  static void callback(iox::popo::UntypedSubscriber* introspectionSubscriber, IceoryxGraphChangeNotifier * self)
   {
       if (nullptr != self->iceoryx_guard_condition_) {
         self->iceoryx_guard_condition_->trigger();
+      }
+      if(nullptr != introspectionSubscriber) {
+        introspectionSubscriber->releaseQueuedData();
       }
   }
   IceoryxGuardCondition * iceoryx_guard_condition_{nullptr};

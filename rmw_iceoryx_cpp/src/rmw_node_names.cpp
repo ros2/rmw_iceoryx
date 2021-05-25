@@ -60,18 +60,16 @@ rmw_get_node_names(
   }
 
   if (updated) {
-    const void * user_payload = nullptr;
     const void * previous_user_payload = nullptr;
 
     // @todo add error handling branch
     while (process_receiver.take()
-               .and_then([&](auto &userPayload) {
-                 user_payload = iox::mepoo::ChunkHeader::fromUserPayload(userPayload);
+               .and_then([&](const void * userPayload) {
                  if (previous_user_payload)
                  {
                    process_receiver.release(previous_user_payload);
                  }
-                 previous_user_payload = user_payload;
+                 previous_user_payload = userPayload;
                }))
     {
     }

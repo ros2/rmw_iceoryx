@@ -42,7 +42,6 @@ rmw_take(
   bool * taken,
   rmw_subscription_allocation_t * allocation)
 {
-  rmw_ret_t ret = RMW_RET_OK;
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_message, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_ERROR);
@@ -79,10 +78,11 @@ rmw_take(
   }
 
   const iox::mepoo::ChunkHeader * chunk_header = nullptr;
-  const void* user_payload = nullptr;
+  const void * user_payload = nullptr;
 
+  rmw_ret_t ret = RMW_RET_ERROR;
   iceoryx_receiver->take()
-      .and_then([&](auto &userPayload) {
+      .and_then([&](const void * userPayload) {
         user_payload = userPayload;
         chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
         ret = RMW_RET_OK;
@@ -146,7 +146,6 @@ rmw_take_serialized_message(
   bool * taken,
   rmw_subscription_allocation_t * allocation)
 {
-  rmw_ret_t ret = RMW_RET_OK;
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(serialized_message, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_ERROR);
@@ -185,8 +184,9 @@ rmw_take_serialized_message(
   const iox::mepoo::ChunkHeader * chunk_header = nullptr;
   const void * user_payload = nullptr;
 
+  rmw_ret_t ret = RMW_RET_OK;
   iceoryx_receiver->take()
-      .and_then([&](auto &userPayload) {
+      .and_then([&](const void * userPayload) {
         user_payload = userPayload;
         chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
       })
@@ -271,10 +271,16 @@ rmw_take_loaned_message(
     return RMW_RET_ERROR;
   }
 
-  if (!iceoryx_receiver->take()) {
-    RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
-    return RMW_RET_ERROR;
-  }
+  rmw_ret_t ret = RMW_RET_OK;
+  iceoryx_receiver->take()
+      .and_then([&](const void * userPayload) {
+        *loaned_message = const_cast<void *>(userPayload);
+        ret = RMW_RET_OK;
+      })
+      .or_else([&](auto&) {
+        RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
+        ret = RMW_RET_ERROR;
+      });
   *taken = true;
 
   return RMW_RET_OK;

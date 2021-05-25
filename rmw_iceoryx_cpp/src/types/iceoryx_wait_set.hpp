@@ -29,8 +29,6 @@ struct IceoryxWaitSet
   : waitset_(waitset), iceoryx_receiver_(iceoryx_receiver)
   {}
 
-  // iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET
-  // todo: number of waitset?
   iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> * const waitset_;
   iox::popo::UntypedSubscriber * const iceoryx_receiver_;
 };

@@ -69,8 +69,7 @@ void publish_to_iceoryx(
 
   if (rmw_iceoryx_cpp::iceoryx_is_fixed_size(ts)) {
     iceoryx_publisher->loan(introspection_ts->size_of_)
-      .and_then([&, introspection_ts](auto& userPayload) {
-        auto ros_msg = reinterpret_cast<void*>(userPayload);
+      .and_then([&, introspection_ts](void* ros_msg) {
         introspection_ts->init_function(ros_msg, rosidl_runtime_cpp::MessageInitialization::ALL);
         if (false == deserialize_into(serialized_msg.get(), ts, ros_msg)) {
           iceoryx_publisher->release(ros_msg);
@@ -96,10 +95,9 @@ void publish_to_iceoryx(
     free(ros_msg);
 
     iceoryx_publisher->loan(payload_vector.size())
-      .and_then([&, payload_vector](auto& userPayload) {
-        auto chunk = reinterpret_cast<void*>(userPayload);
-        memcpy(chunk, payload_vector.data(), payload_vector.size());
-        iceoryx_publisher->publish(chunk);
+      .and_then([&, payload_vector](void * userPayload) {
+        memcpy(userPayload, payload_vector.data(), payload_vector.size());
+        iceoryx_publisher->publish(userPayload);
       });
   }
 }
@@ -129,8 +127,8 @@ void publish_to_ros2(
 
   const void * chunk = nullptr;
   subscriber->take()
-      .and_then([&](auto &userPayload) {
-        chunk = iox::mepoo::ChunkHeader::fromUserPayload(userPayload);
+      .and_then([&](const void * userPayload) {
+        chunk = userPayload;
       })
       .or_else([ ](iox::popo::ChunkReceiveResult) {
         RMW_SET_ERROR_MSG("No chunk in subscriber");
@@ -208,7 +206,7 @@ int main(int argc, char ** argv)
     start_parameter_event_publisher(
     false).enable_topic_statistics(false);
   auto node = std::make_shared<rclcpp::Node>(node_name, node_options);
-  iox::runtime::PoshRuntime::initRuntime(iox::cxx::string<100>(iox::cxx::TruncateToCapacity, node_name));
+  iox::runtime::PoshRuntime::initRuntime(iox::RuntimeName_t(iox::cxx::TruncateToCapacity, node_name));
 
   /*
    * Subscribe to a ROS2 topic and re-publish into iceoryx
@@ -244,7 +242,7 @@ int main(int argc, char ** argv)
     iceoryx_pubs.emplace_back(
       std::make_shared<iox::popo::UntypedPublisher>(
         service_desc, iox::popo::PublisherOptions{
-          0U, iox::cxx::string<100>(iox::cxx::TruncateToCapacity, node_name)}));
+          0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_name)}));
     iceoryx_pubs.back()->offer();
 
     std::function<void(std::shared_ptr<rclcpp::SerializedMessage>)> cb =

@@ -56,19 +56,16 @@ void fill_topic_containers(
 
   if (updated) {
     // get the latest sample
-    const void * user_payload = nullptr;
     const void * previous_user_payload = nullptr;
 
-    // @todo add error handling branch
+    /// @todo add error handling branch
     while (port_receiver.take()
-               .and_then([&](auto &userPayload) {
-
-                 user_payload = iox::mepoo::ChunkHeader::fromUserPayload(userPayload);
+               .and_then([&](const void * userPayload) {
                  if (previous_user_payload)
                  {
                    port_receiver.release(previous_user_payload);
                  }
-                 previous_user_payload = user_payload;
+                 previous_user_payload = userPayload;
                }))
     {
     }

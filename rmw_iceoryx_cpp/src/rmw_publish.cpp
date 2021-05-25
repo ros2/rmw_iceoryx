@@ -49,10 +49,9 @@ send_payload(
   }
   rmw_ret_t ret = RMW_RET_ERROR;
   iceoryx_publisher->loan(size)
-      .and_then([&](auto& userPayload) {
-        auto chunk = reinterpret_cast<void*>(userPayload);
-        memcpy(chunk, serialized_ros_msg, size);
-        iceoryx_publisher->publish(chunk);
+      .and_then([&](void * userPayload) {
+        memcpy(userPayload, serialized_ros_msg, size);
+        iceoryx_publisher->publish(userPayload);
         ret = RMW_RET_OK;
       })
       .or_else([&](iox::popo::AllocationError) {
@@ -148,7 +147,6 @@ rmw_borrow_loaned_message(
   const rosidl_message_type_support_t * type_support,
   void ** ros_message)
 {
-  rmw_ret_t ret = RMW_RET_ERROR;
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(type_support, RMW_RET_ERROR);
 
@@ -175,9 +173,9 @@ rmw_borrow_loaned_message(
     return RMW_RET_ERROR;
   }
 
+  rmw_ret_t ret = RMW_RET_ERROR;
   iceoryx_sender->loan(iceoryx_publisher->message_size_)
-      .and_then([&](auto& userPayload) {
-        auto msg_memory = reinterpret_cast<void*>(userPayload);
+      .and_then([&](void * msg_memory) {
         rmw_iceoryx_cpp::iceoryx_init_message(&iceoryx_publisher->type_supports_, msg_memory);
         *ros_message = msg_memory;
         ret = RMW_RET_OK;

@@ -88,7 +88,8 @@ private:
   }
   IceoryxGuardCondition * iceoryx_guard_condition_{nullptr};
   using port_receiver_t = iox::popo::UntypedSubscriber;
-  port_receiver_t port_receiver_{iox::roudi::IntrospectionPortService};
+  port_receiver_t port_receiver_{iox::roudi::IntrospectionPortService,
+                                 iox::popo::SubscriberOptions{1U, 1U, "", true}};
   using listener_t = iox::popo::Listener;
   listener_t listener_;
 };

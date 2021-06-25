@@ -20,7 +20,7 @@
 #include "rmw/rmw.h"
 
 #include "./iceoryx_identifier.hpp"
-#include "./types/iceoryx_guard_condition.hpp"
+#include "iceoryx_posh/popo/user_trigger.hpp"
 
 extern "C"
 {
@@ -39,7 +39,7 @@ rmw_create_guard_condition(rmw_context_t * context)
     return nullptr);
 
   rmw_guard_condition_t * guard_condition = nullptr;
-  IceoryxGuardCondition * iceoryx_guard_condition = nullptr;
+  iox::popo::UserTrigger * iceoryx_guard_condition = nullptr;
 
   guard_condition = rmw_guard_condition_allocate();
   if (!guard_condition) {
@@ -48,8 +48,8 @@ rmw_create_guard_condition(rmw_context_t * context)
   }
   guard_condition->implementation_identifier = rmw_get_implementation_identifier();
 
-  iceoryx_guard_condition = static_cast<IceoryxGuardCondition *>(
-    rmw_allocate(sizeof(IceoryxGuardCondition)));
+  iceoryx_guard_condition = static_cast<iox::popo::UserTrigger *>(
+    rmw_allocate(sizeof(iox::popo::UserTrigger)));
   if (!iceoryx_guard_condition) {
     RMW_SET_ERROR_MSG("failed to construct guard condition data");
     goto fail;
@@ -59,7 +59,7 @@ rmw_create_guard_condition(rmw_context_t * context)
     iceoryx_guard_condition,
     goto fail,
     // cppcheck-suppress syntaxError
-    IceoryxGuardCondition, )
+    iox::popo::UserTrigger, )
   guard_condition->data = iceoryx_guard_condition;
 
   return guard_condition;
@@ -68,7 +68,7 @@ fail:
   if (guard_condition) {
     if (iceoryx_guard_condition) {
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        iceoryx_guard_condition->~IceoryxGuardCondition(), iceoryx_guard_condition)
+        iceoryx_guard_condition->~UserTrigger(), iceoryx_guard_condition)
       rmw_free(iceoryx_guard_condition);
     }
     rmw_guard_condition_free(guard_condition);
@@ -89,12 +89,12 @@ rmw_destroy_guard_condition(rmw_guard_condition_t * guard_condition)
     rmw_get_implementation_identifier(),
     return RMW_RET_ERROR);
 
-  auto iceoryx_guard_condition = static_cast<IceoryxGuardCondition *>(guard_condition->data);
+  auto iceoryx_guard_condition = static_cast<iox::popo::UserTrigger *>(guard_condition->data);
 
   auto result = RMW_RET_OK;
   if (iceoryx_guard_condition) {
     RMW_TRY_DESTRUCTOR(
-      iceoryx_guard_condition->~IceoryxGuardCondition(),
+      iceoryx_guard_condition->~UserTrigger(),
       iceoryx_guard_condition,
       result = RMW_RET_ERROR)
     rmw_free(iceoryx_guard_condition);

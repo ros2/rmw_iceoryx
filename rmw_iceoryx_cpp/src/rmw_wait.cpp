@@ -22,7 +22,6 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
-#include "./types/iceoryx_guard_condition.hpp"
 #include "./types/iceoryx_subscription.hpp"
 
 extern "C"

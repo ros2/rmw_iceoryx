@@ -28,7 +28,7 @@
 #include "rmw/rmw.h"
 
 #include "../iceoryx_identifier.hpp"
-#include "./iceoryx_guard_condition.hpp"
+#include "iceoryx_posh/popo/user_trigger.hpp"
 
 // We currently use the iceoryx port introspection
 // which is updated whenever a sender port comes or goes or
@@ -44,7 +44,7 @@ public:
       RMW_SET_ERROR_MSG("invalid input for GraphChangeNotifier");
       iceoryx_guard_condition_ = nullptr;
     } else {
-      iceoryx_guard_condition_ = static_cast<IceoryxGuardCondition *>(guard_condition->data);
+      iceoryx_guard_condition_ = static_cast<iox::popo::UserTrigger *>(guard_condition->data);
       RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
         IceoryxGraphChangeNotifier
         : guard_condition,
@@ -86,7 +86,7 @@ private:
         introspectionSubscriber->releaseQueuedData();
       }
   }
-  IceoryxGuardCondition * iceoryx_guard_condition_{nullptr};
+  iox::popo::UserTrigger * iceoryx_guard_condition_{nullptr};
   using port_receiver_t = iox::popo::UntypedSubscriber;
   port_receiver_t port_receiver_{iox::roudi::IntrospectionPortService,
                                  iox::popo::SubscriberOptions{1U, 1U, "", true}};

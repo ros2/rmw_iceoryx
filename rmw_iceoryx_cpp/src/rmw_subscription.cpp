@@ -92,7 +92,6 @@ rmw_create_subscription(
     RMW_SET_ERROR_MSG("failed to allocate memory for iceoryx receiver");
     goto fail;
   }
-  // todo:
   RMW_TRY_PLACEMENT_NEW(
     iceoryx_receiver, iceoryx_receiver, goto fail,
     iox::popo::UntypedSubscriber, service_description,

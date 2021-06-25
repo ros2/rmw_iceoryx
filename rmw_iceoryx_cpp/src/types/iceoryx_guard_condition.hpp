@@ -33,7 +33,9 @@ public:
     {
       std::lock_guard<std::mutex> lock(mutex_);
       if (semaphore_ != nullptr) {
-        semaphore_->post();
+        semaphore_->post().or_else([](auto&){
+
+        });
       }
     }
 

@@ -67,9 +67,9 @@ rmw_wait(
 
   // attach waitset to all iceoryx receivers
   for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
-    auto iceoryx_subscription =
-      static_cast<IceoryxSubscription * const>(subscriptions->subscribers[i]);
-    auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
+    //auto iceoryx_subscription =
+    //  static_cast<IceoryxSubscription *>(subscriptions->subscribers[i]);
+    //auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
     // indicate that we do not have to wait if there is already a new sample
     //if (iceoryx_receiver->hasData()) {
@@ -132,7 +132,7 @@ after_wait:
   // reset all the subscriptions that don't have new data
   for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
     auto iceoryx_subscription =
-      static_cast<IceoryxSubscription * const>(subscriptions->subscribers[i]);
+      static_cast<IceoryxSubscription *>(subscriptions->subscribers[i]);
     iox::popo::UntypedSubscriber * iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
     // remove waitset from all receivers because next call a new waitset could be provided

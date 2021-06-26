@@ -16,6 +16,7 @@
 
 #include "iceoryx_posh/popo/untyped_subscriber.hpp"
 #include "iceoryx_posh/popo/wait_set.hpp"
+#include "iceoryx_posh/popo/user_trigger.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -64,67 +65,46 @@ rmw_wait(
     return RMW_RET_ERROR;
   }
 
-  // attach waitset to all iceoryx receivers
+  bool skip_wait{false};
+  // attach all iceoryx subscriber to WaitSet
   for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
-    //auto iceoryx_subscription =
-    //  static_cast<IceoryxSubscription *>(subscriptions->subscribers[i]);
-    //auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
+    auto iceoryx_subscription =
+      static_cast<IceoryxSubscription *>(subscriptions->subscribers[i]);
+    auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
-    // indicate that we do not have to wait if there is already a new sample
-    //if (iceoryx_receiver->hasData()) {
-      goto after_wait;
-    //}
-
-    /// @todo use attachEvent?
-    // attach subscriber to waitset
-    //waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else([](auto) {
+    waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else([&](auto) {
       /// @todo RMW_SET_ERROR_MSG("failed to attach subscriber");
-      // goto after_wait;
-    //});
+       skip_wait= true;
+    });
   }
-  // todo: how to deal with that
-  // // attach semaphore to all guard conditions
-  // for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
-  //   auto iceoryx_guard_condition =
-  //     static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
 
-  //   // indicate that we do not have to wait if there is already a triggered guard condition
-  //   if (iceoryx_guard_condition->hasTriggered()) {
-  //     goto after_wait;
-  //   }
 
-  //   iceoryx_guard_condition->attachSemaphore(semaphore);
-  // }
+  // attach all guard conditions to WaitSet
+  for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
+    auto iceoryx_guard_condition =
+      static_cast<iox::popo::UserTrigger *>(guard_conditions->guard_conditions[i]);
+
+    waitset->attachEvent(*iceoryx_guard_condition).or_else([&](auto) {
+      /// @todo RMW_SET_ERROR_MSG("failed to attach guard condition");
+       skip_wait= true;
+    });
+  }
+
+  if(skip_wait)
+  {
+    goto after_wait;
+  }
 
   if (!wait_timeout) {
+    /// @todo Check triggered subscribers in vector?
     auto notificationVector = waitset->wait();
   } else {
-    struct timespec ts_start;
-    struct timespec ts_end;
-    clock_gettime(CLOCK_REALTIME, &ts_start);
-    uint64_t nsec = ts_start.tv_nsec + wait_timeout->nsec;
-    if (nsec >= 1000000000L) {
-      nsec -= 1000000000L;
-      ts_end.tv_sec = ts_start.tv_sec + wait_timeout->sec + 1;
-    } else {
-      ts_end.tv_sec = ts_start.tv_sec + wait_timeout->sec;
-    }
-    ts_end.tv_nsec = nsec;
+    auto sec = iox::units::Duration::fromSeconds(wait_timeout->sec);
+    auto nsec = iox::units::Duration::fromNanoseconds(wait_timeout->nsec);
+    auto timeout = sec + nsec;
 
-    auto notificationVector = waitset->timedWait(iox::units::Duration(ts_end));
-
-    // // for debugging
-    // struct timespec ts_diff;
-    // clock_gettime(CLOCK_REALTIME, &ts_diff);
-    // int64_t diff_nsec = ts_diff.tv_nsec - ts_start.tv_nsec;
-    // if (diff_nsec < 0L) {
-    //   diff_nsec += 1000000000L;
-    //   ts_diff.tv_sec = ts_diff.tv_sec - ts_start.tv_sec - 1;
-    // } else {
-    //   ts_diff.tv_sec = ts_diff.tv_sec - ts_start.tv_sec;
-    // }
-    // ts_diff.tv_nsec = diff_nsec;
-    // printf("waited s %lu ns %lu\n", ts_diff.tv_sec, ts_diff.tv_nsec);
+    /// @todo Check triggered subscribers in vector?
+    auto notificationVector = waitset->timedWait(iox::units::Duration(timeout));
   }
 
 after_wait:
@@ -135,32 +115,22 @@ after_wait:
     iox::popo::UntypedSubscriber * iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
     // remove waitset from all receivers because next call a new waitset could be provided
-    // waitset->detachState(*iceoryx_receiver);
+    waitset->detachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA);
 
     if (!iceoryx_receiver->hasData()) {
       subscriptions->subscribers[i] = nullptr;
     }
   }
 
-  // todo: dealing with guard_conditons
-  // // reset all the guard_conditions that have not triggered
-  // for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
-  //   auto iceoryx_guard_condition =
-  //     static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
+  // reset all the guard_conditions that have not triggered
+  for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
+    auto iceoryx_guard_condition =
+      static_cast<iox::popo::UserTrigger *>(guard_conditions->guard_conditions[i]);
 
-  //   iceoryx_guard_condition->detachSemaphore();
+    waitset->detachEvent(*iceoryx_guard_condition);
 
-  //   if (iceoryx_guard_condition->hasTriggered()) {
-  //     iceoryx_guard_condition->resetTriggerIndication();
-  //   } else {
-  //     guard_conditions->guard_conditions[i] = nullptr;
-  //   }
-  // }
-
-  // // clear the semaphore
-  // // events that triggered it and where not yet collected will be seen on next rmw_wait
-  // while (semaphore->tryWait()) {
-  // }
+    guard_conditions->guard_conditions[i] = nullptr;
+  }
 
   return RMW_RET_OK;
 }

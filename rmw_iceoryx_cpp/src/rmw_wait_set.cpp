@@ -37,7 +37,7 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     rmw_get_implementation_identifier(), return nullptr);
 
   rmw_wait_set_t * rmw_wait_set = nullptr;
-  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *waitset = nullptr;
+  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> * waitset = nullptr;
 
   rmw_wait_set = rmw_wait_set_allocate();
   if (!rmw_wait_set) {
@@ -58,7 +58,7 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     waitset,
     waitset,
     goto fail,
-    iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>,);
+    iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>, );
 
   rmw_wait_set->data = static_cast<void *>(waitset);
   return rmw_wait_set;
@@ -89,14 +89,15 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
 
   rmw_ret_t result = RMW_RET_OK;
 
-  auto iceoryx_wait_set = static_cast<iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *>(wait_set->data);
+  auto iceoryx_wait_set =
+    static_cast<iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *>(wait_set->data);
 
   if (iceoryx_wait_set) {
-      RMW_TRY_DESTRUCTOR(
-        iceoryx_wait_set->~WaitSet(),
-        iceoryx_wait_set,
-        result = RMW_RET_ERROR)
-      rmw_free(iceoryx_wait_set);
+    RMW_TRY_DESTRUCTOR(
+      iceoryx_wait_set->~WaitSet(),
+      iceoryx_wait_set,
+      result = RMW_RET_ERROR)
+    rmw_free(iceoryx_wait_set);
   }
   wait_set->data = nullptr;
 

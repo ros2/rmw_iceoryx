@@ -38,7 +38,7 @@ void fill_topic_containers(
   std::map<std::string, std::vector<std::string>> & publishers_topics_)
 {
   static iox::popo::UntypedSubscriber port_receiver(iox::roudi::IntrospectionPortService,
-                                                    iox::popo::SubscriberOptions{1U, 1U, "", true});
+    iox::popo::SubscriberOptions{1U, 1U, "", true});
   static std::map<std::string, std::string> names_n_types;
   static std::map<std::string, std::vector<std::string>> subscribers_topics;
   static std::map<std::string, std::vector<std::string>> publishers_topics;
@@ -60,19 +60,19 @@ void fill_topic_containers(
     const void * previous_user_payload = nullptr;
 
     while (port_receiver.take()
-               .and_then([&](const void * userPayload) {
-                 if (previous_user_payload)
-                 {
-                   port_receiver.release(previous_user_payload);
-                 }
-                 previous_user_payload = userPayload;
-               })
-               .or_else([](auto& result){
-                if (result != iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE)
-                {
-                  RMW_SET_ERROR_MSG("failed to take message");
-                }
-               }))
+      .and_then(
+        [&](const void * userPayload) {
+          if (previous_user_payload) {
+            port_receiver.release(previous_user_payload);
+          }
+          previous_user_payload = userPayload;
+        })
+      .or_else(
+        [](auto & result) {
+          if (result != iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE) {
+            RMW_SET_ERROR_MSG("failed to take message");
+          }
+        }))
 
     {
     }

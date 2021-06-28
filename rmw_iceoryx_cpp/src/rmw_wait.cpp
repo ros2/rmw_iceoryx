@@ -51,7 +51,8 @@ rmw_wait(
     : waitset, wait_set->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
-  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *waitset  = static_cast<iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *>(wait_set->data);
+  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> * waitset =
+    static_cast<iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *>(wait_set->data);
   if (!waitset) {
     return RMW_RET_ERROR;
   }
@@ -63,10 +64,11 @@ rmw_wait(
       static_cast<IceoryxSubscription *>(subscriptions->subscribers[i]);
     auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
-    waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else([&](auto&) {
-      RMW_SET_ERROR_MSG("failed to attach subscriber");
-      skip_wait = true;
-    });
+    waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else(
+      [&](auto &) {
+        RMW_SET_ERROR_MSG("failed to attach subscriber");
+        skip_wait = true;
+      });
   }
 
 
@@ -75,14 +77,14 @@ rmw_wait(
     auto iceoryx_guard_condition =
       static_cast<iox::popo::UserTrigger *>(guard_conditions->guard_conditions[i]);
 
-    waitset->attachEvent(*iceoryx_guard_condition).or_else([&](auto) {
-      RMW_SET_ERROR_MSG("failed to attach guard condition");
-      skip_wait = true;
-    });
+    waitset->attachEvent(*iceoryx_guard_condition).or_else(
+      [&](auto) {
+        RMW_SET_ERROR_MSG("failed to attach guard condition");
+        skip_wait = true;
+      });
   }
 
-  if(skip_wait)
-  {
+  if (skip_wait) {
     goto after_wait;
   }
 

@@ -95,10 +95,10 @@ rmw_create_publisher(
   }
 
   RMW_TRY_PLACEMENT_NEW(
-      iceoryx_sender, iceoryx_sender,
-      goto fail, iox::popo::UntypedPublisher, service_description,
-      iox::popo::PublisherOptions{
-          0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+    iceoryx_sender, iceoryx_sender,
+    goto fail, iox::popo::UntypedPublisher, service_description,
+    iox::popo::PublisherOptions{
+      0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
 
   iceoryx_sender->offer();  // make the sender visible
 

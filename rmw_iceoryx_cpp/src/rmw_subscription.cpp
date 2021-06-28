@@ -96,7 +96,7 @@ rmw_create_subscription(
     iceoryx_receiver, iceoryx_receiver, goto fail,
     iox::popo::UntypedSubscriber, service_description,
     iox::popo::SubscriberOptions{
-          qos_policies->depth, 0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+      qos_policies->depth, 0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
 
   // instant subscribe, queue size form qos settings
   iceoryx_receiver->subscribe();

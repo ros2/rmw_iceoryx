@@ -69,14 +69,16 @@ void publish_to_iceoryx(
 
   if (rmw_iceoryx_cpp::iceoryx_is_fixed_size(ts)) {
     iceoryx_publisher->loan(introspection_ts->size_of_)
-      .and_then([&, introspection_ts](void* ros_msg) {
+    .and_then(
+      [&, introspection_ts](void * ros_msg) {
         introspection_ts->init_function(ros_msg, rosidl_runtime_cpp::MessageInitialization::ALL);
         if (false == deserialize_into(serialized_msg.get(), ts, ros_msg)) {
           iceoryx_publisher->release(ros_msg);
         }
         iceoryx_publisher->publish(ros_msg);
       })
-      .or_else([ ](iox::popo::AllocationError) {
+    .or_else(
+      [](iox::popo::AllocationError) {
         RMW_SET_ERROR_MSG("rmw_borrow_loaned_message error!");
       });
   } else {
@@ -95,7 +97,8 @@ void publish_to_iceoryx(
     free(ros_msg);
 
     iceoryx_publisher->loan(payload_vector.size())
-      .and_then([&, payload_vector](void * userPayload) {
+    .and_then(
+      [&, payload_vector](void * userPayload) {
         memcpy(userPayload, payload_vector.data(), payload_vector.size());
         iceoryx_publisher->publish(userPayload);
       });
@@ -127,12 +130,14 @@ void publish_to_ros2(
 
   const void * chunk = nullptr;
   subscriber->take()
-      .and_then([&](const void * userPayload) {
-        chunk = userPayload;
-      })
-      .or_else([ ](iox::popo::ChunkReceiveResult) {
-        RMW_SET_ERROR_MSG("No chunk in subscriber");
-      });
+  .and_then(
+    [&](const void * userPayload) {
+      chunk = userPayload;
+    })
+  .or_else(
+    [](iox::popo::ChunkReceiveResult) {
+      RMW_SET_ERROR_MSG("No chunk in subscriber");
+    });
 
   // ROS2 message is now in chunk. Convert to ROS2 message and then to serialized_message
   if (rmw_iceoryx_cpp::iceoryx_is_fixed_size(ts)) {
@@ -206,7 +211,10 @@ int main(int argc, char ** argv)
     start_parameter_event_publisher(
     false).enable_topic_statistics(false);
   auto node = std::make_shared<rclcpp::Node>(node_name, node_options);
-  iox::runtime::PoshRuntime::initRuntime(iox::RuntimeName_t(iox::cxx::TruncateToCapacity, node_name));
+  iox::runtime::PoshRuntime::initRuntime(
+    iox::RuntimeName_t(
+      iox::cxx::TruncateToCapacity,
+      node_name));
 
   /*
    * Subscribe to a ROS2 topic and re-publish into iceoryx
@@ -242,7 +250,7 @@ int main(int argc, char ** argv)
     iceoryx_pubs.emplace_back(
       std::make_shared<iox::popo::UntypedPublisher>(
         service_desc, iox::popo::PublisherOptions{
-          0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_name)}));
+      0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_name)}));
     iceoryx_pubs.back()->offer();
 
     std::function<void(std::shared_ptr<rclcpp::SerializedMessage>)> cb =
@@ -291,7 +299,7 @@ int main(int argc, char ** argv)
     iceoryx_subs.emplace_back(
       std::make_shared<iox::popo::UntypedSubscriber>(
         service_desc, iox::popo::SubscriberOptions{
-          10U, 0U, iox::cxx::string<100>(iox::cxx::TruncateToCapacity, node_name)}));
+      10U, 0U, iox::cxx::string<100>(iox::cxx::TruncateToCapacity, node_name)}));
     iceoryx_subs.back()->subscribe();
 
     auto cb =

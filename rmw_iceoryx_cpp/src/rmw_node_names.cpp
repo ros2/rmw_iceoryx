@@ -45,7 +45,7 @@ rmw_get_node_names(
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
   static iox::popo::UntypedSubscriber process_receiver(iox::roudi::IntrospectionProcessService,
-                                                       iox::popo::SubscriberOptions{1U, 1U, "", true});
+    iox::popo::SubscriberOptions{1U, 1U, "", true});
   static std::set<std::string> node_names_set;
 
   bool updated = false;
@@ -64,19 +64,19 @@ rmw_get_node_names(
     const void * previous_user_payload = nullptr;
 
     while (process_receiver.take()
-               .and_then([&](const void * userPayload) {
-                 if (previous_user_payload)
-                 {
-                   process_receiver.release(previous_user_payload);
-                 }
-                 previous_user_payload = userPayload;
-               })
-               .or_else([](auto& result){
-                if (result != iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE)
-                {
-                  RMW_SET_ERROR_MSG("failed to take message");
-                }
-               }))
+      .and_then(
+        [&](const void * userPayload) {
+          if (previous_user_payload) {
+            process_receiver.release(previous_user_payload);
+          }
+          previous_user_payload = userPayload;
+        })
+      .or_else(
+        [](auto & result) {
+          if (result != iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE) {
+            RMW_SET_ERROR_MSG("failed to take message");
+          }
+        }))
     {
     }
 

@@ -58,12 +58,14 @@ public:
     // https://github.com/eclipse-iceoryx/iceoryx/issues/707
     // use iox::popo::createNotificationCallback(IceoryxGraphChangeNotifier::callback, *this)
     // to attach the callback and provide the this pointer to gain access to IceoryxGraphChangeNotifier
-    listener_.attachEvent(port_receiver_, iox::popo::SubscriberEvent::DATA_RECEIVED,
-                          iox::popo::createNotificationCallback(IceoryxGraphChangeNotifier::callback, *this))
-        .or_else([](auto) {
-          RMW_SET_ERROR_MSG("unable to attach port_receiver_");
-          std::terminate();
-        });
+    listener_.attachEvent(
+      port_receiver_, iox::popo::SubscriberEvent::DATA_RECEIVED,
+      iox::popo::createNotificationCallback(IceoryxGraphChangeNotifier::callback, *this))
+    .or_else(
+      [](auto) {
+        RMW_SET_ERROR_MSG("unable to attach port_receiver_");
+        std::terminate();
+      });
     port_receiver_.subscribe();
   }
 
@@ -76,19 +78,21 @@ public:
 private:
   // must be a static method to be convertable to c function pointer
   // second argument (self) is the this pointer of the current object
-  static void callback(iox::popo::UntypedSubscriber* introspectionSubscriber, IceoryxGraphChangeNotifier * self)
+  static void callback(
+    iox::popo::UntypedSubscriber * introspectionSubscriber,
+    IceoryxGraphChangeNotifier * self)
   {
-      if (nullptr != self->iceoryx_guard_condition_) {
-        self->iceoryx_guard_condition_->trigger();
-      }
-      if(nullptr != introspectionSubscriber) {
-        introspectionSubscriber->releaseQueuedData();
-      }
+    if (nullptr != self->iceoryx_guard_condition_) {
+      self->iceoryx_guard_condition_->trigger();
+    }
+    if (nullptr != introspectionSubscriber) {
+      introspectionSubscriber->releaseQueuedData();
+    }
   }
   iox::popo::UserTrigger * iceoryx_guard_condition_{nullptr};
   using port_receiver_t = iox::popo::UntypedSubscriber;
   port_receiver_t port_receiver_{iox::roudi::IntrospectionPortService,
-                                 iox::popo::SubscriberOptions{1U, 1U, "", true}};
+    iox::popo::SubscriberOptions{1U, 1U, "", true}};
   using listener_t = iox::popo::Listener;
   listener_t listener_;
 };

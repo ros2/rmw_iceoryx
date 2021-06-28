@@ -49,15 +49,17 @@ send_payload(
   }
   rmw_ret_t ret = RMW_RET_ERROR;
   iceoryx_publisher->loan(size)
-      .and_then([&](void * userPayload) {
-        memcpy(userPayload, serialized_ros_msg, size);
-        iceoryx_publisher->publish(userPayload);
-        ret = RMW_RET_OK;
-      })
-      .or_else([&](iox::popo::AllocationError) {
-        RMW_SET_ERROR_MSG("send_payload error!");
-        ret = RMW_RET_ERROR;
-      });
+  .and_then(
+    [&](void * userPayload) {
+      memcpy(userPayload, serialized_ros_msg, size);
+      iceoryx_publisher->publish(userPayload);
+      ret = RMW_RET_OK;
+    })
+  .or_else(
+    [&](iox::popo::AllocationError) {
+      RMW_SET_ERROR_MSG("send_payload error!");
+      ret = RMW_RET_ERROR;
+    });
   return ret;
 }
 }  // namespace details
@@ -175,15 +177,17 @@ rmw_borrow_loaned_message(
 
   rmw_ret_t ret = RMW_RET_ERROR;
   iceoryx_sender->loan(iceoryx_publisher->message_size_)
-      .and_then([&](void * msg_memory) {
-        rmw_iceoryx_cpp::iceoryx_init_message(&iceoryx_publisher->type_supports_, msg_memory);
-        *ros_message = msg_memory;
-        ret = RMW_RET_OK;
-      })
-      .or_else([&](iox::popo::AllocationError) {
-        RMW_SET_ERROR_MSG("rmw_borrow_loaned_message error!");
-        ret = RMW_RET_ERROR;
-      });
+  .and_then(
+    [&](void * msg_memory) {
+      rmw_iceoryx_cpp::iceoryx_init_message(&iceoryx_publisher->type_supports_, msg_memory);
+      *ros_message = msg_memory;
+      ret = RMW_RET_OK;
+    })
+  .or_else(
+    [&](iox::popo::AllocationError) {
+      RMW_SET_ERROR_MSG("rmw_borrow_loaned_message error!");
+      ret = RMW_RET_ERROR;
+    });
   return ret;
 }
 

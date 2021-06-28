@@ -137,8 +137,8 @@ Unfortunately, not all features are yet fully fleshed out.
 | `ros2 node list`      | :heavy_check_mark:                 |
 | `ros2 node info`      | :heavy_check_mark:                 |
 | `ros2 interface *`    | :heavy_check_mark:                 |
-| `ros2 service *`      | :x: (with iceoryx v2.0)            |
-| `ros2 param list`     | :x: (with iceoryx v2.0)            |
+| `ros2 service *`      | :x: (coming with iceoryx v2.0)     |
+| `ros2 param list`     | :x: (coming with iceoryx v2.0)     |
 | `rqt_graph`           | :x: (get_publishers_info_by_topic) |
 | `rqt_top`             | :grey_question:                    |
 | `rqt_console`         | :grey_question:                    |

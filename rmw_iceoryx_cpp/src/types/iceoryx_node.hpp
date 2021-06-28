@@ -33,7 +33,7 @@
 // We currently use the iceoryx port introspection
 // which is updated whenever a sender port comes or goes or
 // does OFFER / STOP_OFFER or a receiver port comes or goes or does SUB / UNSUB
-// TODO(mphnl) check with the list of ros2 graph events
+/// @todo poehnl: check with the list of ros2 graph events
 
 class IceoryxGraphChangeNotifier
 {
@@ -53,8 +53,8 @@ public:
         iceoryx_guard_condition_ = nullptr);
     }
 
+    /// @todo change to the dds_common graph
     // subscribe with a callback for changes in the iceoryx graph
-    // todo: change to the dds_common graph
     // https://github.com/eclipse-iceoryx/iceoryx/issues/707
     // use iox::popo::createNotificationCallback(IceoryxGraphChangeNotifier::callback, *this)
     // to attach the callback and provide the this pointer to gain access to IceoryxGraphChangeNotifier
@@ -62,7 +62,6 @@ public:
                           iox::popo::createNotificationCallback(IceoryxGraphChangeNotifier::callback, *this))
         .or_else([](auto) {
           RMW_SET_ERROR_MSG("unable to attach port_receiver_");
-          std::cerr << "" << std::endl;
           std::terminate();
         });
     port_receiver_.subscribe();

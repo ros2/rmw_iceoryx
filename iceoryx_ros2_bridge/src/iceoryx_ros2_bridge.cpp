@@ -287,16 +287,17 @@ int main(int argc, char ** argv)
 
     auto service_desc =
       rmw_iceoryx_cpp::get_iceoryx_service_description(topic, ts);
+    /// @todo karsten1987: find a decent queue size instead of 10
     iceoryx_subs.emplace_back(
       std::make_shared<iox::popo::UntypedSubscriber>(
         service_desc, iox::popo::SubscriberOptions{
           10U, 0U, iox::cxx::string<100>(iox::cxx::TruncateToCapacity, node_name)}));
-    iceoryx_subs.back()->subscribe();  // TODO(karsten1987): find a decent queue size
+    iceoryx_subs.back()->subscribe();
 
     auto cb =
       std::bind(&publish_to_ros2, iceoryx_subs.back(), ts, ros2_pubs.back());
 
-    // todo: add a listener
+    /// @todo add a listener
     // iceoryx_subs.back()->setReceiveHandler(cb);
   }
 

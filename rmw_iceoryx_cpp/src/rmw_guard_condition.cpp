@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,8 +35,8 @@ rmw_create_guard_condition(rmw_context_t * context)
     : context,
     context->implementation_identifier,
     rmw_get_implementation_identifier(),
-    // TODO(wwjwood): replace this with RMW_RET_INCORRECT_RMW_IMPLEMENTATION when
-    // possible
+    /// @todo wwjwood: replace this with RMW_RET_INCORRECT_RMW_IMPLEMENTATION when
+    /// possible
     return nullptr);
 
   rmw_guard_condition_t * guard_condition = nullptr;

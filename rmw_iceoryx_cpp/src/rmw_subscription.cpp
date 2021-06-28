@@ -128,7 +128,7 @@ rmw_create_subscription(
 fail:
   if (rmw_subscription) {
     if (iceoryx_receiver) {
-      // @todo Can we avoid to use the impl here?
+      /// @todo Can we avoid to use the impl here?
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
         iceoryx_receiver->~UntypedSubscriberImpl(), iox::popo::UntypedSubscriber)
       rmw_free(iceoryx_receiver);
@@ -155,7 +155,7 @@ rmw_subscription_get_actual_qos(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_ERROR);
 
-  // TODO(mphnl) check in detail
+  /// @todo poehnl: check in detail
   *qos = rmw_qos_profile_default;
 
   return RMW_RET_OK;

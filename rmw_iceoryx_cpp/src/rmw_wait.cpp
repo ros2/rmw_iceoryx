@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,16 +28,6 @@
 
 extern "C"
 {
-
-using namespace std::chrono;
-
-constexpr nanoseconds timespecToDuration(timespec ts)
-{
-    auto duration = seconds{ts.tv_sec}
-        + nanoseconds{ts.tv_nsec};
-
-    return duration_cast<nanoseconds>(duration);
-}
 
 rmw_ret_t
 rmw_wait(
@@ -72,9 +63,9 @@ rmw_wait(
       static_cast<IceoryxSubscription *>(subscriptions->subscribers[i]);
     auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
-    waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else([&](auto) {
-      /// @todo RMW_SET_ERROR_MSG("failed to attach subscriber");
-       skip_wait= true;
+    waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else([&](auto&) {
+      RMW_SET_ERROR_MSG("failed to attach subscriber");
+      skip_wait = true;
     });
   }
 
@@ -85,8 +76,8 @@ rmw_wait(
       static_cast<iox::popo::UserTrigger *>(guard_conditions->guard_conditions[i]);
 
     waitset->attachEvent(*iceoryx_guard_condition).or_else([&](auto) {
-      /// @todo RMW_SET_ERROR_MSG("failed to attach guard condition");
-       skip_wait= true;
+      RMW_SET_ERROR_MSG("failed to attach guard condition");
+      skip_wait = true;
     });
   }
 
@@ -96,14 +87,14 @@ rmw_wait(
   }
 
   if (!wait_timeout) {
-    /// @todo Check triggered subscribers in vector?
+    /// @todo Check triggered subscribers in vector? Is that relevant for rmw?
     auto notificationVector = waitset->wait();
   } else {
     auto sec = iox::units::Duration::fromSeconds(wait_timeout->sec);
     auto nsec = iox::units::Duration::fromNanoseconds(wait_timeout->nsec);
     auto timeout = sec + nsec;
 
-    /// @todo Check triggered subscribers in vector?
+    /// @todo Check triggered subscribers in vector? Is that relevant for rmw?
     auto notificationVector = waitset->timedWait(iox::units::Duration(timeout));
   }
 

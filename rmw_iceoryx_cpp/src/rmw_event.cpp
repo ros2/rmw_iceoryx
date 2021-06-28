@@ -29,7 +29,7 @@ rmw_publisher_event_init(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
   (void) event_type;
 
-  // RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support publisher events.");
+  /// @todo add publisher events support
   return RMW_RET_UNSUPPORTED;
 }
 
@@ -43,7 +43,7 @@ rmw_subscription_event_init(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_ERROR);
   (void) event_type;
 
-  // RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support subscription events.");
+  /// @todo add subscription events support
   return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

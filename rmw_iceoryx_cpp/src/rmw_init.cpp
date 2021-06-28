@@ -100,9 +100,6 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   /// @todo we could check with the introspection topics beforehand if the name is already used
   auto name = progName + "_" + std::to_string(getpid());
 
-  // TODO(mphnl) Would it make sense to check if thr RouDi daemon is running
-  // and to start it here if not?
-
   // This call creates a runtime object.
   // It regisers with the RouDi daemon and gets the configuration
   // for setting up the shared memeory

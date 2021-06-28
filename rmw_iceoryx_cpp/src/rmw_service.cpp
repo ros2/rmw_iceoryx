@@ -20,6 +20,7 @@
 
 extern "C"
 {
+/// @todo Use the new request/response API of iceoryx v2.0 here instead of dummy services
 rmw_service_t *
 rmw_create_service(
   const rmw_node_t * node,
@@ -32,8 +33,6 @@ rmw_create_service(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(service_name, nullptr);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(qos_policies, nullptr);
 
-  // TODO(mphnl) dummy for now for being able to continue with pub/sub
-  // Has to be realized later with a sender and receiver pair of iceoryx
   rmw_service_t * rmw_service = nullptr;
 
   rmw_service = rmw_service_allocate();

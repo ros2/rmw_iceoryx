@@ -63,7 +63,6 @@ rmw_get_node_names(
   if (updated) {
     const void * previous_user_payload = nullptr;
 
-    // @todo add error handling branch
     while (process_receiver.take()
                .and_then([&](const void * userPayload) {
                  if (previous_user_payload)
@@ -71,6 +70,12 @@ rmw_get_node_names(
                    process_receiver.release(previous_user_payload);
                  }
                  previous_user_payload = userPayload;
+               })
+               .or_else([](auto& result){
+                if (result != iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE)
+                {
+                  RMW_SET_ERROR_MSG("failed to take message");
+                }
                }))
     {
     }

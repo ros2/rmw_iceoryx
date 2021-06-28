@@ -64,8 +64,7 @@ rmw_create_node(
     goto fail;
   }
 
-  // TODO(knese) what is the scope of the guard condition, for the node only or the whole system?
-  // If the all changes in the system are relevant, one GraphChangeNotifier for all nodes would do?
+  /// @todo only use one GraphChangeNotifier for all nodes
   graph_change_notifier =
     static_cast<IceoryxGraphChangeNotifier *>(rmw_allocate(sizeof(IceoryxGraphChangeNotifier)));
   if (!graph_change_notifier) {
@@ -209,8 +208,8 @@ rmw_node_assert_liveliness(const rmw_node_t * node)
     : node, node->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
-  // TODO(mphnl): Currently the heartbeat is used that every registered process in iceoryx sends
-  // later this should be extended to a user triggered liveliness that can be send for a runnable
+  /// @todo poehnl: Currently the heartbeat is used that every registered process in iceoryx sends
+  /// later this should be extended to a user triggered liveliness that can be send for a runnable
 
   return RMW_RET_OK;
 }

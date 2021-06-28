@@ -165,7 +165,7 @@ rmw_publisher_get_actual_qos(const rmw_publisher_t * publisher, rmw_qos_profile_
 
   (void)publisher;
 
-  // TODO(mphnl) check in detail
+  /// @todo poehnl: check in detail
   *qos = rmw_qos_profile_default;
 
   return RMW_RET_OK;

@@ -134,7 +134,7 @@ rmw_take_with_info(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(message_info, RMW_RET_ERROR);
   (void)allocation;
 
-  // TODO(mphnl) implement message_info related stuff
+  /// @todo poehnl: implement message_info related stuff
   (void)message_info;
   return rmw_take(subscription, ros_message, taken, allocation);
 }
@@ -221,7 +221,7 @@ rmw_take_serialized_message_with_info(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(message_info, RMW_RET_ERROR);
   (void)allocation;
 
-  // TODO(mphnl) implement message_info related stuff
+  /// @todo poehnl: implement message_info related stuff
   (void) message_info;
   return rmw_take_serialized_message(subscription, serialized_message, taken, allocation);
 }
@@ -266,7 +266,7 @@ rmw_take_loaned_message(
   }
 
   if (!iceoryx_subscription->is_fixed_size_) {
-    // TODO(Karsten1987) Alternatively fall back to regular rmw_take with memcpy
+    /// @todo Karsten1987: Alternatively fall back to regular rmw_take with memcpy
     RMW_SET_ERROR_MSG("iceoryx can't take loaned non-fixed size data stuctures");
     return RMW_RET_ERROR;
   }

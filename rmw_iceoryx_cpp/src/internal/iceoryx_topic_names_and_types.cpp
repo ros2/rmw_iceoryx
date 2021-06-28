@@ -31,7 +31,7 @@
 namespace rmw_iceoryx_cpp
 {
 
-// TODO(mphnl) refactoring, too many copies
+/// @todo Use the new service discovery API of iceoryx v2.0 here instead of introspection topics
 void fill_topic_containers(
   std::map<std::string, std::string> & names_n_types_,
   std::map<std::string, std::vector<std::string>> & subscribers_topics_,
@@ -59,7 +59,6 @@ void fill_topic_containers(
     // get the latest sample
     const void * previous_user_payload = nullptr;
 
-    /// @todo add error handling branch
     while (port_receiver.take()
                .and_then([&](const void * userPayload) {
                  if (previous_user_payload)
@@ -67,7 +66,14 @@ void fill_topic_containers(
                    port_receiver.release(previous_user_payload);
                  }
                  previous_user_payload = userPayload;
+               })
+               .or_else([](auto& result){
+                if (result != iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE)
+                {
+                  RMW_SET_ERROR_MSG("failed to take message");
+                }
                }))
+
     {
     }
 

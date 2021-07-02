@@ -1,4 +1,4 @@
-// Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by ZhenshengLee. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,15 @@ struct rosidl_message_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {
+/// Get the pair of ros node name and namespace from a given iceoryx node full name.
+/**
+ * \brief    Get the name n space from node full name object
+ * \param    node_full_name full name of the node
+ * \return   std::tuple<std::string, std::string>
+ */
+std::tuple<std::string, std::string>
+get_name_n_space_from_node_full_name(
+  const std::string & node_full_name);
 
 /// Get the pair of ROS topic and type from a given iceoryx service triplet.
 /**

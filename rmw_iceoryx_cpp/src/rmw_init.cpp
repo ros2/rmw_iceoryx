@@ -103,6 +103,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   // This call creates a runtime object.
   // It regisers with the RouDi daemon and gets the configuration
   // for setting up the shared memeory
+  iox::log::LogManager::GetLogManager().SetDefaultLogLevel(iox::log::LogLevel::kWarn);
   iox::runtime::PoshRuntime::initRuntime(iox::RuntimeName_t(iox::cxx::TruncateToCapacity, name));
 
   return RMW_RET_OK;

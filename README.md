@@ -139,9 +139,9 @@ Unfortunately, not all features are yet fully fleshed out.
 | `ros2 interface *`    | :heavy_check_mark:                 |
 | `ros2 service *`      | :x: (coming with iceoryx v2.0)     |
 | `ros2 param list`     | :x: (coming with iceoryx v2.0)     |
-| `rqt_graph`           | :x: (get_publishers_info_by_topic) |
-| `rqt_top`             | :grey_question:                    |
-| `rqt_console`         | :grey_question:                    |
-| `rqt_plot`            | :x:                                |
+| `rqt_graph`           | :heavy_check_mark:                 |
+| `rqt_top`             | :heavy_check_mark:                 |
+| `rqt_console`         | :heavy_check_mark:                 |
+| `rqt_plot`            | :heavy_check_mark:                 |
 | ROS 2 bridge          | :grey_question:                    |
 | RMW Pub/Sub Events    | :x:                                |

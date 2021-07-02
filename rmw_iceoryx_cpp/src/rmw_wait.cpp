@@ -122,7 +122,9 @@ after_wait:
 
     waitset->detachEvent(*iceoryx_guard_condition);
 
-    guard_conditions->guard_conditions[i] = nullptr;
+    if (!iceoryx_guard_condition->hasTriggered()) {
+      guard_conditions->guard_conditions[i] = nullptr;
+    }
   }
 
   return RMW_RET_OK;

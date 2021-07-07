@@ -143,5 +143,9 @@ Unfortunately, not all features are yet fully fleshed out.
 | `rqt_top`             | :heavy_check_mark:                 |
 | `rqt_console`         | :heavy_check_mark:                 |
 | `rqt_plot`            | :heavy_check_mark:                 |
+| `rviz2`               | :heavy_check_mark:                 |
+| `ros2 bag`            | :grey_question:                    |
+| urdf                  | :grey_question:                    |
+| tf2                   | :grey_question:                    |
 | ROS 2 bridge          | :grey_question:                    |
 | RMW Pub/Sub Events    | :x:                                |

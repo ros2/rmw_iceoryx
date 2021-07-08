@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,8 +15,7 @@
 
 #include <vector>
 
-#include "iceoryx_posh/mepoo/chunk_info.hpp"
-#include "iceoryx_posh/popo/publisher.hpp"
+#include "iceoryx_posh/popo/untyped_publisher.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -39,7 +39,7 @@ namespace details
 {
 rmw_ret_t
 send_payload(
-  iox::popo::Publisher * iceoryx_publisher,
+  iox::popo::UntypedPublisher * iceoryx_publisher,
   const void * serialized_ros_msg,
   size_t size)
 {
@@ -47,13 +47,20 @@ send_payload(
     RMW_SET_ERROR_MSG("serialized message pointer is null");
     return RMW_RET_ERROR;
   }
-  void * chunk = iceoryx_publisher->allocateChunk(size, true);
-
-  memcpy(chunk, serialized_ros_msg, size);
-
-  iceoryx_publisher->sendChunk(chunk);
-
-  return RMW_RET_OK;
+  rmw_ret_t ret = RMW_RET_ERROR;
+  iceoryx_publisher->loan(size)
+  .and_then(
+    [&](void * userPayload) {
+      memcpy(userPayload, serialized_ros_msg, size);
+      iceoryx_publisher->publish(userPayload);
+      ret = RMW_RET_OK;
+    })
+  .or_else(
+    [&](iox::popo::AllocationError) {
+      RMW_SET_ERROR_MSG("send_payload error!");
+      ret = RMW_RET_ERROR;
+    });
+  return ret;
 }
 }  // namespace details
 
@@ -168,11 +175,20 @@ rmw_borrow_loaned_message(
     return RMW_RET_ERROR;
   }
 
-  auto msg_memory = iceoryx_sender->allocateChunk(
-    static_cast<uint32_t>(iceoryx_publisher->message_size_), true);
-  rmw_iceoryx_cpp::iceoryx_init_message(&iceoryx_publisher->type_supports_, msg_memory);
-  *ros_message = msg_memory;
-  return RMW_RET_OK;
+  rmw_ret_t ret = RMW_RET_ERROR;
+  iceoryx_sender->loan(iceoryx_publisher->message_size_)
+  .and_then(
+    [&](void * msg_memory) {
+      rmw_iceoryx_cpp::iceoryx_init_message(&iceoryx_publisher->type_supports_, msg_memory);
+      *ros_message = msg_memory;
+      ret = RMW_RET_OK;
+    })
+  .or_else(
+    [&](iox::popo::AllocationError) {
+      RMW_SET_ERROR_MSG("rmw_borrow_loaned_message error!");
+      ret = RMW_RET_ERROR;
+    });
+  return ret;
 }
 
 rmw_ret_t
@@ -205,7 +221,7 @@ rmw_return_loaned_message_from_publisher(const rmw_publisher_t * publisher, void
   }
 
   rmw_iceoryx_cpp::iceoryx_fini_message(&iceoryx_publisher->type_supports_, loaned_message);
-  iceoryx_sender->freeChunk(loaned_message);
+  iceoryx_sender->release(loaned_message);
 
   return RMW_RET_OK;
 }
@@ -241,7 +257,7 @@ rmw_publish_loaned_message(
     RMW_SET_ERROR_MSG("iceoryx can't loan non-fixed sized messages");
     return RMW_RET_ERROR;
   }
-  iceoryx_sender->sendChunk(ros_message);
+  iceoryx_sender->publish(ros_message);
   return RMW_RET_OK;
 }
 }  // extern "C"

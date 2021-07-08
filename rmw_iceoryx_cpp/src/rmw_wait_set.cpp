@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,9 +14,9 @@
 // limitations under the License.
 
 #include "./iceoryx_identifier.hpp"
-#include "./types/iceoryx_wait_set.hpp"
 
 #include "iceoryx_posh/roudi/introspection_types.hpp"
+#include "iceoryx_posh/popo/wait_set.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -35,12 +36,8 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     : context, context->implementation_identifier,
     rmw_get_implementation_identifier(), return nullptr);
 
-  // Untill we have something better in the iceoryx API,
-  // we use the process introspection and its semaphore for notification in the ros waitset
   rmw_wait_set_t * rmw_wait_set = nullptr;
-  iox::popo::Subscriber * process_receiver = nullptr;
-  iox::posix::Semaphore * semaphore = nullptr;
-  IceoryxWaitSet * iceoryx_wait_set = nullptr;
+  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> * waitset = nullptr;
 
   rmw_wait_set = rmw_wait_set_allocate();
   if (!rmw_wait_set) {
@@ -50,49 +47,29 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
 
   rmw_wait_set->implementation_identifier = rmw_get_implementation_identifier();
 
-  process_receiver = static_cast<iox::popo::Subscriber *>(
-    rmw_allocate(sizeof(iox::popo::Subscriber)));
-  if (!process_receiver) {
+  // create waitset
+  waitset = static_cast<iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *>(
+    rmw_allocate(sizeof(iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>)));
+  if (!waitset) {
     RMW_SET_ERROR_MSG("failed to allocate memory for wait_set data");
     goto fail;
   }
   RMW_TRY_PLACEMENT_NEW(
-    process_receiver,
-    process_receiver,
+    waitset,
+    waitset,
     goto fail,
-    iox::popo::Subscriber,
-    iox::roudi::IntrospectionProcessService)
+    iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>);
 
-  semaphore = process_receiver->getSemaphore();
-
-  // Set semaphore and subscribe for having wait_set triggers if a new process appears
-  process_receiver->setChunkReceiveSemaphore(semaphore);
-  process_receiver->subscribe(1);
-
-  iceoryx_wait_set = static_cast<IceoryxWaitSet *>(rmw_allocate(sizeof(IceoryxWaitSet)));
-  if (!iceoryx_wait_set) {
-    RMW_SET_ERROR_MSG("failed to allocate memory for rmw iceoryx wait_set");
-    goto fail;
-  }
-  RMW_TRY_PLACEMENT_NEW(
-    iceoryx_wait_set, iceoryx_wait_set, goto fail, IceoryxWaitSet, semaphore, process_receiver)
-
-  rmw_wait_set->data = static_cast<void *>(iceoryx_wait_set);
+  rmw_wait_set->data = static_cast<void *>(waitset);
   return rmw_wait_set;
 
 fail:
   if (rmw_wait_set) {
-    if (process_receiver) {
+    if (waitset) {
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        process_receiver->~Subscriber(),
-        iox::popo::Subscriber)
-      rmw_free(process_receiver);
-    }
-
-    if (iceoryx_wait_set) {
-      RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        iceoryx_wait_set->~IceoryxWaitSet(), IceoryxWaitSet)
-      rmw_free(iceoryx_wait_set);
+        waitset->~WaitSet(),
+        iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>)
+      rmw_free(waitset);
     }
 
     rmw_wait_set_free(rmw_wait_set);
@@ -112,17 +89,14 @@ rmw_destroy_wait_set(rmw_wait_set_t * wait_set)
 
   rmw_ret_t result = RMW_RET_OK;
 
-  auto iceoryx_wait_set = static_cast<IceoryxWaitSet *>(wait_set->data);
+  auto iceoryx_wait_set =
+    static_cast<iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *>(wait_set->data);
+
   if (iceoryx_wait_set) {
-    if (iceoryx_wait_set->iceoryx_receiver_) {
-      RMW_TRY_DESTRUCTOR(
-        iceoryx_wait_set->iceoryx_receiver_->~Subscriber(),
-        iceoryx_wait_set->iceoryx_receiver_,
-        result = RMW_RET_ERROR)
-      rmw_free(iceoryx_wait_set->iceoryx_receiver_);
-    }
     RMW_TRY_DESTRUCTOR(
-      iceoryx_wait_set->~IceoryxWaitSet(), iceoryx_wait_set, result = RMW_RET_ERROR)
+      iceoryx_wait_set->~WaitSet(),
+      iceoryx_wait_set,
+      result = RMW_RET_ERROR)
     rmw_free(iceoryx_wait_set);
   }
   wait_set->data = nullptr;

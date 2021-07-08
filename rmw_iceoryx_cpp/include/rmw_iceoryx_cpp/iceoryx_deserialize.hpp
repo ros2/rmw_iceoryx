@@ -20,7 +20,7 @@ struct rosidl_message_type_support_t;
 namespace rmw_iceoryx_cpp
 {
 
-// TODO(karsten1987): This should be `uint8`, really
+/// @todo karsten1987: This should be `uint8`, really
 void deserialize(
   const char * serialized_msg,
   const rosidl_message_type_support_t * type_supports,

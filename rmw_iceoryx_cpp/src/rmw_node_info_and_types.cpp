@@ -105,7 +105,7 @@ rmw_get_service_names_and_types_by_node(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_namespace, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(service_names_and_types, RMW_RET_ERROR);
 
-  // TODO(mphnl) implementation
+  /// @todo poehnl: implementation
 
   return RMW_RET_OK;
 }
@@ -124,7 +124,7 @@ rmw_get_client_names_and_types_by_node(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_namespace, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(service_names_and_types, RMW_RET_ERROR);
 
-  // TODO(mphnl) implementation
+  /// @todo poehnl: implementation
 
   return RMW_RET_OK;
 }

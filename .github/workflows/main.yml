@@ -14,16 +14,17 @@ jobs:
       matrix:
           os: [ubuntu-20.04]
     steps:
+      - uses: actions/checkout@v2
       - name: Setup ROS
-        uses: ros-tooling/setup-ros@0.1.4
+        uses: ros-tooling/setup-ros@master
         with:
           required-ros-distributions: foxy
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
       - name: Build & Test
-        uses: ros-tooling/action-ros-ci@0.2.0
+        uses: ros-tooling/action-ros-ci@master
         with:
           package-name: rmw_iceoryx_cpp iceoryx_ros2_bridge
-          source-ros-binary-installation: foxy
+          target-ros2-distro: foxy
           vcs-repo-file-url: |
-            https://gist.githubusercontent.com/Karsten1987/1723f219bb5aa5b81355c7eb1477f867/raw/9dc4d877f6fd0f862070516febdbddea28723b5c/iceoryx.repos
+            ./.github/workflows/additional_repos.repos

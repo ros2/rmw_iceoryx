@@ -28,7 +28,6 @@
 
 extern "C"
 {
-
 rmw_ret_t
 rmw_wait(
   rmw_subscriptions_t * subscriptions,

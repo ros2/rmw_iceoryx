@@ -58,7 +58,7 @@ rmw_create_wait_set(rmw_context_t * context, size_t max_conditions)
     waitset,
     waitset,
     goto fail,
-    iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>, );
+    iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET>);
 
   rmw_wait_set->data = static_cast<void *>(waitset);
   return rmw_wait_set;

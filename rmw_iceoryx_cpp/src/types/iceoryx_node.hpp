@@ -56,8 +56,6 @@ public:
     /// @todo change to the dds_common graph
     // subscribe with a callback for changes in the iceoryx graph
     // https://github.com/eclipse-iceoryx/iceoryx/issues/707
-    // use iox::popo::createNotificationCallback(IceoryxGraphChangeNotifier::callback, *this)
-    // to attach the callback and provide the this pointer to gain access to IceoryxGraphChangeNotifier
     listener_.attachEvent(
       port_receiver_, iox::popo::SubscriberEvent::DATA_RECEIVED,
       iox::popo::createNotificationCallback(IceoryxGraphChangeNotifier::callback, *this))

@@ -12,8 +12,8 @@ jobs:
           linter: [cppcheck, cpplint, uncrustify, xmllint, copyright]
     steps:
     - uses: actions/checkout@v2
-    - uses: ros-tooling/setup-ros@0.1.4
-    - uses: ros-tooling/action-ros-lint@0.1.3
+    - uses: ros-tooling/setup-ros@master
+    - uses: ros-tooling/action-ros-lint@master
       with:
         linter: ${{ matrix.linter }}
         package-name: |

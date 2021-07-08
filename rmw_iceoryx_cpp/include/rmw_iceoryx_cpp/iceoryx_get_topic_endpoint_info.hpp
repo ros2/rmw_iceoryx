@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <tuple>
 
 #include "rcutils/types.h"
 

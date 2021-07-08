@@ -99,7 +99,8 @@ void fill_topic_containers(
         subscribers_topics[std::string(receiver.m_node.c_str())].push_back(
           std::get<0>(
             name_and_type));
-        topic_subscribers[std::get<0>(name_and_type)].push_back(std::string(receiver.m_node.c_str()));
+        topic_subscribers[std::get<0>(name_and_type)].push_back(
+          std::string(receiver.m_node.c_str()));
       }
       for (auto & sender : port_sample->m_publisherList) {
         auto name_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(

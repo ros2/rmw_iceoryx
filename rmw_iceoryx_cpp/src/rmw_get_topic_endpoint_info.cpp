@@ -18,41 +18,63 @@
 #include "rmw/rmw.h"
 #include "rmw/topic_endpoint_info_array.h"
 
-extern "C"
-{
-rmw_ret_t
-rmw_get_publishers_info_by_topic(
-  const rmw_node_t * node,
-  rcutils_allocator_t * allocator,
-  const char * topic_name,
-  bool no_mangle,
+#include "rmw_iceoryx_cpp/iceoryx_topic_names_and_types.hpp"
+#include "rmw_iceoryx_cpp/iceoryx_get_topic_endpoint_info.hpp"
+
+extern "C" {
+rmw_ret_t rmw_get_publishers_info_by_topic(
+  const rmw_node_t * node, rcutils_allocator_t * allocator,
+  const char * topic_name, bool no_mangle,
   rmw_topic_endpoint_info_array_t * publishers_info)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocator, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(topic_name, RMW_RET_ERROR);
-  (void) no_mangle;
-  (void) publishers_info;
+  (void)no_mangle;
 
-  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support publishers info.");
-  return RMW_RET_UNSUPPORTED;
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_get_topic_names_and_types
+    : node, node->implementation_identifier, rmw_get_implementation_identifier(),
+    return RMW_RET_ERROR);
+
+  rmw_ret_t rmw_ret = rmw_topic_endpoint_info_array_check_zero(publishers_info);
+  if (rmw_ret != RMW_RET_OK) {
+    return rmw_ret;      // error already set
+  }
+
+  auto iceoryx_publisher_endpoint_info =
+    rmw_iceoryx_cpp::get_publisher_end_info_of_topic(topic_name);
+
+  return rmw_iceoryx_cpp::fill_rmw_publisher_end_info(
+    publishers_info,
+    iceoryx_publisher_endpoint_info, allocator);
 }
 
-rmw_ret_t
-rmw_get_subscriptions_info_by_topic(
-  const rmw_node_t * node,
-  rcutils_allocator_t * allocator,
-  const char * topic_name,
-  bool no_mangle,
+rmw_ret_t rmw_get_subscriptions_info_by_topic(
+  const rmw_node_t * node, rcutils_allocator_t * allocator,
+  const char * topic_name, bool no_mangle,
   rmw_topic_endpoint_info_array_t * subscriptions_info)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocator, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(topic_name, RMW_RET_ERROR);
-  (void) no_mangle;
-  (void) subscriptions_info;
+  (void)no_mangle;
 
-  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support subscriptions info.");
-  return RMW_RET_UNSUPPORTED;
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_get_topic_names_and_types
+    : node, node->implementation_identifier, rmw_get_implementation_identifier(),
+    return RMW_RET_ERROR);
+
+  rmw_ret_t rmw_ret = rmw_topic_endpoint_info_array_check_zero(subscriptions_info);
+  if (rmw_ret != RMW_RET_OK) {
+    return rmw_ret;      // error already set
+  }
+
+  auto iceoryx_subscriber_endpoint_info = rmw_iceoryx_cpp::get_subscriber_end_info_of_topic(
+    topic_name);
+
+  return rmw_iceoryx_cpp::fill_rmw_subscriber_end_info(
+    subscriptions_info, iceoryx_subscriber_endpoint_info,
+    allocator);
 }
 }  // extern "C"

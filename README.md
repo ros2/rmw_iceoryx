@@ -7,10 +7,10 @@ Installation
 
 The following instructions show you how to install [iceoryx](https://github.com/eclipse/iceoryx) and its rmw implementation.
 The installation of iceoryx and rmw_iceoryx is pretty straight forward.
-All provided packages can be built with colcon so that you can easily build both, iceoryx and rmw_iceoryx, within your ROS2 workspace.
-rmw_iceoryx is using the [rosidl_typesupport_introspection](https://github.com/ros2/rosidl) which allows for building iceoryx on top of an existing ROS2 workspace or even debian installation as no ROS2 messages have to be built again.
+All provided packages can be built with colcon so that you can easily build both, iceoryx and rmw_iceoryx, within your ROS 2 workspace.
+rmw_iceoryx is using the [rosidl_typesupport_introspection](https://github.com/ros2/rosidl) which allows for building iceoryx on top of an existing ROS2 workspace or even debian installation as no ROS 2 messages have to be built again.
 
-To install iceoryx and rmw_iceoryx in a ROS2 workspace, just execute the steps below:
+To install iceoryx and rmw_iceoryx in a ROS 2 workspace, just execute the steps below:
 
 ```
 mkdir -p ~/iceoryx_ws/src
@@ -20,13 +20,15 @@ git clone https://github.com/ros2/rmw_iceoryx.git
 ```
 For alternative installation instructions and more details about iceoryx's internals, please see [iceoryx's GitHub repo](https://github.com/eclipse/iceoryx).
 
-rmw_iceoryx is compatible with ROS2 Eloquent.
+rmw_iceoryx is compatible with ROS 2 Foxy.
 Assuming you have ROS2 installed correctly, you can compile the iceoryx workspace with colcon:
 
 ```
 cd ~/iceoryx_ws/
-source /opt/ros/eloquent/setup.bash  # alternatively source your own ROS2 workspace
+source /opt/ros/foxy/setup.bash  # alternatively source your own ROS 2 workspace
 colcon build
+# or with more options
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
 ```
 
 That's it! You've installed iceoryx and are ready to rumble.
@@ -82,7 +84,7 @@ rmw_iceoryx_cpp gives a loaned message to the subscription which can execute the
 
 Step 4 `return_loaned_message()`) A subscription callback is finished and the loaned message is getting returned to the middleware.
 
-Starting from ROS2 Eloquent, these features are implemented within rclcpp.
+Starting from ROS 2 Eloquent, these features are implemented within rclcpp.
 An application using these new features is shown in the code snippet below.
 For a fully working implementation, please have a look at [this demo node](https://github.com/ros2/demos/blob/master/demo_nodes_cpp/src/topics/talker_loaned_message.cpp).
 
@@ -123,4 +125,27 @@ Limitations
 
 rmw_iceoryx_cpp is currently under heavy development.
 Unfortunately, not all features are yet fully fleshed out.
-Other core functionalities like e.g. services are not yet implemented, but will follow soon.
+
+| ROS 2 command/feature | Status                             |
+|-----------------------|------------------------------------|
+| `ros2 topic list`     | :heavy_check_mark:                 |
+| `ros2 topic echo`     | :heavy_check_mark:                 |
+| `ros2 topic type`     | :heavy_check_mark:                 |
+| `ros2 topic info`     | :heavy_check_mark:                 |
+| `ros2 topic hz`       | :heavy_check_mark:                 |
+| `ros2 topic bw`       | :heavy_check_mark:                 |
+| `ros2 node list`      | :heavy_check_mark:                 |
+| `ros2 node info`      | :heavy_check_mark:                 |
+| `ros2 interface *`    | :heavy_check_mark:                 |
+| `ros2 service *`      | :x: (coming with iceoryx v2.0)     |
+| `ros2 param list`     | :x: (coming with iceoryx v2.0)     |
+| `rqt_graph`           | :heavy_check_mark:                 |
+| `rqt_top`             | :heavy_check_mark:                 |
+| `rqt_console`         | :heavy_check_mark:                 |
+| `rqt_plot`            | :heavy_check_mark:                 |
+| `rviz2`               | :heavy_check_mark:                 |
+| `ros2 bag`            | :grey_question:                    |
+| urdf                  | :grey_question:                    |
+| tf2                   | :grey_question:                    |
+| ROS 2 bridge          | :grey_question:                    |
+| RMW Pub/Sub Events    | :x:                                |

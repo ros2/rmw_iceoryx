@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
 
 #include <string>
 
-#include "iceoryx_posh/runtime/runnable.hpp"
+#include "iceoryx_posh/runtime/node.hpp"
 
 #include "rmw/allocators.h"
 
@@ -46,7 +47,7 @@ rmw_create_node(
   std::string full_name = std::string(namespace_) + std::string(name);
   rmw_guard_condition_t * guard_condition = nullptr;
   IceoryxGraphChangeNotifier * graph_change_notifier = nullptr;
-  iox::runtime::Runnable * iceoryx_runnable = nullptr;
+  iox::runtime::Node * iceoryx_runnable = nullptr;
   IceoryxNodeInfo * node_info = nullptr;
 
   rmw_node_t * node_handle = rmw_node_allocate();
@@ -63,8 +64,7 @@ rmw_create_node(
     goto fail;
   }
 
-  // TODO(knese) what is the scope of the guard condition, for the node only or the whole system?
-  // If the all changes in the system are relevant, one GraphChangeNotifier for all nodes would do?
+  /// @todo only use one GraphChangeNotifier for all nodes
   graph_change_notifier =
     static_cast<IceoryxGraphChangeNotifier *>(rmw_allocate(sizeof(IceoryxGraphChangeNotifier)));
   if (!graph_change_notifier) {
@@ -77,16 +77,16 @@ rmw_create_node(
 
   // allocate iceoryx_runnable
   iceoryx_runnable =
-    static_cast<iox::runtime::Runnable *>(rmw_allocate(
-      sizeof(iox::runtime::Runnable)));
+    static_cast<iox::runtime::Node *>(rmw_allocate(
+      sizeof(iox::runtime::Node)));
   if (!iceoryx_runnable) {
     RMW_SET_ERROR_MSG("failed to allocate memory for iceoryx runnable");
     goto fail;
   }
   RMW_TRY_PLACEMENT_NEW(
     iceoryx_runnable, iceoryx_runnable,
-    goto fail, iox::runtime::Runnable,
-    iox::cxx::CString100(iox::cxx::TruncateToCapacity, full_name));
+    goto fail, iox::runtime::Node,
+    iox::NodeName_t(iox::cxx::TruncateToCapacity, full_name));
 
   node_info = static_cast<IceoryxNodeInfo *>(rmw_allocate(sizeof(IceoryxNodeInfo)));
   if (!node_info) {
@@ -130,7 +130,7 @@ fail:
     }
     if (iceoryx_runnable) {
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        iceoryx_runnable->~Runnable(), iox::runtime::Runnable)
+        iceoryx_runnable->~Node(), iox::runtime::Node)
       rmw_free(iceoryx_runnable);
     }
     if (node_info) {
@@ -174,7 +174,7 @@ rmw_destroy_node(rmw_node_t * node)
     }
     if (node_info->iceoryx_runnable_) {
       RMW_TRY_DESTRUCTOR(
-        node_info->iceoryx_runnable_->~Runnable(),
+        node_info->iceoryx_runnable_->~Node(),
         node_info->iceoryx_runnable_,
         result = RMW_RET_ERROR)
       rmw_free(node_info->iceoryx_runnable_);
@@ -208,8 +208,8 @@ rmw_node_assert_liveliness(const rmw_node_t * node)
     : node, node->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
-  // TODO(mphnl): Currently the heartbeat is used that every registered process in iceoryx sends
-  // later this should be extended to a user triggered liveliness that can be send for a runnable
+  /// @todo poehnl: Currently the heartbeat is used that every registered process in iceoryx sends
+  /// later this should be extended to a user triggered liveliness that can be send for a runnable
 
   return RMW_RET_OK;
 }

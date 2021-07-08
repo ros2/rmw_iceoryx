@@ -17,7 +17,7 @@
 
 #include "../iceoryx_generate_gid.hpp"
 
-#include "iceoryx_posh/popo/publisher.hpp"
+#include "iceoryx_posh/popo/untyped_publisher.hpp"
 
 #include "rmw/rmw.h"
 #include "rmw/types.h"
@@ -28,7 +28,7 @@ struct IceoryxPublisher
 {
   IceoryxPublisher(
     const rosidl_message_type_support_t * type_supports,
-    iox::popo::Publisher * const iceoryx_sender)
+    iox::popo::UntypedPublisher * const iceoryx_sender)
   : type_supports_(*type_supports),
     iceoryx_sender_(iceoryx_sender),
     gid_(generate_gid()),
@@ -37,7 +37,7 @@ struct IceoryxPublisher
   {}
 
   rosidl_message_type_support_t type_supports_;
-  iox::popo::Publisher * const iceoryx_sender_;
+  iox::popo::UntypedPublisher * const iceoryx_sender_;
   rmw_gid_t gid_;
   bool is_fixed_size_;
   size_t message_size_;

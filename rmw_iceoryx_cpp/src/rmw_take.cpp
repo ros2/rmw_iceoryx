@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
 
 #include "./types/iceoryx_subscription.hpp"
 
-#include "iceoryx_posh/popo/subscriber.hpp"
+#include "iceoryx_posh/popo/untyped_subscriber.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -66,7 +67,7 @@ rmw_take(
   }
 
   // Subscription is not matched
-  if (iox::popo::SubscriptionState::SUBSCRIBED != iceoryx_receiver->getSubscriptionState()) {
+  if (iox::SubscribeState::SUBSCRIBED != iceoryx_receiver->getSubscriptionState()) {
     return RMW_RET_OK;
   }
 
@@ -77,27 +78,44 @@ rmw_take(
   }
 
   const iox::mepoo::ChunkHeader * chunk_header = nullptr;
-  if (!iceoryx_receiver->getChunk(&chunk_header)) {
-    RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
-    return RMW_RET_ERROR;
+  const void * user_payload = nullptr;
+
+  rmw_ret_t ret = RMW_RET_ERROR;
+  iceoryx_receiver->take()
+  .and_then(
+    [&](const void * userPayload) {
+      user_payload = userPayload;
+      chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
+      ret = RMW_RET_OK;
+    })
+  .or_else(
+    [&](iox::popo::ChunkReceiveResult) {
+      RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
+      ret = RMW_RET_ERROR;
+    });
+
+  /// @todo move this to lambda in a function?
+  if (ret == RMW_RET_ERROR) {
+    return ret;
   }
 
   // if fixed size, we fetch the data via memcpy
   if (iceoryx_subscription->is_fixed_size_) {
-    memcpy(ros_message, chunk_header->payload(), chunk_header->m_info.m_payloadSize);
-    iceoryx_receiver->releaseChunk(chunk_header);
+    memcpy(ros_message, user_payload, chunk_header->userPayloadSize());
+    iceoryx_receiver->release(user_payload);
     *taken = true;
-    return RMW_RET_OK;
+    ret = RMW_RET_OK;
+  } else {
+    rmw_iceoryx_cpp::deserialize(
+      static_cast<const char *>(user_payload),
+      &iceoryx_subscription->type_supports_,
+      ros_message);
+    iceoryx_receiver->release(user_payload);
+    *taken = true;
+    ret = RMW_RET_OK;
   }
 
-  rmw_iceoryx_cpp::deserialize(
-    static_cast<const char *>(chunk_header->payload()),
-    &iceoryx_subscription->type_supports_,
-    ros_message);
-  iceoryx_receiver->releaseChunk(chunk_header);
-  *taken = true;
-
-  return RMW_RET_OK;
+  return ret;
 }
 
 rmw_ret_t
@@ -114,7 +132,7 @@ rmw_take_with_info(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(message_info, RMW_RET_ERROR);
   (void)allocation;
 
-  // TODO(mphnl) implement message_info related stuff
+  /// @todo poehnl: implement message_info related stuff
   (void)message_info;
   return rmw_take(subscription, ros_message, taken, allocation);
 }
@@ -151,7 +169,7 @@ rmw_take_serialized_message(
   }
 
   // Subscription is not matched
-  if (iox::popo::SubscriptionState::SUBSCRIBED != iceoryx_receiver->getSubscriptionState()) {
+  if (iox::SubscribeState::SUBSCRIBED != iceoryx_receiver->getSubscriptionState()) {
     return RMW_RET_OK;
   }
 
@@ -162,17 +180,27 @@ rmw_take_serialized_message(
   }
 
   const iox::mepoo::ChunkHeader * chunk_header = nullptr;
-  if (!iceoryx_receiver->getChunk(&chunk_header)) {
-    RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
-    return RMW_RET_ERROR;
-  }
+  const void * user_payload = nullptr;
+
+  rmw_ret_t ret = RMW_RET_OK;
+  iceoryx_receiver->take()
+  .and_then(
+    [&](const void * userPayload) {
+      user_payload = userPayload;
+      chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
+    })
+  .or_else(
+    [&](iox::popo::ChunkReceiveResult) {
+      RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
+      ret = RMW_RET_ERROR;
+    });
 
   // all incoming data is serialzed already in memory, so simply call memcopy
-  auto ret = rmw_serialized_message_resize(serialized_message, chunk_header->m_info.m_payloadSize);
+  ret = rmw_serialized_message_resize(serialized_message, chunk_header->userPayloadSize());
   if (RMW_RET_OK == ret) {
-    memcpy(serialized_message->buffer, chunk_header->payload(), chunk_header->m_info.m_payloadSize);
-    serialized_message->buffer_length = chunk_header->m_info.m_payloadSize;
-    iceoryx_receiver->releaseChunk(chunk_header);
+    memcpy(serialized_message->buffer, user_payload, chunk_header->userPayloadSize());
+    serialized_message->buffer_length = chunk_header->userPayloadSize();
+    iceoryx_receiver->release(user_payload);
     *taken = true;
   }
 
@@ -193,7 +221,7 @@ rmw_take_serialized_message_with_info(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(message_info, RMW_RET_ERROR);
   (void)allocation;
 
-  // TODO(mphnl) implement message_info related stuff
+  /// @todo poehnl: implement message_info related stuff
   (void) message_info;
   return rmw_take_serialized_message(subscription, serialized_message, taken, allocation);
 }
@@ -238,15 +266,23 @@ rmw_take_loaned_message(
   }
 
   if (!iceoryx_subscription->is_fixed_size_) {
-    // TODO(Karsten1987) Alternatively fall back to regular rmw_take with memcpy
+    /// @todo Karsten1987: Alternatively fall back to regular rmw_take with memcpy
     RMW_SET_ERROR_MSG("iceoryx can't take loaned non-fixed size data stuctures");
     return RMW_RET_ERROR;
   }
 
-  if (!iceoryx_receiver->getChunk(const_cast<const void **>(loaned_message))) {
-    RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
-    return RMW_RET_ERROR;
-  }
+  rmw_ret_t ret = RMW_RET_OK;
+  iceoryx_receiver->take()
+  .and_then(
+    [&](const void * userPayload) {
+      *loaned_message = const_cast<void *>(userPayload);
+      ret = RMW_RET_OK;
+    })
+  .or_else(
+    [&](auto &) {
+      RMW_SET_ERROR_MSG("No chunk in iceoryx_receiver");
+      ret = RMW_RET_ERROR;
+    });
   *taken = true;
 
   return RMW_RET_OK;
@@ -290,8 +326,8 @@ rmw_return_loaned_message_from_subscription(
     return RMW_RET_ERROR;
   }
 
-  auto ret = iceoryx_receiver->releaseChunk(loaned_message);
-  return ret ? RMW_RET_OK : RMW_RET_ERROR;
+  iceoryx_receiver->release(loaned_message);
+  return RMW_RET_OK;
 }
 
 rmw_ret_t

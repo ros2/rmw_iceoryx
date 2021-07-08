@@ -17,9 +17,10 @@
 
 #include <functional>
 
-#include "iceoryx_posh/popo/subscriber.hpp"
+#include "iceoryx_posh/popo/untyped_subscriber.hpp"
 #include "iceoryx_posh/roudi/introspection_types.hpp"
-#include "iceoryx_posh/runtime/runnable.hpp"
+#include "iceoryx_posh/runtime/node.hpp"
+#include "iceoryx_posh/popo/listener.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -27,12 +28,12 @@
 #include "rmw/rmw.h"
 
 #include "../iceoryx_identifier.hpp"
-#include "./iceoryx_guard_condition.hpp"
+#include "iceoryx_posh/popo/user_trigger.hpp"
 
 // We currently use the iceoryx port introspection
 // which is updated whenever a sender port comes or goes or
 // does OFFER / STOP_OFFER or a receiver port comes or goes or does SUB / UNSUB
-// TODO(mphnl) check with the list of ros2 graph events
+/// @todo poehnl: check with the list of ros2 graph events
 
 class IceoryxGraphChangeNotifier
 {
@@ -43,7 +44,7 @@ public:
       RMW_SET_ERROR_MSG("invalid input for GraphChangeNotifier");
       iceoryx_guard_condition_ = nullptr;
     } else {
-      iceoryx_guard_condition_ = static_cast<IceoryxGuardCondition *>(guard_condition->data);
+      iceoryx_guard_condition_ = static_cast<iox::popo::UserTrigger *>(guard_condition->data);
       RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
         IceoryxGraphChangeNotifier
         : guard_condition,
@@ -52,28 +53,46 @@ public:
         iceoryx_guard_condition_ = nullptr);
     }
 
+    /// @todo change to the dds_common graph
     // subscribe with a callback for changes in the iceoryx graph
-    port_receiver_.setReceiveHandler(std::bind(&IceoryxGraphChangeNotifier::callback, this));
-    port_receiver_.subscribe(1);
+    // https://github.com/eclipse-iceoryx/iceoryx/issues/707
+    listener_.attachEvent(
+      port_receiver_, iox::popo::SubscriberEvent::DATA_RECEIVED,
+      iox::popo::createNotificationCallback(IceoryxGraphChangeNotifier::callback, *this))
+    .or_else(
+      [](auto) {
+        RMW_SET_ERROR_MSG("unable to attach port_receiver_");
+        std::terminate();
+      });
+    port_receiver_.subscribe();
   }
 
   ~IceoryxGraphChangeNotifier()
   {
-    port_receiver_.unsetReceiveHandler();
+    listener_.detachEvent(port_receiver_, iox::popo::SubscriberEvent::DATA_RECEIVED);
     port_receiver_.unsubscribe();
   }
 
 private:
-  void callback()
+  // must be a static method to be convertable to c function pointer
+  // second argument (self) is the this pointer of the current object
+  static void callback(
+    iox::popo::UntypedSubscriber * introspectionSubscriber,
+    IceoryxGraphChangeNotifier * self)
   {
-    if (nullptr != iceoryx_guard_condition_) {
-      iceoryx_guard_condition_->trigger();
+    if (nullptr != self->iceoryx_guard_condition_) {
+      self->iceoryx_guard_condition_->trigger();
+    }
+    if (nullptr != introspectionSubscriber) {
+      introspectionSubscriber->releaseQueuedData();
     }
   }
-
-  IceoryxGuardCondition * iceoryx_guard_condition_{nullptr};
-  using port_receiver_t = iox::popo::Subscriber;
-  port_receiver_t port_receiver_{iox::roudi::IntrospectionPortService};
+  iox::popo::UserTrigger * iceoryx_guard_condition_{nullptr};
+  using port_receiver_t = iox::popo::UntypedSubscriber;
+  port_receiver_t port_receiver_{iox::roudi::IntrospectionPortService,
+    iox::popo::SubscriberOptions{1U, 1U, "", true}};
+  using listener_t = iox::popo::Listener;
+  listener_t listener_;
 };
 
 struct IceoryxNodeInfo
@@ -81,7 +100,7 @@ struct IceoryxNodeInfo
   IceoryxNodeInfo(
     rmw_guard_condition_t * guard_condition,
     IceoryxGraphChangeNotifier * graph_change_notifier,
-    iox::runtime::Runnable * iceoryx_runnable)
+    iox::runtime::Node * iceoryx_runnable)
   : guard_condition_(guard_condition),
     graph_change_notifier_(graph_change_notifier),
     iceoryx_runnable_(iceoryx_runnable)
@@ -89,7 +108,7 @@ struct IceoryxNodeInfo
   }
   rmw_guard_condition_t * const guard_condition_;
   IceoryxGraphChangeNotifier * const graph_change_notifier_;
-  iox::runtime::Runnable * const iceoryx_runnable_;
+  iox::runtime::Node * const iceoryx_runnable_;
 };
 
 #endif  // TYPES__ICEORYX_NODE_HPP_

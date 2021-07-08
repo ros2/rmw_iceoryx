@@ -57,6 +57,7 @@ add_library(rmw_iceoryx_name_conversion SHARED
   src/internal/iceoryx_name_conversion.cpp
   src/internal/iceoryx_type_info_introspection.cpp
   src/internal/iceoryx_topic_names_and_types.cpp
+  src/internal/iceoryx_get_topic_endpoint_info.cpp
 )
 target_include_directories(rmw_iceoryx_name_conversion
   PUBLIC include

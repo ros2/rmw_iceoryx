@@ -79,6 +79,10 @@ public:
 
   void return_serialized_message(std::shared_ptr<rclcpp::SerializedMessage> & message) override;
 
+  void handle_serialized_message(
+    const std::shared_ptr<rclcpp::SerializedMessage> & serialized_message,
+    const rclcpp::MessageInfo & message_info) override;
+
   void handle_loaned_message(
     void * loaned_message, const rclcpp::MessageInfo & message_info) override;
 

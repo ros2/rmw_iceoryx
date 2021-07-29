@@ -87,11 +87,13 @@ add_library(rmw_iceoryx_cpp SHARED
   src/rmw_guard_condition.cpp
   src/rmw_init.cpp
   src/rmw_logging.cpp
+  src/rmw_network_flow_endpoint.cpp
   src/rmw_node.cpp
   src/rmw_node_info_and_types.cpp
   src/rmw_node_names.cpp
   src/rmw_publish.cpp
   src/rmw_publisher.cpp
+  src/rmw_qos.cpp
   src/rmw_request.cpp
   src/rmw_response.cpp
   src/rmw_serialize.cpp

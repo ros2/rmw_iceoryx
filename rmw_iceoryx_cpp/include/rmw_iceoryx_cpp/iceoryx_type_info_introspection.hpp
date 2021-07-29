@@ -17,6 +17,7 @@
 #define RMW_ICEORYX_CPP__ICEORYX_TYPE_INFO_INTROSPECTION_HPP_
 
 #include <string>
+#include <utility>
 
 struct rosidl_message_type_support_t;
 

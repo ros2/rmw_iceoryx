@@ -22,6 +22,17 @@ struct rosidl_message_type_support_t;
 namespace rmw_iceoryx_cpp
 {
 
+enum class TypeSupportLanguage
+{
+  CPP,
+  C
+};
+
+/// @brief Wraps get_message_typesupport_handle() and does error handling
+/// @return std::pair containing enum TypeSupportLanguage and handle to the type support
+const std::pair<TypeSupportLanguage, const rosidl_message_type_support_t *> get_type_support(
+  const rosidl_message_type_support_t * type_supports);
+
 bool iceoryx_is_fixed_size(const rosidl_message_type_support_t * type_supports);
 
 bool iceoryx_is_valid_type_support(const rosidl_message_type_support_t * type_supports);

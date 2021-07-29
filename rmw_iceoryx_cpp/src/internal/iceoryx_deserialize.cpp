@@ -20,7 +20,10 @@
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
 #include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
 
+#include "rcutils/error_handling.h"
+
 #include "rmw_iceoryx_cpp/iceoryx_deserialize.hpp"
+#include "rmw_iceoryx_cpp/iceoryx_type_info_introspection.hpp"
 
 #include "./iceoryx_deserialize_typesupport_c.hpp"
 #include "./iceoryx_deserialize_typesupport_cpp.hpp"
@@ -33,24 +36,16 @@ void deserialize(
   const rosidl_message_type_support_t * type_supports,
   void * ros_message)
 {
-  // serialize with cpp typesupport
-  auto ts_cpp = get_message_typesupport_handle(
-    type_supports,
-    rosidl_typesupport_introspection_cpp::typesupport_identifier);
-  if (ts_cpp != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts_cpp->data);
-    rmw_iceoryx_cpp::details_cpp::deserialize(serialized_msg, members, ros_message);
-  }
+  auto ts = get_type_support(type_supports);
 
-  // serialize with c typesupport
-  auto ts_c = get_message_typesupport_handle(
-    type_supports,
-    rosidl_typesupport_introspection_c__identifier);
-  if (ts_c != nullptr) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts_c->data);
-    rmw_iceoryx_cpp::details_c::deserialize(serialized_msg, members, ros_message);
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members_cpp =
+      static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts.second->data);
+    rmw_iceoryx_cpp::details_cpp::deserialize(serialized_msg, members_cpp, ros_message);
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members_c =
+      static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
+    rmw_iceoryx_cpp::details_c::deserialize(serialized_msg, members_c, ros_message);
   }
 }
 

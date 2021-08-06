@@ -20,12 +20,12 @@ git clone https://github.com/ros2/rmw_iceoryx.git
 ```
 For alternative installation instructions and more details about iceoryx's internals, please see [iceoryx's GitHub repo](https://github.com/eclipse/iceoryx).
 
-rmw_iceoryx is compatible with ROS 2 Foxy.
+rmw_iceoryx is compatible with ROS 2 Galactic.
 Assuming you have ROS2 installed correctly, you can compile the iceoryx workspace with colcon:
 
 ```
 cd ~/iceoryx_ws/
-source /opt/ros/foxy/setup.bash  # alternatively source your own ROS 2 workspace
+source /opt/ros/galactic/setup.bash  # alternatively source your own ROS 2 workspace
 colcon build
 # or with more options
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF

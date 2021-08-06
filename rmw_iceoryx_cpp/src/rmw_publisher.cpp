@@ -158,6 +158,16 @@ rmw_publisher_assert_liveliness(const rmw_publisher_t * publisher)
 }
 
 rmw_ret_t
+rmw_publisher_wait_for_all_acked(const rmw_publisher_t * publisher, rmw_time_t wait_timeout)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
+  (void)wait_timeout;
+
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support wait for all acked.");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
 rmw_publisher_get_actual_qos(const rmw_publisher_t * publisher, rmw_qos_profile_t * qos)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);

@@ -3,7 +3,7 @@ name: Integration build rmw_iceoryx
 on:
   push:
     branches:
-      - foxy
+      - galactic
   pull_request:
 
 jobs:
@@ -18,13 +18,11 @@ jobs:
       - name: Setup ROS
         uses: ros-tooling/setup-ros@master
         with:
-          required-ros-distributions: foxy
+          required-ros-distributions: galactic
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
       - name: Build & Test
         uses: ros-tooling/action-ros-ci@master
         with:
           package-name: rmw_iceoryx_cpp iceoryx_ros2_bridge
-          target-ros2-distro: foxy
-          vcs-repo-file-url: |
-            ./.github/workflows/additional_repos.repos
+          target-ros2-distro: galactic

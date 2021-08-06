@@ -1,5 +1,0 @@
-repositories:
-  eclipse/iceoryx:
-    type: git
-    url: https://github.com/eclipse-iceoryx/iceoryx.git
-    version: v1.0.1

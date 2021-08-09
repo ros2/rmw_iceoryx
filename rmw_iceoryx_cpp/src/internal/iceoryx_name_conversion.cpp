@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by ZhenshengLee. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,6 +64,18 @@ inline void extract_type(
 
 namespace rmw_iceoryx_cpp
 {
+
+std::tuple<std::string, std::string>
+get_name_n_space_from_node_full_name(
+  const std::string & node_full_name)
+{
+  auto pos = node_full_name.rfind("/");
+
+  auto node_name = node_full_name.substr(pos + 1, node_full_name.size());
+  auto node_namespace = node_full_name.substr(0, pos);
+
+  return std::make_tuple(node_name, node_namespace);
+}
 
 std::tuple<std::string, std::string>
 get_name_n_type_from_service_description(
@@ -159,9 +172,9 @@ get_iceoryx_service_description(
   auto serviceDescriptionTuple = get_service_description_from_name_n_type(topic_name, type_name);
 
   return iox::capro::ServiceDescription(
-    iox::capro::IdString(iox::cxx::TruncateToCapacity, std::get<0>(serviceDescriptionTuple)),
-    iox::capro::IdString(iox::cxx::TruncateToCapacity, std::get<1>(serviceDescriptionTuple)),
-    iox::capro::IdString(iox::cxx::TruncateToCapacity, std::get<2>(serviceDescriptionTuple)));
+    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<0>(serviceDescriptionTuple)),
+    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<1>(serviceDescriptionTuple)),
+    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<2>(serviceDescriptionTuple)));
 }
 
 }  // namespace rmw_iceoryx_cpp

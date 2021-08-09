@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -74,7 +75,7 @@ rmw_create_publisher(
 
   std::string node_full_name = std::string(node->namespace_) + std::string(node->name);
   rmw_publisher_t * rmw_publisher = nullptr;
-  iox::popo::Publisher * iceoryx_sender = nullptr;
+  iox::popo::UntypedPublisher * iceoryx_sender = nullptr;
   IceoryxPublisher * iceoryx_publisher = nullptr;
 
   // allocate rmw_publisher
@@ -86,8 +87,8 @@ rmw_create_publisher(
 
   // allocate iceoryx_sender
   iceoryx_sender =
-    static_cast<iox::popo::Publisher *>(rmw_allocate(
-      sizeof(iox::popo::Publisher)));
+    static_cast<iox::popo::UntypedPublisher *>(rmw_allocate(
+      sizeof(iox::popo::UntypedPublisher)));
   if (!iceoryx_sender) {
     RMW_SET_ERROR_MSG("failed to allocate memory for iceoryx sender");
     goto fail;
@@ -95,8 +96,10 @@ rmw_create_publisher(
 
   RMW_TRY_PLACEMENT_NEW(
     iceoryx_sender, iceoryx_sender,
-    goto fail, iox::popo::Publisher, service_description,
-    iox::cxx::CString100(iox::cxx::TruncateToCapacity, node_full_name));
+    goto fail, iox::popo::UntypedPublisher, service_description,
+    iox::popo::PublisherOptions{
+      0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+
   iceoryx_sender->offer();  // make the sender visible
 
   // allocate iceoryx_publisher
@@ -128,7 +131,7 @@ fail:
   if (rmw_publisher) {
     if (iceoryx_sender) {
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        iceoryx_sender->~Publisher(), iox::popo::Publisher)
+        iceoryx_sender->~UntypedPublisherImpl(), iox::popo::UntypedPublisher)
       rmw_free(iceoryx_sender);
     }
     if (iceoryx_publisher) {
@@ -155,6 +158,16 @@ rmw_publisher_assert_liveliness(const rmw_publisher_t * publisher)
 }
 
 rmw_ret_t
+rmw_publisher_wait_for_all_acked(const rmw_publisher_t * publisher, rmw_time_t wait_timeout)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
+  (void)wait_timeout;
+
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support wait for all acked.");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
 rmw_publisher_get_actual_qos(const rmw_publisher_t * publisher, rmw_qos_profile_t * qos)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
@@ -162,7 +175,7 @@ rmw_publisher_get_actual_qos(const rmw_publisher_t * publisher, rmw_qos_profile_
 
   (void)publisher;
 
-  // TODO(mphnl) check in detail
+  /// @todo poehnl: check in detail
   *qos = rmw_qos_profile_default;
 
   return RMW_RET_OK;
@@ -185,7 +198,7 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
   if (iceoryx_publisher) {
     if (iceoryx_publisher->iceoryx_sender_) {
       RMW_TRY_DESTRUCTOR(
-        iceoryx_publisher->iceoryx_sender_->~Publisher(),
+        iceoryx_publisher->iceoryx_sender_->~UntypedPublisherImpl(),
         iceoryx_publisher->iceoryx_sender_,
         result = RMW_RET_ERROR)
       rmw_free(iceoryx_publisher->iceoryx_sender_);

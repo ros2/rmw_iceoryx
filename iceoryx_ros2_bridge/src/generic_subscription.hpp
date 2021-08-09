@@ -1,4 +1,5 @@
 // Copyright 2018, Bosch Software Innovations GmbH.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -78,6 +79,10 @@ public:
   void return_message(std::shared_ptr<void> & message) override;
 
   void return_serialized_message(std::shared_ptr<rclcpp::SerializedMessage> & message) override;
+
+  void handle_serialized_message(
+    const std::shared_ptr<rclcpp::SerializedMessage> & serialized_message,
+    const rclcpp::MessageInfo & message_info);
 
   void handle_loaned_message(
     void * loaned_message, const rclcpp::MessageInfo & message_info) override;

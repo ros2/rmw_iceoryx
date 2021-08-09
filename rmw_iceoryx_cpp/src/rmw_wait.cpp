@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,16 +15,16 @@
 
 #include <time.h>
 
-#include "iceoryx_posh/popo/subscriber.hpp"
+#include "iceoryx_posh/popo/untyped_subscriber.hpp"
+#include "iceoryx_posh/popo/wait_set.hpp"
+#include "iceoryx_posh/popo/user_trigger.hpp"
 
 #include "rcutils/error_handling.h"
 
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
-#include "./types/iceoryx_guard_condition.hpp"
 #include "./types/iceoryx_subscription.hpp"
-#include "./types/iceoryx_wait_set.hpp"
 
 extern "C"
 {
@@ -49,86 +50,66 @@ rmw_wait(
     : waitset, wait_set->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
-  auto iceoryx_wait_set = static_cast<IceoryxWaitSet *>(wait_set->data);
-  if (!iceoryx_wait_set) {
+  iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> * waitset =
+    static_cast<iox::popo::WaitSet<iox::MAX_NUMBER_OF_ATTACHMENTS_PER_WAITSET> *>(wait_set->data);
+  if (!waitset) {
     return RMW_RET_ERROR;
   }
 
-  iox::posix::Semaphore * semaphore = iceoryx_wait_set->semaphore_;
-  if (!semaphore) {
-    return RMW_RET_ERROR;
-  }
-
-  // attach semaphore to all iceoryx receivers
+  bool skip_wait{false};
+  // attach all iceoryx subscriber to WaitSet
   for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
     auto iceoryx_subscription =
-      static_cast<IceoryxSubscription * const>(subscriptions->subscribers[i]);
+      static_cast<IceoryxSubscription *>(subscriptions->subscribers[i]);
     auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
-    // indicate that we do not have to wait if there is already a new sample
-    if (iceoryx_receiver->hasNewChunks()) {
-      goto after_wait;
-    }
-
-    iceoryx_receiver->setChunkReceiveSemaphore(semaphore);
+    waitset->attachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA).or_else(
+      [&](auto &) {
+        RMW_SET_ERROR_MSG("failed to attach subscriber");
+        skip_wait = true;
+      });
   }
 
-  // attach semaphore to all guard conditions
+
+  // attach all guard conditions to WaitSet
   for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
     auto iceoryx_guard_condition =
-      static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
+      static_cast<iox::popo::UserTrigger *>(guard_conditions->guard_conditions[i]);
 
-    // indicate that we do not have to wait if there is already a triggered guard condition
-    if (iceoryx_guard_condition->hasTriggered()) {
-      goto after_wait;
-    }
+    waitset->attachEvent(*iceoryx_guard_condition).or_else(
+      [&](auto) {
+        RMW_SET_ERROR_MSG("failed to attach guard condition");
+        skip_wait = true;
+      });
+  }
 
-    iceoryx_guard_condition->attachSemaphore(semaphore);
+  if (skip_wait) {
+    goto after_wait;
   }
 
   if (!wait_timeout) {
-    semaphore->wait();
+    /// @todo Check triggered subscribers in vector? Is that relevant for rmw?
+    auto notificationVector = waitset->wait();
   } else {
-    struct timespec ts_start;
-    struct timespec ts_end;
-    clock_gettime(CLOCK_REALTIME, &ts_start);
-    uint64_t nsec = ts_start.tv_nsec + wait_timeout->nsec;
-    if (nsec >= 1000000000L) {
-      nsec -= 1000000000L;
-      ts_end.tv_sec = ts_start.tv_sec + wait_timeout->sec + 1;
-    } else {
-      ts_end.tv_sec = ts_start.tv_sec + wait_timeout->sec;
-    }
-    ts_end.tv_nsec = nsec;
-    semaphore->timedWait(&ts_end, true);
+    auto sec = iox::units::Duration::fromSeconds(wait_timeout->sec);
+    auto nsec = iox::units::Duration::fromNanoseconds(wait_timeout->nsec);
+    auto timeout = sec + nsec;
 
-    // // for debugging
-    // struct timespec ts_diff;
-    // clock_gettime(CLOCK_REALTIME, &ts_diff);
-    // int64_t diff_nsec = ts_diff.tv_nsec - ts_start.tv_nsec;
-    // if (diff_nsec < 0L) {
-    //   diff_nsec += 1000000000L;
-    //   ts_diff.tv_sec = ts_diff.tv_sec - ts_start.tv_sec - 1;
-    // } else {
-    //   ts_diff.tv_sec = ts_diff.tv_sec - ts_start.tv_sec;
-    // }
-    // ts_diff.tv_nsec = diff_nsec;
-    // printf("waited s %lu ns %lu\n", ts_diff.tv_sec, ts_diff.tv_nsec);
+    /// @todo Check triggered subscribers in vector? Is that relevant for rmw?
+    auto notificationVector = waitset->timedWait(iox::units::Duration(timeout));
   }
 
 after_wait:
-
-
   // reset all the subscriptions that don't have new data
   for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
     auto iceoryx_subscription =
-      static_cast<IceoryxSubscription * const>(subscriptions->subscribers[i]);
-    iox::popo::Subscriber * iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
+      static_cast<IceoryxSubscription *>(subscriptions->subscribers[i]);
+    iox::popo::UntypedSubscriber * iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
 
-    // remove semaphore from all receivers because next call a new waitset could be provided
-    iceoryx_receiver->unsetChunkReceiveSemaphore();
+    // remove waitset from all receivers because next call a new waitset could be provided
+    waitset->detachState(*iceoryx_receiver, iox::popo::SubscriberState::HAS_DATA);
 
-    if (!iceoryx_receiver->hasNewChunks()) {
+    if (!iceoryx_receiver->hasData()) {
       subscriptions->subscribers[i] = nullptr;
     }
   }
@@ -136,20 +117,13 @@ after_wait:
   // reset all the guard_conditions that have not triggered
   for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
     auto iceoryx_guard_condition =
-      static_cast<IceoryxGuardCondition * const>(guard_conditions->guard_conditions[i]);
+      static_cast<iox::popo::UserTrigger *>(guard_conditions->guard_conditions[i]);
 
-    iceoryx_guard_condition->detachSemaphore();
+    waitset->detachEvent(*iceoryx_guard_condition);
 
-    if (iceoryx_guard_condition->hasTriggered()) {
-      iceoryx_guard_condition->resetTriggerIndication();
-    } else {
+    if (!iceoryx_guard_condition->hasTriggered()) {
       guard_conditions->guard_conditions[i] = nullptr;
     }
-  }
-
-  // clear the semaphore
-  // events that triggered it and where not yet collected will be seen on next rmw_wait
-  while (semaphore->tryWait()) {
   }
 
   return RMW_RET_OK;

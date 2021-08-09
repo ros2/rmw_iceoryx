@@ -18,7 +18,7 @@
 rmw_gid_t generate_gid()
 {
   rmw_gid_t gid;
-  // TODO(mphnl) What would be the GUID for a sender in iceoryx?
+  /// @todo call iox::popo::BasePublisher::getUid() here
   gid.implementation_identifier = rmw_get_implementation_identifier();
   memset(&gid.data[0], 0, RMW_GID_STORAGE_SIZE);
 

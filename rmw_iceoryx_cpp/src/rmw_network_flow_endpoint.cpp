@@ -1,4 +1,4 @@
-// Copyright (c) 2020 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,38 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rmw/get_network_flow_endpoints.h"
 #include "rcutils/error_handling.h"
-#include "rmw/event.h"
 #include "rmw/impl/cpp/macros.hpp"
-#include "rmw/rmw.h"
 
 extern "C"
 {
 rmw_ret_t
-rmw_publisher_event_init(
-  rmw_event_t * rmw_event,
+rmw_publisher_get_network_flow_endpoints(
   const rmw_publisher_t * publisher,
-  rmw_event_type_t event_type)
+  rcutils_allocator_t * allocator,
+  rmw_network_flow_endpoint_array_t * network_flow_endpoint_array)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(rmw_event, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
-  (void) event_type;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocator, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(network_flow_endpoint_array, RMW_RET_ERROR);
 
-  /// @todo add publisher events support
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support get network flow endpoints.");
   return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t
-rmw_subscription_event_init(
-  rmw_event_t * rmw_event,
+rmw_subscription_get_network_flow_endpoints(
   const rmw_subscription_t * subscription,
-  rmw_event_type_t event_type)
+  rcutils_allocator_t * allocator,
+  rmw_network_flow_endpoint_array_t * network_flow_endpoint_array)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(rmw_event, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_ERROR);
-  (void) event_type;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocator, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(network_flow_endpoint_array, RMW_RET_ERROR);
 
-  /// @todo add subscription events support
+  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support get network flow endpoints.");
   return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

@@ -20,6 +20,8 @@
 extern "C"
 {
 rmw_ret_t
+
+/// @todo Use the new request/response API of iceoryx v2.0 here
 rmw_take_response(
   const rmw_client_t * client,
   rmw_service_info_t * request_header,
@@ -35,6 +37,7 @@ rmw_take_response(
   return RMW_RET_UNSUPPORTED;
 }
 
+/// @todo Use the new request/response API of iceoryx v2.0 here
 rmw_ret_t
 rmw_send_response(
   const rmw_service_t * service,

@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "./types/iceoryx_guard_condition.hpp"
+#include "iceoryx_posh/popo/user_trigger.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -33,7 +34,7 @@ rmw_trigger_guard_condition(const rmw_guard_condition_t * guard_condition_handle
     rmw_get_implementation_identifier(),
     return RMW_RET_ERROR);
 
-  auto guard_condition = static_cast<IceoryxGuardCondition *>(guard_condition_handle->data);
+  auto guard_condition = static_cast<iox::popo::UserTrigger *>(guard_condition_handle->data);
   if (!guard_condition) {
     RMW_SET_ERROR_MSG("guard condition is null");
     return RMW_RET_ERROR;

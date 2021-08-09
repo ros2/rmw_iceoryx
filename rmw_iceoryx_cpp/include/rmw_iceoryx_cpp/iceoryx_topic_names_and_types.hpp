@@ -27,6 +27,13 @@
 namespace rmw_iceoryx_cpp
 {
 
+void fill_topic_containers(
+  std::map<std::string, std::string> & names_n_types_,
+  std::map<std::string, std::vector<std::string>> & subscribers_topics_,
+  std::map<std::string, std::vector<std::string>> & publishers_topics_,
+  std::map<std::string, std::vector<std::string>> & topic_subscribers_,
+  std::map<std::string, std::vector<std::string>> & topic_publishers_);
+
 std::map<std::string, std::string> get_topic_names_and_types();
 
 std::map<std::string, std::vector<std::string>> get_nodes_and_publishers();

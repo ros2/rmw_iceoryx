@@ -1,4 +1,5 @@
 // Copyright 2018, Bosch Software Innovations GmbH.
+// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -86,6 +87,14 @@ void GenericSubscription::return_serialized_message(
   std::shared_ptr<rclcpp::SerializedMessage> & message)
 {
   message.reset();
+}
+
+void GenericSubscription::handle_serialized_message(
+  const std::shared_ptr<rclcpp::SerializedMessage> & serialized_message,
+  const rclcpp::MessageInfo & message_info)
+{
+  (void) serialized_message;
+  (void) message_info;
 }
 
 void GenericSubscription::handle_loaned_message(

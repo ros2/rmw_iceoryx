@@ -975,7 +975,8 @@ bool operator!=(const test_msgs__msg__Nested & lhs, const test_msgs__msg__Nested
   return !(lhs == rhs);
 }
 
-// TODO(karsten1987): This requires some sort of deep-copy operator for arrays and sequences,
+/// @todo karsten1987
+// This requires some sort of deep-copy operator for arrays and sequences,
 // especially their strings as the shared ptr will cleanup the strings
 // and eventually lead to memory leaks.
 /*

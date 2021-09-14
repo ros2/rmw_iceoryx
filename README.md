@@ -45,7 +45,7 @@ RouDi is a daemon taking care of allocating enough space within the shared memor
 Before starting any iceoryx application, we therefore have to start the daemon.
 
 ```
-./iceoryx_ws/install/iceoryx_posh/bin/RouDi  # /iceoryx_ws/install/bin/RouDi if you installed with as a merged workspace
+./iceoryx_ws/install/iceoryx_posh/bin/iox-roudi  # /iceoryx_ws/install/bin/iox-roudi if you installed with as a merged workspace
 ```
 
 You can then use rmw_iceoryx_cpp just like any other available rmw implementation.

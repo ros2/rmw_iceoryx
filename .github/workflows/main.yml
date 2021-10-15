@@ -26,3 +26,4 @@ jobs:
         with:
           package-name: rmw_iceoryx_cpp iceoryx_ros2_bridge
           target-ros2-distro: rolling
+          vcs-repo-file-url: ./.github/workflows/custom_repos.repos

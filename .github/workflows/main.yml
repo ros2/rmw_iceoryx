@@ -25,4 +25,4 @@ jobs:
         uses: ros-tooling/action-ros-ci@master
         with:
           target-ros2-distro: rolling
-          vcs-repo-file-url: ./.github/workflows/custom_repos.repos
+          vcs-repo-file-url: ${{ github.workspace }}/.github/workflows/custom_repos.repos

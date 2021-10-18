@@ -5,27 +5,28 @@
 Installation
 ============
 
-The following instructions show you how to install [iceoryx](https://github.com/eclipse/iceoryx) and its rmw implementation.
-The installation of iceoryx and rmw_iceoryx is pretty straight forward.
-All provided packages can be built with colcon so that you can easily build both, iceoryx and rmw_iceoryx, within your ROS 2 workspace.
+The following instructions show you how to install the iceoryx rmw implementation.
+The installation of rmw_iceoryx is pretty straight forward as [iceoryx](https://github.com/eclipse/iceoryx) is available in [ros2.repos](https://github.com/ros2/ros2/blob/master/ros2.repos).
+All provided packages can be built with colcon so that you can easily build rmw_iceoryx within your ROS 2 workspace.
 rmw_iceoryx is using the [rosidl_typesupport_introspection](https://github.com/ros2/rosidl) which allows for building iceoryx on top of an existing ROS2 workspace or even debian installation as no ROS 2 messages have to be built again.
 
-To install iceoryx and rmw_iceoryx in a ROS 2 workspace, just execute the steps below:
+To install rmw_iceoryx in a ROS 2 workspace with the latest ROS version, just execute the steps below:
 
-```
+```bash
 mkdir -p ~/iceoryx_ws/src
 cd $_
-git clone https://github.com/eclipse/iceoryx.git
-git clone https://github.com/ros2/rmw_iceoryx.git
+# LATEST_ROS_VERSION could be e.g. galactic
+git clone --branch LATEST_ROS_VERSION https://github.com/ros2/rmw_iceoryx.git
 ```
+
 For alternative installation instructions and more details about iceoryx's internals, please see [iceoryx's GitHub repo](https://github.com/eclipse/iceoryx).
 
-rmw_iceoryx is compatible with ROS 2 Galactic.
+rmw_iceoryx is compatible with ROS 2 starting with Eloquent release.
 Assuming you have ROS2 installed correctly, you can compile the iceoryx workspace with colcon:
 
-```
+```bash
 cd ~/iceoryx_ws/
-source /opt/ros/galactic/setup.bash  # alternatively source your own ROS 2 workspace
+source /opt/ros/LATEST_ROS_VERSION/setup.bash  # alternatively source your own ROS 2 workspace
 colcon build
 # or with more options
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
@@ -44,7 +45,7 @@ RouDi is a daemon taking care of allocating enough space within the shared memor
 
 Before starting any iceoryx application, we therefore have to start the daemon.
 
-```
+```bash
 ./iceoryx_ws/install/iceoryx_posh/bin/iox-roudi  # /iceoryx_ws/install/bin/iox-roudi if you installed with as a merged workspace
 ```
 
@@ -53,13 +54,14 @@ In order to specify the rmw implementation, you have to set the environment vari
 
 To run the ROS2 c++ demo nodes with iceoryx, you can thus execute the following command:
 
-```
+```bash
 source ~/iceoryx_ws/install/setup.bash
 RMW_IMPLEMENTATION=rmw_iceoryx_cpp ros2 run demo_nodes_cpp talker
 ```
 
 In another terminal, you can then subscribe to the talker as always:
-```
+
+```bash
 source ~/iceoryx_ws/install/setup.bash
 RMW_IMPLEMENTATION=rmw_iceoryx_cpp ros2 run demo_nodes_cpp listener
 ```

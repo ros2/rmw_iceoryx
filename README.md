@@ -22,6 +22,19 @@ git clone --branch LATEST_ROS_VERSION https://github.com/ros2/rmw_iceoryx.git
 For alternative installation instructions and more details about iceoryx's internals, please see [iceoryx's GitHub repo](https://github.com/eclipse/iceoryx).
 
 rmw_iceoryx is compatible with ROS 2 starting with Eloquent release.
+
+If you want to use ROS 2 rolling, you need to checkout the `master` branch of both rmw_iceoryx and iceoryx:
+
+```bash
+cd ~/iceoryx_ws/
+wget https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos
+# Change the line of Eclipse iceoryx to "version: master"
+vcs import src < ros2.repos
+
+cd ~/iceoryx_ws/src
+git clone --branch master https://github.com/ros2/rmw_iceoryx.git
+```
+
 Assuming you have ROS2 installed correctly, you can compile the iceoryx workspace with colcon:
 
 ```bash
@@ -32,7 +45,7 @@ colcon build
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
 ```
 
-That's it! You've installed iceoryx and are ready to rumble.
+That's it! You've installed rmw_iceoryx and are ready to rumble.
 
 Working with rmw_iceoryx_cpp
 ============================

@@ -25,12 +25,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(iceoryx_posh QUIET)
-if(NOT iceoryx_posh_FOUND)
-  ament_package()
-  message(WARNING "iceoryx not found - skipping '${PROJECT_NAME}'")
-  return()
-endif()
+find_package(iceoryx_posh REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)

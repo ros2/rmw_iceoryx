@@ -17,8 +17,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup ROS
         uses: ros-tooling/setup-ros@master
-        with:
-          required-ros-distributions: rolling
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
       - name: Build & Test
@@ -26,3 +24,6 @@ jobs:
         with:
           package-name: rmw_iceoryx_cpp iceoryx_ros2_bridge
           target-ros2-distro: rolling
+          vcs-repo-file-url: |
+            https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos
+            ${{ github.workspace }}/.github/workflows/custom_repos.repos

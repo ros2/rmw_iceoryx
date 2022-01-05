@@ -55,11 +55,11 @@ inline std::string to_message_type(const std::string & in)
 
 inline void extract_type(
   const rosidl_message_type_support_t * type_support,
-  std::string & service_name,
-  std::string & event_name)
+  std::string & package_name,
+  std::string & type_name)
 {
-  service_name = to_message_type(rmw_iceoryx_cpp::iceoryx_get_message_namespace(type_support));
-  event_name = rmw_iceoryx_cpp::iceoryx_get_message_name(type_support);
+  package_name = to_message_type(rmw_iceoryx_cpp::iceoryx_get_message_namespace(type_support));
+  type_name = rmw_iceoryx_cpp::iceoryx_get_message_name(type_support);
 }
 
 namespace rmw_iceoryx_cpp

@@ -149,5 +149,4 @@ Unfortunately, not all features are yet fully fleshed out.
 | `ros2 bag`            | :grey_question:                    |
 | urdf                  | :grey_question:                    |
 | tf2                   | :grey_question:                    |
-| ROS 2 bridge          | :grey_question:                    |
 | RMW Pub/Sub Events    | :x:                                |

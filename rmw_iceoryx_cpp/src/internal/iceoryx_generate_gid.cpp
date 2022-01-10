@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2022 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,17 +15,25 @@
 
 #include "rmw/rmw.h"
 #include "rmw/types.h"
+#include "rmw/impl/cpp/macros.hpp"
 
-rmw_gid_t generate_gid()
+#include "iceoryx_posh/popo/untyped_publisher.hpp"
+
+rmw_gid_t generate_subscriber_gid(iox::popo::UntypedPublisher * const publisher)
 {
   rmw_gid_t gid;
-  /// @todo call iox::popo::BasePublisher::getUid() here
   gid.implementation_identifier = rmw_get_implementation_identifier();
   memset(&gid.data[0], 0, RMW_GID_STORAGE_SIZE);
 
-  static size_t dummy_guid = 0;
-  dummy_guid++;
-  memcpy(&gid.data[0], &dummy_guid, sizeof(size_t));
+  iox::UniquePortId typed_uid = publisher->getUid();
+  iox::UniquePortId::value_type uid = static_cast<iox::UniquePortId::value_type>(typed_uid);
+  size_t size = sizeof(uid);
+
+  if (!typed_uid.isValid() || size > RMW_GID_STORAGE_SIZE) {
+    RMW_SET_ERROR_MSG("Could not generated gid");
+    return gid;
+  }
+  memcpy(&gid.data[0], &uid, size);
 
   return gid;
 }

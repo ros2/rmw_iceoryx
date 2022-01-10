@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2022 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +32,7 @@ struct IceoryxPublisher
     iox::popo::UntypedPublisher * const iceoryx_sender)
   : type_supports_(*type_supports),
     iceoryx_sender_(iceoryx_sender),
-    gid_(generate_gid()),
+    gid_(generate_subscriber_gid(iceoryx_sender_)),
     is_fixed_size_(rmw_iceoryx_cpp::iceoryx_is_fixed_size(type_supports)),
     message_size_(rmw_iceoryx_cpp::iceoryx_get_message_size(type_supports))
   {}

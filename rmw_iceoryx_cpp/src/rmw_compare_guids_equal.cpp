@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcutils/error_handling.h"
+#include <cstring>
 
+#include "rcutils/error_handling.h"
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
-#include <cstring>
 
 extern "C"
 {
@@ -42,8 +42,7 @@ rmw_compare_gids_equal(
     rmw_get_implementation_identifier(),
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
-  if (std::memcmp(gid1->data, gid2->data, sizeof(gid1->data)) == 0)
-  {
+  if (std::memcmp(gid1->data, gid2->data, sizeof(gid1->data)) == 0) {
     *result = true;
   }
   return RMW_RET_OK;

@@ -25,18 +25,19 @@ extern "C"
 rmw_ret_t
 rmw_get_gid_for_publisher(const rmw_publisher_t * publisher, rmw_gid_t * gid)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_ERROR);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(gid, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(gid, RMW_RET_INVALID_ARGUMENT);
 
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     rmw_get_gid_for_publisher
     : publisher, publisher->implementation_identifier,
-    rmw_get_implementation_identifier(), return RMW_RET_ERROR);
+    rmw_get_implementation_identifier(),
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   IceoryxPublisher * iceoryx_publisher = static_cast<IceoryxPublisher *>(publisher->data);
   if (!iceoryx_publisher) {
     RMW_SET_ERROR_MSG("publisher info handle is null");
-    return RMW_RET_ERROR;
+    return RMW_RET_INVALID_ARGUMENT;
   }
   *gid = iceoryx_publisher->gid_;
   return RMW_RET_OK;

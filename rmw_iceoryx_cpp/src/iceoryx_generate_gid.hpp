@@ -20,6 +20,6 @@
 
 #include "iceoryx_posh/popo/untyped_publisher.hpp"
 
-rmw_gid_t generate_subscriber_gid(iox::popo::UntypedPublisher * const publisher);
+rmw_gid_t generate_publisher_gid(iox::popo::UntypedPublisher * const publisher);
 
 #endif  // ICEORYX_GENERATE_GID_HPP_

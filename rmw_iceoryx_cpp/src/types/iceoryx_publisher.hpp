@@ -32,7 +32,7 @@ struct IceoryxPublisher
     iox::popo::UntypedPublisher * const iceoryx_sender)
   : type_supports_(*type_supports),
     iceoryx_sender_(iceoryx_sender),
-    gid_(generate_subscriber_gid(iceoryx_sender_)),
+    gid_(generate_publisher_gid(iceoryx_sender_)),
     is_fixed_size_(rmw_iceoryx_cpp::iceoryx_is_fixed_size(type_supports)),
     message_size_(rmw_iceoryx_cpp::iceoryx_get_message_size(type_supports))
   {}

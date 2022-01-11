@@ -19,11 +19,11 @@
 
 #include "iceoryx_posh/popo/untyped_publisher.hpp"
 
-rmw_gid_t generate_subscriber_gid(iox::popo::UntypedPublisher * const publisher)
+rmw_gid_t generate_publisher_gid(iox::popo::UntypedPublisher * const publisher)
 {
   rmw_gid_t gid;
   gid.implementation_identifier = rmw_get_implementation_identifier();
-  memset(&gid.data[0], 0, RMW_GID_STORAGE_SIZE);
+  memset(gid.data, 0, RMW_GID_STORAGE_SIZE);
 
   iox::UniquePortId typed_uid = publisher->getUid();
   iox::UniquePortId::value_type uid = static_cast<iox::UniquePortId::value_type>(typed_uid);
@@ -33,7 +33,7 @@ rmw_gid_t generate_subscriber_gid(iox::popo::UntypedPublisher * const publisher)
     RMW_SET_ERROR_MSG("Could not generated gid");
     return gid;
   }
-  memcpy(&gid.data[0], &uid, size);
+  memcpy(gid.data, &uid, size);
 
   return gid;
 }

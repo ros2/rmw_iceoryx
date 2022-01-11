@@ -42,7 +42,7 @@ rmw_compare_gids_equal(
     rmw_get_implementation_identifier(),
     return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
-  if (std::memcmp(gid1->data, gid2->data, sizeof(gid1->data)) == 0) {
+  if (std::memcmp(gid1->data, gid2->data, RMW_GID_STORAGE_SIZE) == 0) {
     *result = true;
   }
   return RMW_RET_OK;

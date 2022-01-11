@@ -32,20 +32,6 @@ rmw_qos_profile_check_compatible(
   (void)subscription_profile;
   (void)reason_size;
 
-  /// @todo Decide if implementing a matching function which takes subscriber and publisher
-  ///       option struct in iceoryx makes sense
-
-  /// Matching criteria in iceoryx
-  ///
-  /// 1. Same ServiceDescription
-  /// 2. Matching SubscriberTooSlowPolicy and queueFullPolicy in Publisher- and SubscriberOptions
-  ///   | SubscriberTooSlowPolicy | QueueFullPolicy     | Result   |
-  ///   |-------------------------|---------------------|----------|
-  ///   | WAIT_FOR_SUBSCRIBER     | BLOCK_PUBLISHER     | Match    |
-  ///   | DISCARD_OLDEST_DATA     | DISCARD_OLDEST_DATA | Match    |
-  ///   | DISCARD_OLDEST_DATA     | BLOCK_PUBLISHER     | No match |
-  ///   | WAIT_FOR_SUBSCRIBER     | DISCARD_OLDEST_DATA | Match    |
-
   // As iceoryx does not consider QoS for matching, always set ok
   *compatibility = RMW_QOS_COMPATIBILITY_OK;
   // Un-terminated char array leads to crashes in rqt_graph

@@ -91,12 +91,12 @@ An application using these new features is shown in the code snippet below.
 For a fully working implementation, please have a look at [this demo node](https://github.com/ros2/demos/blob/master/demo_nodes_cpp/src/topics/talker_loaned_message.cpp).
 
 ```c++
-auto pub = node->create_publisher<std_msgs::msg::String>("/chatter", 1);
+auto non_pod_pub_ = node->create_publisher<std_msgs::msg::String>("/chatter", 1);
 // Ask the publisher to loan a String message
-auto pod_loaned_msg = pub_->borrow_loaned_message();
-pod_loaned_msg.get().data = "Hello World";
+auto non_pod_loaned_msg = non_pod_pub_->borrow_loaned_message();
+non_pod_loaned_msg.get().data = "Hello World";
 // Return ownership of that string message
-pod_pub_->publish(std::move(pod_loaned_msg));
+non_pod_pub_->publish(std::move(non_pod_loaned_msg));
 ```
 
 The code above has one problem though: How can the middleware allocate enough memory for the string message?
@@ -112,9 +112,9 @@ The message definition shown on the right size is not made for zero copy transpo
 Thus, in order to make our demo work with zero copy, we can alternatively send a float64, as its size is clearly defined.
 
 ```c++
-auto pub = node->create_publisher<std_msgs::msg::Float64>("/float", 1);
+auto pod_pub_ = node->create_publisher<std_msgs::msg::Float64>("/float", 1);
 // Ask the publisher to loan a Float64 message
-auto pod_loaned_msg = pub_->borrow_loaned_message();
+auto pod_loaned_msg = pod_pub_->borrow_loaned_message();
 pod_loaned_msg.get().data = 123.456f;
 // Return ownership of that Float64 message
 pod_pub_->publish(std::move(pod_loaned_msg));

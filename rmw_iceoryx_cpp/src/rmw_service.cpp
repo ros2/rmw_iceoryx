@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2022 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -76,5 +77,41 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
   rmw_service_free(service);
 
   return result;
+}
+
+rmw_ret_t rmw_service_response_publisher_get_actual_qos(
+  const rmw_service_t * service,
+  rmw_qos_profile_t * qos)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
+
+  *qos = rmw_qos_profile_default;
+
+  return RMW_RET_OK;
+}
+
+rmw_ret_t rmw_service_request_subscription_get_actual_qos(
+  const rmw_service_t * service,
+  rmw_qos_profile_t * qos)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(qos, RMW_RET_INVALID_ARGUMENT);
+
+  *qos = rmw_qos_profile_default;
+
+  return RMW_RET_OK;
+}
+
+rmw_ret_t rmw_service_set_on_new_request_callback(
+  rmw_service_t * service,
+  rmw_event_callback_t callback,
+  const void * user_data)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(callback, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(user_data, RMW_RET_INVALID_ARGUMENT);
+
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

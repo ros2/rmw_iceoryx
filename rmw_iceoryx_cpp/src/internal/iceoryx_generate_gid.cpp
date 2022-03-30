@@ -25,8 +25,8 @@ rmw_gid_t generate_publisher_gid(iox::popo::UntypedPublisher * const publisher)
   gid.implementation_identifier = rmw_get_implementation_identifier();
   memset(gid.data, 0, RMW_GID_STORAGE_SIZE);
 
-  iox::UniquePortId typed_uid = publisher->getUid();
-  iox::UniquePortId::value_type uid = static_cast<iox::UniquePortId::value_type>(typed_uid);
+  iox::popo::UniquePortId typed_uid = publisher->getUid();
+  iox::popo::UniquePortId::value_type uid = static_cast<iox::popo::UniquePortId::value_type>(typed_uid);
   size_t size = sizeof(uid);
 
   if (!typed_uid.isValid() || size > RMW_GID_STORAGE_SIZE) {

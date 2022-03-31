@@ -16,6 +16,7 @@
 #define INTERNAL__ICEORYX_SERIALIZATION_COMMON_HPP_
 
 #include <stdarg.h>
+#include <stdexcept>
 #include <tuple>
 #include <utility>
 #include <vector>

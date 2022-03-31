@@ -26,13 +26,16 @@ rmw_qos_profile_check_compatible(
   char * reason,
   size_t reason_size)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(compatibility, RMW_RET_ERROR);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(reason, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(compatibility, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(reason, RMW_RET_INVALID_ARGUMENT);
   (void)publisher_profile;
   (void)subscription_profile;
   (void)reason_size;
 
-  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support QoS profile check compatible");
-  return RMW_RET_UNSUPPORTED;
+  // As iceoryx does not consider QoS for matching, always set ok
+  *compatibility = RMW_QOS_COMPATIBILITY_OK;
+  // Un-terminated char array leads to crashes in rqt_graph
+  reason[0] = '\0';
+  return RMW_RET_OK;
 }
 }  // extern "C"

@@ -209,7 +209,7 @@ std::string iceoryx_get_message_name(const rosidl_message_type_support_t * type_
     auto members =
       static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts.second->data);
     return members->message_name_;
-  } else if (ts.first != TypeSupportLanguage::C) {
+  } else if (ts.first == TypeSupportLanguage::C) {
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
     return members->message_name_;

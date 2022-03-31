@@ -1,4 +1,5 @@
 // Copyright (c) 2020 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2022 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,6 +45,18 @@ rmw_subscription_event_init(
   (void) event_type;
 
   /// @todo add subscription events support
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t rmw_event_set_callback(
+  rmw_event_t * event,
+  rmw_event_callback_t callback,
+  const void * user_data)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(event, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(callback, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(user_data, RMW_RET_INVALID_ARGUMENT);
+
   return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"

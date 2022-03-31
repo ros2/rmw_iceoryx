@@ -21,6 +21,7 @@
 #include "rcpputils/split.hpp"
 
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
+#include "rosidl_typesupport_cpp/service_type_support.hpp"
 
 #include "rosidl_typesupport_introspection_c/field_types.h"
 #include "rosidl_typesupport_introspection_c/identifier.h"
@@ -159,6 +160,16 @@ get_service_description_from_name_n_type(
   return std::make_tuple(service, instance, event);
 }
 
+iox::capro::ServiceDescription make_service_description(const std::string & topic_name, const std::string & type_name)
+{
+  auto serviceDescriptionTuple = get_service_description_from_name_n_type(topic_name, type_name);
+
+  return iox::capro::ServiceDescription(
+    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<0>(serviceDescriptionTuple)),
+    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<1>(serviceDescriptionTuple)),
+    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<2>(serviceDescriptionTuple)));
+}
+
 iox::capro::ServiceDescription
 get_iceoryx_service_description(
   const std::string & topic_name,
@@ -169,12 +180,21 @@ get_iceoryx_service_description(
   extract_type(type_supports, package_name, type_name);
   type_name = package_name + "/" + type_name;
 
-  auto serviceDescriptionTuple = get_service_description_from_name_n_type(topic_name, type_name);
+  return make_service_description(topic_name, type_name);
+}
 
-  return iox::capro::ServiceDescription(
-    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<0>(serviceDescriptionTuple)),
-    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<1>(serviceDescriptionTuple)),
-    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<2>(serviceDescriptionTuple)));
+iox::capro::ServiceDescription
+get_iceoryx_service_description(
+  const std::string & topic_name,
+  const rosidl_service_type_support_t * type_supports)
+{
+  std::string package_name;
+  std::string type_name;
+  /// @todo Implement type extracts for ROS services
+  //extract_type(type_supports, package_name, type_name);
+  type_name = package_name + "/" + type_name;
+
+  return make_service_description(topic_name, type_name);
 }
 
 }  // namespace rmw_iceoryx_cpp

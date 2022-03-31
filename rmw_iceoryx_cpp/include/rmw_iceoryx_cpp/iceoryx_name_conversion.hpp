@@ -23,6 +23,7 @@
 #include "iceoryx_hoofs/cxx/string.hpp"
 
 struct rosidl_message_type_support_t;
+struct rosidl_service_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {
@@ -70,6 +71,11 @@ iox::capro::ServiceDescription
 get_iceoryx_service_description(
   const std::string & topic,
   const rosidl_message_type_support_t * type_supports);
+
+iox::capro::ServiceDescription
+get_iceoryx_service_description(
+  const std::string & topic,
+  const rosidl_service_type_support_t * type_supports);
 
 }  // namespace rmw_iceoryx_cpp
 #endif  // RMW_ICEORYX_CPP__ICEORYX_NAME_CONVERSION_HPP_

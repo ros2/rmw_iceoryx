@@ -19,9 +19,12 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
+#include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
+
+#include "iceoryx_posh/popo/untyped_server.hpp"
+
 extern "C"
 {
-/// @todo Use the new request/response API of iceoryx v2.0 here instead of dummy services
 rmw_service_t *
 rmw_create_service(
   const rmw_node_t * node,
@@ -34,7 +37,17 @@ rmw_create_service(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(service_name, nullptr);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(qos_policies, nullptr);
 
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+      rmw_create_service
+      : node, node->implementation_identifier, rmw_get_implementation_identifier(), return nullptr);
+
+  // create the iceoryx service description for a sender
+  auto service_description =
+    rmw_iceoryx_cpp::get_iceoryx_service_description(service_name, type_supports);
+
+  std::string node_full_name = std::string(node->namespace_) + std::string(node->name);
   rmw_service_t * rmw_service = nullptr;
+  iox::popo::UntypedServer * iceoryx_server = nullptr;
 
   rmw_service = rmw_service_allocate();
   if (!rmw_service) {
@@ -42,15 +55,32 @@ rmw_create_service(
     return nullptr;
   }
 
-  void * info = nullptr;
+  auto cleanupAfterError = [](){};
+
+  iceoryx_server =
+    static_cast<iox::popo::UntypedServer *>(rmw_allocate(
+      sizeof(iox::popo::UntypedServer)));
+  if (!iceoryx_server) {
+    RMW_SET_ERROR_MSG("failed to allocate memory for iceoryx server");
+    cleanupAfterError();
+    return nullptr;
+  }
+
+  RMW_TRY_PLACEMENT_NEW(
+    iceoryx_server, iceoryx_server,
+    cleanupAfterError(), iox::popo::UntypedServer, service_description,
+    iox::popo::ServerOptions{
+      0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
 
   rmw_service->implementation_identifier = rmw_get_implementation_identifier();
-  rmw_service->data = info;
+  rmw_service->data = iceoryx_server;
 
   rmw_service->service_name =
     static_cast<const char *>(rmw_allocate(sizeof(char) * strlen(service_name) + 1));
   if (!rmw_service->service_name) {
-    RMW_SET_ERROR_MSG("failed to allocate memory for publisher topic name");
+    RMW_SET_ERROR_MSG("failed to allocate memory for service name");
+    cleanupAfterError();
+    return nullptr;
   } else {
     memcpy(const_cast<char *>(rmw_service->service_name), service_name, strlen(service_name) + 1);
   }
@@ -70,6 +100,17 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
   rmw_ret_t result = RMW_RET_OK;
+
+  iox::popo::UntypedServer * iceoryx_server = static_cast<iox::popo::UntypedServer *>(service->data);
+  if (iceoryx_server) {
+      RMW_TRY_DESTRUCTOR(
+        iceoryx_server->~UntypedServerImpl(),
+        iceoryx_server,
+        result = RMW_RET_ERROR)
+      rmw_free(iceoryx_server);
+  }
+
+  service->data = nullptr;
 
   rmw_free(const_cast<char *>(service->service_name));
   service->service_name = nullptr;

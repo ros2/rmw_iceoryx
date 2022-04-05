@@ -17,38 +17,107 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
+#include "iceoryx_posh/popo/untyped_client.hpp"
+
 extern "C"
 {
 rmw_ret_t
-
-/// @todo Use the new request/response API of iceoryx v2.0 here
 rmw_take_response(
   const rmw_client_t * client,
   rmw_service_info_t * request_header,
   void * ros_response,
   bool * taken)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_ERROR);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_ERROR);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_response, RMW_RET_ERROR);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_response, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
 
-  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support responses.");
-  return RMW_RET_UNSUPPORTED;
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_take_response
+    : client,
+    client->implementation_identifier,
+    rmw_get_implementation_identifier(),
+    return RMW_RET_ERROR);
+
+  auto iceoryx_client = static_cast<iox::popo::UntypedClient *>(client->data);
+  if (!iceoryx_client) {
+    RMW_SET_ERROR_MSG("client data is null");
+    return RMW_RET_ERROR;
+  }
+
+  const iox::mepoo::ChunkHeader * chunk_header = nullptr;
+  const void * user_payload = nullptr;
+  rmw_ret_t ret = RMW_RET_ERROR;
+
+  iceoryx_client->take()
+  .and_then(
+    [&](const void * responsePayload) {
+      auto responseHeader = iox::popo::ResponseHeader::fromPayload(responsePayload);
+      /// @todo check writer guid
+      if (responseHeader->getSequenceId() == request_header->request_id.sequence_number)
+      {
+        user_payload = responseHeader;
+        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
+        ret = RMW_RET_OK;
+      }
+      else
+      {
+          std::cout << "Got Response with outdated sequence number!" << std::endl;
+        ret = RMW_RET_ERROR;
+
+      }
+    })
+  .or_else(
+    [&](iox::popo::ChunkReceiveResult) {
+      RMW_SET_ERROR_MSG("No chunk in iceoryx_client");
+      ret = RMW_RET_ERROR;
+    });
+
+  if (ret == RMW_RET_ERROR) {
+    return ret;
+  }
+
+  /// @todo a wrapper class of client is needed to save the fixed size info
+  // if fixed size, we fetch the data via memcpy
+  //if (iceoryx_client->is_fixed_size_) {
+    memcpy(ros_response, user_payload, chunk_header->userPayloadSize());
+    iceoryx_client->releaseResponse(user_payload);
+    *taken = true;
+    ret = RMW_RET_OK;
+  //} else {
+    // rmw_iceoryx_cpp::deserialize(
+    //   static_cast<const char *>(user_payload),
+    //   &iceoryx_client->type_supports_,
+    //   ros_message);
+    iceoryx_client->releaseResponse(user_payload);
+    *taken = true;
+    ret = RMW_RET_OK;
+  //}
+
+  *taken = false;
+  return ret;
 }
 
-/// @todo Use the new request/response API of iceoryx v2.0 here
 rmw_ret_t
 rmw_send_response(
   const rmw_service_t * service,
   rmw_request_id_t * request_header,
   void * ros_response)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_ERROR);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_ERROR);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_response, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_response, RMW_RET_INVALID_ARGUMENT);
 
-  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support responses.");
-  return RMW_RET_UNSUPPORTED;
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_send_response
+    : service, service->implementation_identifier,
+    rmw_get_implementation_identifier(), return RMW_RET_ERROR);
+
+  rmw_ret_t ret = RMW_RET_ERROR;
+
+
+  return ret;
 }
 }  // extern "C"

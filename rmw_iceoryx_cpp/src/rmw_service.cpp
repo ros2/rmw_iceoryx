@@ -21,7 +21,7 @@
 
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 
-#include "iceoryx_posh/popo/untyped_server.hpp"
+#include "types/iceoryx_server.hpp"
 
 extern "C"
 {

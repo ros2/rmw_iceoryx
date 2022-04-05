@@ -20,6 +20,7 @@
 #include <utility>
 
 struct rosidl_message_type_support_t;
+struct rosidl_service_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {
@@ -35,11 +36,20 @@ enum class TypeSupportLanguage
 const std::pair<TypeSupportLanguage, const rosidl_message_type_support_t *> get_type_support(
   const rosidl_message_type_support_t * type_supports);
 
+/// @brief Wraps get_service_typesupport_handle() and does error handling
+/// @return std::pair containing enum TypeSupportLanguage and handle to the type support
+const std::pair<TypeSupportLanguage, const rosidl_service_type_support_t *> get_type_support(
+  const rosidl_service_type_support_t * type_supports);
+
 bool iceoryx_is_fixed_size(const rosidl_message_type_support_t * type_supports);
+
+bool iceoryx_is_fixed_size(const rosidl_service_type_support_t * type_supports);
 
 bool iceoryx_is_valid_type_support(const rosidl_message_type_support_t * type_supports);
 
 size_t iceoryx_get_message_size(const rosidl_message_type_support_t * type_supports);
+
+size_t iceoryx_get_message_size(const rosidl_service_type_support_t * type_supports);
 
 std::string iceoryx_get_message_name(const rosidl_message_type_support_t * type_supports);
 

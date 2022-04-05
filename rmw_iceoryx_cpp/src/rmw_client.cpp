@@ -22,7 +22,7 @@
 
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 
-#include "iceoryx_posh/popo/untyped_client.hpp"
+#include "types/iceoryx_client.hpp"
 
 extern "C"
 {

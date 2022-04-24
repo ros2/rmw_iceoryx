@@ -8,7 +8,7 @@ Installation
 The following instructions show you how to install the iceoryx rmw implementation.
 The installation of rmw_iceoryx is pretty straight forward as [iceoryx](https://github.com/eclipse/iceoryx) is available in [ros2.repos](https://github.com/ros2/ros2/blob/master/ros2.repos).
 All provided packages can be built with colcon so that you can easily build rmw_iceoryx within your ROS 2 workspace.
-rmw_iceoryx is using the [rosidl_typesupport_introspection](https://github.com/ros2/rosidl) which allows for building iceoryx on top of an existing ROS2 workspace or even debian installation as no ROS 2 messages have to be built again.
+rmw_iceoryx is using the [rosidl_typesupport_introspection](https://github.com/ros2/rosidl) which allows for building iceoryx on top of an existing ROS 2 workspace or even debian installation as no ROS 2 messages have to be built again.
 
 To install rmw_iceoryx in a ROS 2 workspace with the latest ROS version, just execute the steps below:
 
@@ -35,11 +35,13 @@ cd ~/iceoryx_ws/src
 git clone --branch master https://github.com/ros2/rmw_iceoryx.git
 ```
 
-Assuming you have ROS2 installed correctly, you can compile the iceoryx workspace with colcon:
+Assuming you have ROS 2 installed correctly, you can compile the iceoryx workspace with colcon:
 
 ```bash
 cd ~/iceoryx_ws/
 source /opt/ros/LATEST_ROS_VERSION/setup.bash  # alternatively source your own ROS 2 workspace
+rosdep update
+rosdep install --from-paths src --ignore-src --rosdistro LATEST_ROS_VERSION -y
 colcon build
 # or with more options
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
@@ -65,7 +67,7 @@ Before starting any iceoryx application, we therefore have to start the daemon.
 You can then use rmw_iceoryx_cpp just like any other available rmw implementation.
 In order to specify the rmw implementation, you have to set the environment variable `RMW_IMPLEMENTATION` to `rmw_iceoryx_cpp`.
 
-To run the ROS2 c++ demo nodes with iceoryx, you can thus execute the following command:
+To run the ROS 2 c++ demo nodes with iceoryx, you can thus execute the following command:
 
 ```bash
 source ~/iceoryx_ws/install/setup.bash

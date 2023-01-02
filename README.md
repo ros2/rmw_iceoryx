@@ -154,8 +154,8 @@ Unfortunately, not all features are yet fully fleshed out.
 | `ros2 node list`      | :heavy_check_mark:                 |
 | `ros2 node info`      | :heavy_check_mark:                 |
 | `ros2 interface *`    | :heavy_check_mark:                 |
-| `ros2 service *`      | :x: (coming with iceoryx v2.0)     |
-| `ros2 param list`     | :x: (coming with iceoryx v2.0)     |
+| `ros2 service *`      | :heavy_check_mark                  |
+| `ros2 param list`     | :heavy_check_mark                  |
 | `rqt_graph`           | :heavy_check_mark:                 |
 | `rqt_top`             | :heavy_check_mark:                 |
 | `rqt_console`         | :heavy_check_mark:                 |

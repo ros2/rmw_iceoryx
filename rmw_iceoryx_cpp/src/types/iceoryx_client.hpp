@@ -1,4 +1,4 @@
-// Copyright (c) 2022 by Apex.AI Inc. All rights reserved.
+// Copyright (c) 2022 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@
 
 #include "rmw_iceoryx_cpp/iceoryx_type_info_introspection.hpp"
 
-struct IceoryxServer
+struct IceoryxClient
 {
-  IceoryxServer(
+  IceoryxClient(
     const rosidl_service_type_support_t * type_supports,
     iox::popo::UntypedClient * const iceoryx_client)
   : type_supports_(*type_supports),
@@ -37,6 +37,8 @@ struct IceoryxServer
   iox::popo::UntypedClient * const iceoryx_client_;
   bool is_fixed_size_;
   size_t message_size_;
+  uint32_t message_alignment_;
+  /// @todo add sample here to take the the response later? nope im server!
 };
 
 #endif  // TYPES__ICEORYX_CLIENT_HPP_

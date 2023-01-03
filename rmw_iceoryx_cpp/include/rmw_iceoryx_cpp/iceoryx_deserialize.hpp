@@ -16,6 +16,7 @@
 #define RMW_ICEORYX_CPP__ICEORYX_DESERIALIZE_HPP_
 
 struct rosidl_message_type_support_t;
+struct rosidl_service_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {
@@ -24,6 +25,12 @@ namespace rmw_iceoryx_cpp
 void deserialize(
   const char * serialized_msg,
   const rosidl_message_type_support_t * type_supports,
+  void * ros_message);
+
+/// @todo use a variant here for the 2nd parameter to avoid code duplication
+void deserialize(
+  const char * serialized_msg,
+  const rosidl_service_type_support_t * type_supports,
   void * ros_message);
 
 }  // namespace rmw_iceoryx_cpp

@@ -319,6 +319,17 @@ bool iceoryx_is_valid_type_support(const rosidl_message_type_support_t * type_su
   return true;
 }
 
+bool iceoryx_is_valid_type_support(const rosidl_service_type_support_t * type_supports)
+{
+  try {
+    get_type_support(type_supports);
+  } catch (...) {
+    return false;
+  }
+
+  return true;
+}
+
 void iceoryx_init_message(
   const rosidl_message_type_support_t * type_supports,
   void * message)

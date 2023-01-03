@@ -17,6 +17,7 @@
 
 #include "rosidl_typesupport_introspection_c/identifier.h"
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
+#include "rosidl_typesupport_introspection_c/service_introspection.h"
 
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
 #include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
@@ -47,6 +48,24 @@ void deserialize(
     auto members_c =
       static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
     rmw_iceoryx_cpp::details_c::deserialize(serialized_msg, members_c, ros_message);
+  }
+}
+
+void deserialize(
+  const char * serialized_msg,
+  const rosidl_service_type_support_t * type_supports,
+  void * ros_message)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members_cpp =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    rmw_iceoryx_cpp::details_cpp::deserializeResponse(serialized_msg, members_cpp, ros_message);
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members_c =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    rmw_iceoryx_cpp::details_c::deserializeResponse(serialized_msg, members_c, ros_message);
   }
 }
 

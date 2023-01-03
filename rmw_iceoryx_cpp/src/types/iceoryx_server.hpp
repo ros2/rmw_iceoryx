@@ -1,4 +1,4 @@
-// Copyright (c) 2022 by Apex.AI Inc. All rights reserved.
+// Copyright (c) 2022 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ struct IceoryxServer
   iox::popo::UntypedServer * const iceoryx_server_;
   bool is_fixed_size_;
   size_t message_size_;
+  uint32_t message_alignment_;
+  void * request_payload_;
 };
 
 #endif  // TYPES__ICEORYX_SERVER_HPP_

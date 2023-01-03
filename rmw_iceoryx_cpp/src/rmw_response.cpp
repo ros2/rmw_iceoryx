@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2022 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +18,10 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
-#include "iceoryx_posh/popo/untyped_client.hpp"
+#include "rmw_iceoryx_cpp/iceoryx_deserialize.hpp"
+
+#include "./types/iceoryx_client.hpp"
+#include "./types/iceoryx_server.hpp"
 
 extern "C"
 {
@@ -40,9 +44,15 @@ rmw_take_response(
     rmw_get_implementation_identifier(),
     return RMW_RET_ERROR);
 
-  auto iceoryx_client = static_cast<iox::popo::UntypedClient *>(client->data);
-  if (!iceoryx_client) {
+  auto iceoryx_client_abstraction = static_cast<IceoryxClient *>(client->data);
+  if (!iceoryx_client_abstraction) {
     RMW_SET_ERROR_MSG("client data is null");
+    return RMW_RET_ERROR;
+  }
+
+  auto iceoryx_client = iceoryx_client_abstraction->iceoryx_client_;
+  if (!iceoryx_client) {
+    RMW_SET_ERROR_MSG("iceoryx_client is null");
     return RMW_RET_ERROR;
   }
 
@@ -65,7 +75,6 @@ rmw_take_response(
       {
           std::cout << "Got Response with outdated sequence number!" << std::endl;
         ret = RMW_RET_ERROR;
-
       }
     })
   .or_else(
@@ -78,22 +87,21 @@ rmw_take_response(
     return ret;
   }
 
-  /// @todo a wrapper class of client is needed to save the fixed size info
   // if fixed size, we fetch the data via memcpy
-  //if (iceoryx_client->is_fixed_size_) {
+  if (iceoryx_client_abstraction->is_fixed_size_) {
     memcpy(ros_response, user_payload, chunk_header->userPayloadSize());
     iceoryx_client->releaseResponse(user_payload);
     *taken = true;
     ret = RMW_RET_OK;
-  //} else {
-    // rmw_iceoryx_cpp::deserialize(
-    //   static_cast<const char *>(user_payload),
-    //   &iceoryx_client->type_supports_,
-    //   ros_message);
+  } else {
+    rmw_iceoryx_cpp::deserialize(
+      static_cast<const char *>(user_payload),
+      &iceoryx_client_abstraction->type_supports_,
+      ros_response);
     iceoryx_client->releaseResponse(user_payload);
     *taken = true;
     ret = RMW_RET_OK;
-  //}
+  }
 
   *taken = false;
   return ret;
@@ -109,14 +117,37 @@ rmw_send_response(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_response, RMW_RET_INVALID_ARGUMENT);
 
-
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     rmw_send_response
     : service, service->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
+  auto iceoryx_service_abstraction = static_cast<IceoryxServer *>(service->data);
+  if (!iceoryx_service_abstraction) {
+    RMW_SET_ERROR_MSG("service data is null");
+    return RMW_RET_ERROR;
+  }
+
+  auto iceoryx_server = iceoryx_service_abstraction->iceoryx_server_;
+  if (!iceoryx_server) {
+    RMW_SET_ERROR_MSG("iceoryx_server is null");
+    return RMW_RET_ERROR;
+  }
+
   rmw_ret_t ret = RMW_RET_ERROR;
 
+  auto requestHeader = iox::popo::RequestHeader::fromPayload(iceoryx_service_abstraction->request_payload_);
+  iceoryx_server->loan(requestHeader, iceoryx_service_abstraction->message_size_, iceoryx_service_abstraction->message_alignment_)
+      .and_then([&](auto& responsePayload) {
+          /// @todo memcpy or serialize the response
+          void * response;
+          // auto response = static_cast<AddResponse*>(responsePayload);
+          // response->sum = request->augend + request->addend;
+          iceoryx_server->send(response).or_else(
+              [&](auto& error) { ret = RMW_RET_ERROR; });
+      })
+      .or_else(
+          [&](auto& error) { ret = RMW_RET_ERROR; });
 
   return ret;
 }

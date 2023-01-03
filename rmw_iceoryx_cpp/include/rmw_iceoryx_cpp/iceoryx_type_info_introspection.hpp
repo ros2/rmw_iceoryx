@@ -47,6 +47,8 @@ bool iceoryx_is_fixed_size(const rosidl_service_type_support_t * type_supports);
 
 bool iceoryx_is_valid_type_support(const rosidl_message_type_support_t * type_supports);
 
+bool iceoryx_is_valid_type_support(const rosidl_service_type_support_t * type_supports);
+
 size_t iceoryx_get_message_size(const rosidl_message_type_support_t * type_supports);
 
 size_t iceoryx_get_message_size(const rosidl_service_type_support_t * type_supports);

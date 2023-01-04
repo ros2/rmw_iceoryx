@@ -25,6 +25,8 @@
 #include "rmw/rmw.h"
 
 #include "./types/iceoryx_subscription.hpp"
+#include "./types/iceoryx_client.hpp"
+#include "./types/iceoryx_server.hpp"
 
 extern "C"
 {
@@ -70,6 +72,31 @@ rmw_wait(
       });
   }
 
+  // attach all iceoryx servers to WaitSet
+  for (size_t i = 0; i < services->service_count; ++i) {
+    auto iceoryx_server_abstraction =
+      static_cast<IceoryxServer *>(subscriptions->subscribers[i]);
+    auto iceoryx_server = iceoryx_server_abstraction->iceoryx_server_;
+
+    waitset->attachState(*iceoryx_server, iox::popo::ServerState::HAS_REQUEST).or_else(
+      [&](auto &) {
+        RMW_SET_ERROR_MSG("failed to attach subscriber");
+        skip_wait = true;
+      });
+  }
+
+  // attach all iceoryx client to WaitSet
+  for (size_t i = 0; i < clients->client_count; ++i) {
+    auto iceoryx_client_abstraction =
+      static_cast<IceoryxClient *>(subscriptions->subscribers[i]);
+    auto iceoryx_client = iceoryx_client_abstraction->iceoryx_client_;
+
+    waitset->attachState(*iceoryx_client, iox::popo::ClientState::HAS_RESPONSE).or_else(
+      [&](auto &) {
+        RMW_SET_ERROR_MSG("failed to attach subscriber");
+        skip_wait = true;
+      });
+  }
 
   // attach all guard conditions to WaitSet
   for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {

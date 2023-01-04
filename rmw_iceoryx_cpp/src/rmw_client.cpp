@@ -49,14 +49,36 @@ rmw_create_client(
   std::string node_full_name = std::string(node->namespace_) + std::string(node->name);
   rmw_client_t * rmw_client = nullptr;
   iox::popo::UntypedClient * iceoryx_client = nullptr;
+  IceoryxClient * iceoryx_client_abstraction = nullptr;
+
+  bool returnOnError = false;
+
+  auto cleanupAfterError = [&](){
+    if (rmw_client) {
+      if (iceoryx_client) {
+        RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
+          iceoryx_client->~UntypedClient(), iox::popo::UntypedClient)
+        rmw_free(iceoryx_client);
+      }
+      if (iceoryx_client_abstraction) {
+        RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
+          iceoryx_client_abstraction->~IceoryxClient(), IceoryxClient)
+        rmw_free(iceoryx_client_abstraction);
+      }
+      if (rmw_client->service_name) {
+        rmw_free(const_cast<char *>(rmw_client->service_name));
+      }
+      rmw_client_free(rmw_client);
+      returnOnError = true;
+    }
+  };
 
   rmw_client = rmw_client_allocate();
   if (!rmw_client) {
     RMW_SET_ERROR_MSG("failed to allocate memory for client");
+    cleanupAfterError();
     return nullptr;
   }
-
-  auto cleanupAfterError = [](){};
 
   iceoryx_client =
     static_cast<iox::popo::UntypedClient *>(rmw_allocate(
@@ -72,6 +94,27 @@ rmw_create_client(
     cleanupAfterError(), iox::popo::UntypedClient, service_description,
     iox::popo::ClientOptions{
       0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+  if(returnOnError)
+  {
+    return nullptr;
+  }
+
+  iceoryx_client->connect();
+
+  iceoryx_client_abstraction =
+    static_cast<IceoryxClient *>(rmw_allocate(sizeof(IceoryxClient)));
+  if (!iceoryx_client_abstraction) {
+    RMW_SET_ERROR_MSG("failed to allocate memory for rmw iceoryx publisher");
+    cleanupAfterError();
+    return nullptr;
+  }
+  RMW_TRY_PLACEMENT_NEW(
+    iceoryx_client_abstraction, iceoryx_client_abstraction,
+    cleanupAfterError(), IceoryxClient, type_supports, iceoryx_client);
+  if(returnOnError)
+  {
+    return nullptr;
+  }
 
   rmw_client->implementation_identifier = rmw_get_implementation_identifier();
   rmw_client->data = iceoryx_client;
@@ -82,9 +125,8 @@ rmw_create_client(
     RMW_SET_ERROR_MSG("failed to allocate memory for service name");
     cleanupAfterError();
     return nullptr;
-  } else {
-    memcpy(const_cast<char *>(rmw_client->service_name), service_name, strlen(service_name) + 1);
   }
+  memcpy(const_cast<char *>(rmw_client->service_name), service_name, strlen(service_name) + 1);
 
   return rmw_client;
 }

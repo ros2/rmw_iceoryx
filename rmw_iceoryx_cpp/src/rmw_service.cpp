@@ -48,18 +48,41 @@ rmw_create_service(
   std::string node_full_name = std::string(node->namespace_) + std::string(node->name);
   rmw_service_t * rmw_service = nullptr;
   iox::popo::UntypedServer * iceoryx_server = nullptr;
+  IceoryxServer * iceoryx_server_abstraction = nullptr;
+
+  bool returnOnError = false;
+
+  auto cleanupAfterError = [&](){
+    if (rmw_service) {
+      if (iceoryx_server) {
+        RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
+          iceoryx_server->~UntypedServer(), iox::popo::UntypedServer)
+        rmw_free(iceoryx_server);
+      }
+      if (iceoryx_server_abstraction) {
+        RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
+          iceoryx_server_abstraction->~IceoryxServer(), IceoryxServer)
+        rmw_free(iceoryx_server_abstraction);
+      }
+      if (rmw_service->service_name) {
+        rmw_free(const_cast<char *>(rmw_service->service_name));
+      }
+      rmw_service_free(rmw_service);
+      returnOnError = true;
+    }
+  };
 
   rmw_service = rmw_service_allocate();
   if (!rmw_service) {
     RMW_SET_ERROR_MSG("failed to allocate memory for service");
+    cleanupAfterError();
     return nullptr;
   }
-
-  auto cleanupAfterError = [](){};
 
   iceoryx_server =
     static_cast<iox::popo::UntypedServer *>(rmw_allocate(
       sizeof(iox::popo::UntypedServer)));
+
   if (!iceoryx_server) {
     RMW_SET_ERROR_MSG("failed to allocate memory for iceoryx server");
     cleanupAfterError();
@@ -71,9 +94,30 @@ rmw_create_service(
     cleanupAfterError(), iox::popo::UntypedServer, service_description,
     iox::popo::ServerOptions{
       0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+  if(returnOnError)
+  {
+    return nullptr;
+  }
+  
+  iceoryx_server->offer();
+
+  iceoryx_server_abstraction =
+    static_cast<IceoryxServer *>(rmw_allocate(sizeof(IceoryxServer)));
+  if (!iceoryx_server_abstraction) {
+    RMW_SET_ERROR_MSG("failed to allocate memory for rmw iceoryx publisher");
+    cleanupAfterError();
+    return nullptr;
+  }
+  RMW_TRY_PLACEMENT_NEW(
+    iceoryx_server_abstraction, iceoryx_server_abstraction,
+    cleanupAfterError(), IceoryxServer, type_supports, iceoryx_server);
+  if(returnOnError)
+  {
+    return nullptr;
+  }
 
   rmw_service->implementation_identifier = rmw_get_implementation_identifier();
-  rmw_service->data = iceoryx_server;
+  rmw_service->data = iceoryx_server_abstraction;
 
   rmw_service->service_name =
     static_cast<const char *>(rmw_allocate(sizeof(char) * strlen(service_name) + 1));
@@ -81,11 +125,8 @@ rmw_create_service(
     RMW_SET_ERROR_MSG("failed to allocate memory for service name");
     cleanupAfterError();
     return nullptr;
-  } else {
-    memcpy(const_cast<char *>(rmw_service->service_name), service_name, strlen(service_name) + 1);
   }
-
-  /// @todo allocate IceoryxServer here and fill size_t message_size_ and message_alignment_;
+  memcpy(const_cast<char *>(rmw_service->service_name), service_name, strlen(service_name) + 1);
 
   return rmw_service;
 }

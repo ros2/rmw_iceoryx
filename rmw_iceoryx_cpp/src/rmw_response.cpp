@@ -18,6 +18,7 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
+#include "rmw_iceoryx_cpp/iceoryx_serialize.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_deserialize.hpp"
 
 #include "./types/iceoryx_client.hpp"
@@ -92,18 +93,15 @@ rmw_take_response(
     memcpy(request_header, user_payload, sizeof(*request_header));
     /// @todo cast to uint8_t before doing pointer arithmetic?
     memcpy(ros_response, user_payload + sizeof(*request_header), chunk_header->userPayloadSize());
-    iceoryx_client->releaseResponse(user_payload);
-    *taken = true;
-    ret = RMW_RET_OK;
   } else {
     rmw_iceoryx_cpp::deserialize(
-      static_cast<const char *>(user_payload), /// @todo add fourth param for 'request_header'
+      static_cast<const char *>(user_payload), /// @todo add fourth param for 'request_header', but how to find out when header ends, separator char?
       &iceoryx_client_abstraction->type_supports_,
       ros_response);
-    iceoryx_client->releaseResponse(user_payload);
-    *taken = true;
-    ret = RMW_RET_OK;
   }
+  iceoryx_client->releaseResponse(user_payload);
+  *taken = true;
+  ret = RMW_RET_OK;
 
   *taken = false;
   return ret;
@@ -124,13 +122,13 @@ rmw_send_response(
     : service, service->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
-  auto iceoryx_service_abstraction = static_cast<IceoryxServer *>(service->data);
-  if (!iceoryx_service_abstraction) {
+  auto iceoryx_server_abstraction = static_cast<IceoryxServer *>(service->data);
+  if (!iceoryx_server_abstraction) {
     RMW_SET_ERROR_MSG("service data is null");
     return RMW_RET_ERROR;
   }
 
-  auto iceoryx_server = iceoryx_service_abstraction->iceoryx_server_;
+  auto iceoryx_server = iceoryx_server_abstraction->iceoryx_server_;
   if (!iceoryx_server) {
     RMW_SET_ERROR_MSG("iceoryx_server is null");
     return RMW_RET_ERROR;
@@ -138,14 +136,24 @@ rmw_send_response(
 
   rmw_ret_t ret = RMW_RET_ERROR;
 
-  auto requestHeader = iox::popo::RequestHeader::fromPayload(iceoryx_service_abstraction->request_payload_);
-  iceoryx_server->loan(requestHeader, iceoryx_service_abstraction->response_size_, iceoryx_service_abstraction->response_alignment_)
+  auto requestHeader = iox::popo::RequestHeader::fromPayload(iceoryx_server_abstraction->request_payload_);
+  iceoryx_server->loan(requestHeader, iceoryx_server_abstraction->response_size_, iceoryx_server_abstraction->response_alignment_)
       .and_then([&](void * responsePayload) {
           /// @todo memcpy or serialize the response
-          // 1) init message like pub/sub?
-          // 2) write | request_header | ros_response | to shared memory
-          memcpy(responsePayload, request_header, sizeof(*request_header));
-          memcpy(responsePayload + sizeof(*request_header), ros_response, iceoryx_service_abstraction->response_size_);
+          // write |-request_header-|-ros_response-| to shared memory
+          if (iceoryx_server_abstraction->is_fixed_size_)
+          {
+            memcpy(responsePayload, request_header, sizeof(*request_header));
+            memcpy(responsePayload + sizeof(*request_header), ros_response, iceoryx_server_abstraction->response_size_);
+          }
+          else
+          {
+            // message is not fixed size, so we have to serialize
+            std::vector<char> payload_vector{};
+            rmw_iceoryx_cpp::serializeRequest(request_header, &iceoryx_server_abstraction->type_supports_, payload_vector);
+            rmw_iceoryx_cpp::serializeRequest(ros_response, &iceoryx_server_abstraction->type_supports_, payload_vector);
+            memcpy(responsePayload, payload_vector.data(), payload_vector.size());
+          }
           iceoryx_server->send(responsePayload).or_else(
               [&](auto&) {
                 RMW_SET_ERROR_MSG("rmw_send_response send error!");

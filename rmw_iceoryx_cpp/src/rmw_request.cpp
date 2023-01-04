@@ -20,8 +20,8 @@
 #include "./types/iceoryx_client.hpp"
 #include "./types/iceoryx_server.hpp"
 
-#include "rmw_iceoryx_cpp/iceoryx_deserialize.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_serialize.hpp"
+#include "rmw_iceoryx_cpp/iceoryx_deserialize.hpp"
 
 extern "C"
 {
@@ -29,7 +29,7 @@ rmw_ret_t
 rmw_send_request(
   const rmw_client_t * client,
   const void * ros_request,
-  int64_t * sequence_id) // out going param
+  int64_t * sequence_id)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(ros_request, RMW_RET_ERROR);
@@ -58,8 +58,6 @@ rmw_send_request(
     return ret;
   }
 
-  std::cout << "I'm alive!" << std::endl;
-
   iceoryx_client->loan(iceoryx_client_abstraction->request_size_, iceoryx_client_abstraction->request_alignment_)
       .and_then([&](void * requestPayload) {
           auto requestHeader = iox::popo::RequestHeader::fromPayload(requestPayload);
@@ -70,15 +68,12 @@ rmw_send_request(
 
           if (iceoryx_client_abstraction->is_fixed_size_)
           {
-            std::cout << "FIXED SIZE!" << std::endl;
             memcpy(requestPayload, ros_request, iceoryx_client_abstraction->request_size_);
           }
           else
           {
-            std::cout << "NOT FIXED SIZE!" << std::endl;
             // message is not fixed size, so we have to serialize
             std::vector<char> payload_vector{};
-
             rmw_iceoryx_cpp::serializeRequest(ros_request, &iceoryx_client_abstraction->type_supports_, payload_vector);
             memcpy(requestPayload, payload_vector.data(), payload_vector.size());
           }
@@ -153,23 +148,23 @@ rmw_take_request(
       RMW_SET_ERROR_MSG("rmw_take_request error!");
       ret = RMW_RET_ERROR;
     });
-  return ret;
+
+  if (ret == RMW_RET_ERROR) {
+    return ret;
+  }
 
   // if fixed size, we fetch the data via memcpy
   if (iceoryx_service_abstraction->is_fixed_size_) {
     memcpy(ros_request, user_payload, chunk_header->userPayloadSize());
-    iceoryx_server->releaseRequest(user_payload);
-    *taken = true;
-    ret = RMW_RET_OK;
   } else {
     rmw_iceoryx_cpp::deserialize(
       static_cast<const char *>(user_payload),
       &iceoryx_service_abstraction->type_supports_,
       ros_request);
-    iceoryx_server->releaseRequest(user_payload);
-    *taken = true;
-    ret = RMW_RET_OK;
   }
+  iceoryx_server->releaseRequest(user_payload);
+  *taken = true;
+  ret = RMW_RET_OK;
 
   return ret;
 }

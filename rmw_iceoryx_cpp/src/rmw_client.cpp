@@ -127,7 +127,6 @@ rmw_create_client(
     return nullptr;
   }
   memcpy(const_cast<char *>(rmw_client->service_name), service_name, strlen(service_name) + 1);
-  std::cout << "RMW Client created!" << std::endl;
   return rmw_client;
 }
 
@@ -168,7 +167,6 @@ rmw_destroy_client(
   client->service_name = nullptr;
 
   rmw_client_free(client);
-  std::cout << "RMW Client destroyed!" << std::endl;
   return result;
 }
 

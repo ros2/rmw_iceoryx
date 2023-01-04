@@ -74,7 +74,7 @@ rmw_take_response(
       }
       else
       {
-          std::cout << "Got Response with outdated sequence number!" << std::endl;
+        std::cout << "Got Response with outdated sequence number!" << std::endl;
         ret = RMW_RET_ERROR;
       }
     })
@@ -102,6 +102,7 @@ rmw_take_response(
   iceoryx_client->releaseResponse(user_payload);
   *taken = true;
   ret = RMW_RET_OK;
+  std::cout << "Client took response!" << std::endl;
 
   *taken = false;
   return ret;
@@ -154,6 +155,7 @@ rmw_send_response(
             rmw_iceoryx_cpp::serializeRequest(ros_response, &iceoryx_server_abstraction->type_supports_, payload_vector);
             memcpy(responsePayload, payload_vector.data(), payload_vector.size());
           }
+          std::cout << "Server sent response!" << std::endl;
           iceoryx_server->send(responsePayload).or_else(
               [&](auto&) {
                 RMW_SET_ERROR_MSG("rmw_send_response send error!");

@@ -75,12 +75,12 @@ rmw_wait(
   // attach all iceoryx servers to WaitSet
   for (size_t i = 0; i < services->service_count; ++i) {
     auto iceoryx_server_abstraction =
-      static_cast<IceoryxServer *>(subscriptions->subscribers[i]);
+      static_cast<IceoryxServer *>(services->services[i]);
     auto iceoryx_server = iceoryx_server_abstraction->iceoryx_server_;
 
     waitset->attachState(*iceoryx_server, iox::popo::ServerState::HAS_REQUEST).or_else(
       [&](auto &) {
-        RMW_SET_ERROR_MSG("failed to attach subscriber");
+        RMW_SET_ERROR_MSG("failed to attach service");
         skip_wait = true;
       });
   }
@@ -88,12 +88,12 @@ rmw_wait(
   // attach all iceoryx client to WaitSet
   for (size_t i = 0; i < clients->client_count; ++i) {
     auto iceoryx_client_abstraction =
-      static_cast<IceoryxClient *>(subscriptions->subscribers[i]);
+      static_cast<IceoryxClient *>(clients->clients[i]);
     auto iceoryx_client = iceoryx_client_abstraction->iceoryx_client_;
 
     waitset->attachState(*iceoryx_client, iox::popo::ClientState::HAS_RESPONSE).or_else(
       [&](auto &) {
-        RMW_SET_ERROR_MSG("failed to attach subscriber");
+        RMW_SET_ERROR_MSG("failed to attach client");
         skip_wait = true;
       });
   }
@@ -138,6 +138,34 @@ after_wait:
 
     if (!iceoryx_receiver->hasData()) {
       subscriptions->subscribers[i] = nullptr;
+    }
+  }
+
+  // reset all the servers that don't have new data
+  for (size_t i = 0; i < services->service_count; ++i) {
+    auto iceoryx_server_abstraction =
+      static_cast<IceoryxServer *>(services->services[i]);
+    iox::popo::UntypedServer * iceoryx_server = iceoryx_server_abstraction->iceoryx_server_;
+
+    // remove waitset from all receivers because next call a new waitset could be provided
+    waitset->detachState(*iceoryx_server, iox::popo::ServerState::HAS_REQUEST);
+
+    if (!iceoryx_server->hasRequests()) {
+      services->services[i] = nullptr;
+    }
+  }
+
+  // reset all the clients that don't have new data
+  for (size_t i = 0; i < clients->client_count; ++i) {
+    auto iceoryx_client_abstraction =
+      static_cast<IceoryxClient *>(clients->clients[i]);
+    iox::popo::UntypedClient * iceoryx_client = iceoryx_client_abstraction->iceoryx_client_;
+
+    // remove waitset from all receivers because next call a new waitset could be provided
+    waitset->detachState(*iceoryx_client, iox::popo::ClientState::HAS_RESPONSE);
+
+    if (!iceoryx_client->hasResponses()) {
+      clients->clients[i] = nullptr;
     }
   }
 

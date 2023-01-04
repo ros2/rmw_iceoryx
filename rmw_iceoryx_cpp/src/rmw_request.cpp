@@ -77,7 +77,7 @@ rmw_send_request(
             rmw_iceoryx_cpp::serializeRequest(ros_request, &iceoryx_client_abstraction->type_supports_, payload_vector);
             memcpy(requestPayload, payload_vector.data(), payload_vector.size());
           }
-
+          std::cout << "Client sent request!" << std::endl;
           iceoryx_client->send(requestPayload).or_else(
               [&](auto&) {
                 RMW_SET_ERROR_MSG("rmw_send_request error!");
@@ -165,6 +165,7 @@ rmw_take_request(
   iceoryx_server->releaseRequest(user_payload);
   *taken = true;
   ret = RMW_RET_OK;
+  std::cout << "Server took request!" << std::endl;
 
   return ret;
 }

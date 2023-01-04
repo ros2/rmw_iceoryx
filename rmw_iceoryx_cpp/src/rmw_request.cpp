@@ -149,7 +149,7 @@ rmw_take_request(
     })
   .or_else(
     [&](iox::popo::ServerRequestResult& error) {
-      std::cout << "Could not send Response! Error: " << error << std::endl;
+      std::cout << "Could not take request! Error: " << error << std::endl;
       RMW_SET_ERROR_MSG("rmw_take_request error!");
       ret = RMW_RET_ERROR;
     });

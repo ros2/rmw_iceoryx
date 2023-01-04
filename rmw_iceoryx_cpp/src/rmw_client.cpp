@@ -117,7 +117,7 @@ rmw_create_client(
   }
 
   rmw_client->implementation_identifier = rmw_get_implementation_identifier();
-  rmw_client->data = iceoryx_client;
+  rmw_client->data = iceoryx_client_abstraction;
 
   rmw_client->service_name =
     static_cast<const char *>(rmw_allocate(sizeof(char) * strlen(service_name) + 1));

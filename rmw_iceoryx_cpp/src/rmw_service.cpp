@@ -85,6 +85,8 @@ rmw_create_service(
     memcpy(const_cast<char *>(rmw_service->service_name), service_name, strlen(service_name) + 1);
   }
 
+  /// @todo allocate IceoryxServer here and fill size_t message_size_ and message_alignment_;
+
   return rmw_service;
 }
 

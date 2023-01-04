@@ -89,13 +89,15 @@ rmw_take_response(
 
   // if fixed size, we fetch the data via memcpy
   if (iceoryx_client_abstraction->is_fixed_size_) {
-    memcpy(ros_response, user_payload, chunk_header->userPayloadSize());
+    memcpy(request_header, user_payload, sizeof(*request_header));
+    /// @todo cast to uint8_t before doing pointer arithmetic?
+    memcpy(ros_response, user_payload + sizeof(*request_header), chunk_header->userPayloadSize());
     iceoryx_client->releaseResponse(user_payload);
     *taken = true;
     ret = RMW_RET_OK;
   } else {
     rmw_iceoryx_cpp::deserialize(
-      static_cast<const char *>(user_payload),
+      static_cast<const char *>(user_payload), /// @todo add fourth param for 'request_header'
       &iceoryx_client_abstraction->type_supports_,
       ros_response);
     iceoryx_client->releaseResponse(user_payload);
@@ -138,16 +140,23 @@ rmw_send_response(
 
   auto requestHeader = iox::popo::RequestHeader::fromPayload(iceoryx_service_abstraction->request_payload_);
   iceoryx_server->loan(requestHeader, iceoryx_service_abstraction->message_size_, iceoryx_service_abstraction->message_alignment_)
-      .and_then([&](auto& responsePayload) {
+      .and_then([&](void * responsePayload) {
           /// @todo memcpy or serialize the response
-          void * response;
-          // auto response = static_cast<AddResponse*>(responsePayload);
-          // response->sum = request->augend + request->addend;
-          iceoryx_server->send(response).or_else(
-              [&](auto& error) { ret = RMW_RET_ERROR; });
+          // 1) init message like pub/sub?
+          // 2) write | request_header | ros_response | to shared memory
+          memcpy(responsePayload, request_header, sizeof(*request_header));
+          memcpy(responsePayload + sizeof(*request_header), ros_response, iceoryx_service_abstraction->message_size_);
+          iceoryx_server->send(responsePayload).or_else(
+              [&](auto&) {
+                RMW_SET_ERROR_MSG("rmw_send_response send error!");
+                ret = RMW_RET_ERROR;
+              });
       })
       .or_else(
-          [&](auto& error) { ret = RMW_RET_ERROR; });
+          [&](auto&) {
+            RMW_SET_ERROR_MSG("rmw_send_response loan error!");
+            ret = RMW_RET_ERROR;
+          });
 
   return ret;
 }

@@ -25,10 +25,13 @@
 #include "rosidl_typesupport_introspection_c/field_types.h"
 #include "rosidl_typesupport_introspection_c/identifier.h"
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
+#include "rosidl_typesupport_introspection_c/service_introspection.h"
 
 #include "rosidl_typesupport_introspection_cpp/field_types.hpp"
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
 #include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
+#include "rosidl_typesupport_introspection_cpp/service_introspection.hpp"
+
 
 #include "rcutils/error_handling.h"
 
@@ -345,6 +348,25 @@ void iceoryx_init_message(
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
     members->init_function(message, ROSIDL_RUNTIME_C_MSG_INIT_ALL);
+    return;
+  }
+}
+
+void iceoryx_init_message(
+  const rosidl_service_type_support_t * type_supports,
+  void * message)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    members->request_members_->init_function(message, rosidl_runtime_cpp::MessageInitialization::ALL);
+    return;
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    members->request_members_->init_function(message, ROSIDL_RUNTIME_C_MSG_INIT_ALL);
     return;
   }
 }

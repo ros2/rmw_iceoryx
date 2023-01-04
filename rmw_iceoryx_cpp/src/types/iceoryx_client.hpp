@@ -38,7 +38,7 @@ struct IceoryxClient
   bool is_fixed_size_;
   size_t message_size_;
   uint32_t message_alignment_;
-  /// @todo add sample here to take the the response later? nope im server!
+  uint64_t sequence_id_;
 };
 
 #endif  // TYPES__ICEORYX_CLIENT_HPP_

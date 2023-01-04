@@ -18,6 +18,7 @@
 #include <vector>
 
 struct rosidl_message_type_support_t;
+struct rosidl_service_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {
@@ -25,6 +26,16 @@ namespace rmw_iceoryx_cpp
 void serialize(
   const void * ros_message,
   const rosidl_message_type_support_t * type_supports,
+  std::vector<char> & payload_vector);
+
+void serializeRequest(
+  const void * ros_message,
+  const rosidl_service_type_support_t * type_supports,
+  std::vector<char> & payload_vector);
+
+void serializeResponse(
+  const void * ros_message,
+  const rosidl_service_type_support_t * type_supports,
   std::vector<char> & payload_vector);
 
 }  // namespace rmw_iceoryx_cpp

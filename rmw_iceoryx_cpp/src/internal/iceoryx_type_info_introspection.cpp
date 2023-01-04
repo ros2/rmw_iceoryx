@@ -260,18 +260,35 @@ size_t iceoryx_get_message_size(const rosidl_message_type_support_t * type_suppo
   return 0;
 }
 
-size_t iceoryx_get_message_size(const rosidl_service_type_support_t * type_supports)
+size_t iceoryx_get_request_size(const rosidl_service_type_support_t * type_supports)
 {
   auto ts = get_type_support(type_supports);
 
   if (ts.first == TypeSupportLanguage::CPP) {
     auto members =
-      static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers *>(ts.second->data);
-    return members->size_of_;
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    return members->request_members_->size_of_;
   } else if (ts.first == TypeSupportLanguage::C) {
     auto members =
-      static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
-    return members->size_of_;
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    return members->request_members_->size_of_;
+  }
+  // Something went wrong
+  return 0;
+}
+
+size_t iceoryx_get_response_size(const rosidl_service_type_support_t * type_supports)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    return members->response_members_->size_of_;
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    return members->response_members_->size_of_;
   }
   // Something went wrong
   return 0;
@@ -294,6 +311,23 @@ std::string iceoryx_get_message_name(const rosidl_message_type_support_t * type_
   return "";
 }
 
+std::string iceoryx_get_service_name(const rosidl_service_type_support_t * type_supports)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    return members->service_name_;
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    return members->service_name_;
+  }
+  // Something went wrong
+  return "";
+}
+
 std::string iceoryx_get_message_namespace(const rosidl_message_type_support_t * type_supports)
 {
   auto ts = get_type_support(type_supports);
@@ -306,6 +340,23 @@ std::string iceoryx_get_message_namespace(const rosidl_message_type_support_t * 
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
     return members->message_namespace_;
+  }
+  // Something went wrong
+  return "";
+}
+
+std::string iceoryx_get_service_namespace(const rosidl_service_type_support_t * type_supports)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    return members->service_namespace_;
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    return members->service_namespace_;
   }
   // Something went wrong
   return "";
@@ -362,11 +413,13 @@ void iceoryx_init_message(
     auto members =
       static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
     members->request_members_->init_function(message, rosidl_runtime_cpp::MessageInitialization::ALL);
+    members->response_members_->init_function(message, rosidl_runtime_cpp::MessageInitialization::ALL);
     return;
   } else if (ts.first == TypeSupportLanguage::C) {
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
     members->request_members_->init_function(message, ROSIDL_RUNTIME_C_MSG_INIT_ALL);
+    members->response_members_->init_function(message, ROSIDL_RUNTIME_C_MSG_INIT_ALL);
     return;
   }
 }

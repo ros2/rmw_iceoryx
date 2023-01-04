@@ -93,7 +93,7 @@ rmw_create_client(
     iceoryx_client, iceoryx_client,
     cleanupAfterError(), iox::popo::UntypedClient, service_description,
     iox::popo::ClientOptions{
-      0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+      1U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
   if(returnOnError)
   {
     return nullptr;
@@ -127,7 +127,7 @@ rmw_create_client(
     return nullptr;
   }
   memcpy(const_cast<char *>(rmw_client->service_name), service_name, strlen(service_name) + 1);
-
+  std::cout << "RMW Client created!" << std::endl;
   return rmw_client;
 }
 
@@ -146,13 +146,20 @@ rmw_destroy_client(
 
   rmw_ret_t result = RMW_RET_OK;
 
-  iox::popo::UntypedClient * iceoryx_client = static_cast<iox::popo::UntypedClient *>(client->data);
-  if (iceoryx_client) {
+  IceoryxClient * iceoryx_client_abstraction = static_cast<IceoryxClient *>(client->data);
+  if (iceoryx_client_abstraction) {
+      if (iceoryx_client_abstraction->iceoryx_client_) {
+        RMW_TRY_DESTRUCTOR(
+          iceoryx_client_abstraction->iceoryx_client_->~UntypedClient(),
+          iceoryx_client_abstraction->iceoryx_client_,
+          result = RMW_RET_ERROR)
+        rmw_free(iceoryx_client_abstraction->iceoryx_client_);
+      }
       RMW_TRY_DESTRUCTOR(
-        iceoryx_client->~UntypedClientImpl(),
-        iceoryx_client,
+        iceoryx_client_abstraction->~IceoryxClient(),
+        iceoryx_client_abstraction,
         result = RMW_RET_ERROR)
-      rmw_free(iceoryx_client);
+      rmw_free(iceoryx_client_abstraction);
   }
 
   client->data = nullptr;
@@ -161,7 +168,7 @@ rmw_destroy_client(
   client->service_name = nullptr;
 
   rmw_client_free(client);
-
+  std::cout << "RMW Client destroyed!" << std::endl;
   return result;
 }
 

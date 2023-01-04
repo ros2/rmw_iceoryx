@@ -42,28 +42,37 @@ const std::pair<TypeSupportLanguage, const rosidl_service_type_support_t *> get_
   const rosidl_service_type_support_t * type_supports);
 
 bool iceoryx_is_fixed_size(const rosidl_message_type_support_t * type_supports);
-
 bool iceoryx_is_fixed_size(const rosidl_service_type_support_t * type_supports);
 
 bool iceoryx_is_valid_type_support(const rosidl_message_type_support_t * type_supports);
-
 bool iceoryx_is_valid_type_support(const rosidl_service_type_support_t * type_supports);
 
 size_t iceoryx_get_message_size(const rosidl_message_type_support_t * type_supports);
-
-size_t iceoryx_get_message_size(const rosidl_service_type_support_t * type_supports);
+size_t iceoryx_get_request_size(const rosidl_service_type_support_t * type_supports);
+size_t iceoryx_get_response_size(const rosidl_service_type_support_t * type_supports);
 
 std::string iceoryx_get_message_name(const rosidl_message_type_support_t * type_supports);
+std::string iceoryx_get_service_name(const rosidl_service_type_support_t * type_supports);
 
 std::string iceoryx_get_message_namespace(const rosidl_message_type_support_t * type_supports);
+std::string iceoryx_get_service_namespace(const rosidl_service_type_support_t * type_supports);
 
 void iceoryx_init_message(
   const rosidl_message_type_support_t * type_supports,
   void * message);
 
+void iceoryx_init_message( // init_response, init_request
+  const rosidl_service_type_support_t * type_supports,
+  void * message);
+
 void iceoryx_fini_message(
   const rosidl_message_type_support_t * type_supports,
   void * message);
+
+/// @todo
+// void iceoryx_fini_message(
+//   const rosidl_service_type_support_t * type_supports,
+//   void * message);
 
 }  // namespace rmw_iceoryx_cpp
 #endif  // RMW_ICEORYX_CPP__ICEORYX_TYPE_INFO_INTROSPECTION_HPP_

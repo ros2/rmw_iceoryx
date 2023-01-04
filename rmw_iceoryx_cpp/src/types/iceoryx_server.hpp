@@ -30,15 +30,15 @@ struct IceoryxServer
   : type_supports_(*type_supports),
     iceoryx_server_(iceoryx_server),
     is_fixed_size_(rmw_iceoryx_cpp::iceoryx_is_fixed_size(type_supports)),
-    message_size_(rmw_iceoryx_cpp::iceoryx_get_message_size(type_supports))
+    response_size_(rmw_iceoryx_cpp::iceoryx_get_response_size(type_supports))
   {}
 
   rosidl_service_type_support_t type_supports_;
   iox::popo::UntypedServer * const iceoryx_server_;
   bool is_fixed_size_;
-  size_t message_size_;
+  size_t response_size_;
   /// @todo Is there a way to get the aligment for a complete type via the rosidl?
-  uint32_t message_alignment_{8};
+  uint32_t response_alignment_{8};
   void * request_payload_;
 };
 

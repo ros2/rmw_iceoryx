@@ -139,13 +139,13 @@ rmw_send_response(
   rmw_ret_t ret = RMW_RET_ERROR;
 
   auto requestHeader = iox::popo::RequestHeader::fromPayload(iceoryx_service_abstraction->request_payload_);
-  iceoryx_server->loan(requestHeader, iceoryx_service_abstraction->message_size_, iceoryx_service_abstraction->message_alignment_)
+  iceoryx_server->loan(requestHeader, iceoryx_service_abstraction->response_size_, iceoryx_service_abstraction->response_alignment_)
       .and_then([&](void * responsePayload) {
           /// @todo memcpy or serialize the response
           // 1) init message like pub/sub?
           // 2) write | request_header | ros_response | to shared memory
           memcpy(responsePayload, request_header, sizeof(*request_header));
-          memcpy(responsePayload + sizeof(*request_header), ros_response, iceoryx_service_abstraction->message_size_);
+          memcpy(responsePayload + sizeof(*request_header), ros_response, iceoryx_service_abstraction->response_size_);
           iceoryx_server->send(responsePayload).or_else(
               [&](auto&) {
                 RMW_SET_ERROR_MSG("rmw_send_response send error!");

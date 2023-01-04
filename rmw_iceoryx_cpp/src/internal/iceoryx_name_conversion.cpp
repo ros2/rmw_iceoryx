@@ -63,6 +63,15 @@ inline void extract_type(
   type_name = rmw_iceoryx_cpp::iceoryx_get_message_name(type_support);
 }
 
+inline void extract_type(
+  const rosidl_service_type_support_t * type_support,
+  std::string & package_name,
+  std::string & type_name)
+{
+  package_name = to_message_type(rmw_iceoryx_cpp::iceoryx_get_service_namespace(type_support));
+  type_name = rmw_iceoryx_cpp::iceoryx_get_service_name(type_support);
+}
+
 namespace rmw_iceoryx_cpp
 {
 
@@ -190,8 +199,7 @@ get_iceoryx_service_description(
 {
   std::string package_name;
   std::string type_name;
-  /// @todo Implement type extracts for ROS services
-  //extract_type(type_supports, package_name, type_name);
+  extract_type(type_supports, package_name, type_name);
   type_name = package_name + "/" + type_name;
 
   return make_service_description(topic_name, type_name);

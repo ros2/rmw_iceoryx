@@ -30,14 +30,15 @@ struct IceoryxClient
   : type_supports_(*type_supports),
     iceoryx_client_(iceoryx_client),
     is_fixed_size_(rmw_iceoryx_cpp::iceoryx_is_fixed_size(type_supports)),
-    message_size_(rmw_iceoryx_cpp::iceoryx_get_message_size(type_supports))
+    request_size_(rmw_iceoryx_cpp::iceoryx_get_request_size(type_supports))
   {}
 
   rosidl_service_type_support_t type_supports_;
   iox::popo::UntypedClient * const iceoryx_client_;
   bool is_fixed_size_;
-  size_t message_size_;
-  uint32_t message_alignment_;
+  size_t request_size_;
+  /// @todo How can the full type be aquired via rosidl to do an 'alignof()'?
+  uint32_t request_alignment_{8};
   uint64_t sequence_id_;
 };
 

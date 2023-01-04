@@ -17,6 +17,10 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
+#include "./types/iceoryx_client.hpp"
+
+#include "iceoryx_posh/runtime/service_discovery.hpp"
+
 extern "C"
 {
 rmw_ret_t
@@ -29,7 +33,40 @@ rmw_service_server_is_available(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_ERROR);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(is_available, RMW_RET_ERROR);
 
-  RMW_SET_ERROR_MSG("rmw_iceoryx_cpp does not support services.");
-  return RMW_RET_UNSUPPORTED;
+  rmw_ret_t ret = RMW_RET_ERROR;
+
+  auto iceoryx_client_abstraction = static_cast<IceoryxClient *>(client->data);
+  if (!iceoryx_client_abstraction) {
+    RMW_SET_ERROR_MSG("client data is null");
+    ret = RMW_RET_ERROR;
+    return ret;
+  }
+
+  auto iceoryx_client = iceoryx_client_abstraction->iceoryx_client_;
+  if (!iceoryx_client) {
+    RMW_SET_ERROR_MSG("iceoryx_client is null");
+    ret = RMW_RET_ERROR;
+    return ret;
+  }
+
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  *is_available = true;
+  // if(iceoryx_client->getConnectionState() == iox::ConnectionState::CONNECTED)
+  // {
+  //   *is_available = true;
+  // }
+
+  /// @todo better to go through service discovery?
+  // iox::runtime::ServiceDiscovery serviceDiscovery;
+  // auto& searchItem = iceoryx_client->getServiceDescription();
+  // serviceDiscovery.findService( searchItem.getServiceIDString(),
+  //                               searchItem.getInstanceIDString(),
+  //                               searchItem.getEventIDString(),
+  //                               [&](auto&){ *is_available = true; },
+  //                               iox::popo::MessagingPattern::REQ_RES);
+
+  ret = RMW_RET_OK;
+  return ret;
 }
 }  // extern "C"

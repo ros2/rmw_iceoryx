@@ -21,6 +21,7 @@
 #include "./types/iceoryx_server.hpp"
 
 #include "rmw_iceoryx_cpp/iceoryx_deserialize.hpp"
+#include "rmw_iceoryx_cpp/iceoryx_serialize.hpp"
 
 extern "C"
 {
@@ -57,22 +58,43 @@ rmw_send_request(
     return ret;
   }
 
-  iceoryx_client->loan(iceoryx_client_abstraction->message_size_, iceoryx_client_abstraction->message_alignment_)
+  std::cout << "I'm alive!" << std::endl;
+
+  iceoryx_client->loan(iceoryx_client_abstraction->request_size_, iceoryx_client_abstraction->request_alignment_)
       .and_then([&](void * requestPayload) {
           auto requestHeader = iox::popo::RequestHeader::fromPayload(requestPayload);
+
           requestHeader->setSequenceId(iceoryx_client_abstraction->sequence_id_);
+          *sequence_id = iceoryx_client_abstraction->sequence_id_;
           iceoryx_client_abstraction->sequence_id_ += 1;
-          /// @todo memcpy or serialize the response
-          // 1) init message
-          // 2) write ros_response to shared memory
-          memcpy(requestPayload, ros_request, iceoryx_client_abstraction->message_size_);
+
+          if (iceoryx_client_abstraction->is_fixed_size_)
+          {
+            std::cout << "FIXED SIZE!" << std::endl;
+            memcpy(requestPayload, ros_request, iceoryx_client_abstraction->request_size_);
+          }
+          else
+          {
+            std::cout << "NOT FIXED SIZE!" << std::endl;
+            // message is not fixed size, so we have to serialize
+            std::vector<char> payload_vector{};
+
+            rmw_iceoryx_cpp::serializeRequest(ros_request, &iceoryx_client_abstraction->type_supports_, payload_vector);
+            memcpy(requestPayload, payload_vector.data(), payload_vector.size());
+          }
+
           iceoryx_client->send(requestPayload).or_else(
-              [&](auto& error) { ret = RMW_RET_ERROR; });
+              [&](auto&) {
+                RMW_SET_ERROR_MSG("rmw_send_request error!");
+                ret = RMW_RET_ERROR;
+              });
       })
-      .or_else([&](auto& error) { ret = RMW_RET_ERROR; });
+      .or_else([&](auto&) {
+        RMW_SET_ERROR_MSG("rmw_send_request error!");
+        ret = RMW_RET_ERROR;
+      });
 
-  *sequence_id = iceoryx_client_abstraction->sequence_id_;
-
+  ret = RMW_RET_OK;
   return ret;
 }
 
@@ -126,7 +148,8 @@ rmw_take_request(
       ret = RMW_RET_OK;
     })
   .or_else(
-    [&](auto&) {
+    [&](iox::popo::ServerRequestResult& error) {
+      std::cout << "Could not send Response! Error: " << error << std::endl;
       RMW_SET_ERROR_MSG("rmw_take_request error!");
       ret = RMW_RET_ERROR;
     });

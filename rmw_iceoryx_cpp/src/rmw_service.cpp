@@ -93,7 +93,7 @@ rmw_create_service(
     iceoryx_server, iceoryx_server,
     cleanupAfterError(), iox::popo::UntypedServer, service_description,
     iox::popo::ServerOptions{
-      0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+      1U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
   if(returnOnError)
   {
     return nullptr;
@@ -144,13 +144,20 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
 
   rmw_ret_t result = RMW_RET_OK;
 
-  iox::popo::UntypedServer * iceoryx_server = static_cast<iox::popo::UntypedServer *>(service->data);
-  if (iceoryx_server) {
+  IceoryxServer * iceoryx_server_abstraction = static_cast<IceoryxServer *>(service->data);
+  if (iceoryx_server_abstraction) {
+      if (iceoryx_server_abstraction->iceoryx_server_) {
+        RMW_TRY_DESTRUCTOR(
+          iceoryx_server_abstraction->iceoryx_server_->~UntypedServer(),
+          iceoryx_server_abstraction->iceoryx_server_,
+          result = RMW_RET_ERROR)
+        rmw_free(iceoryx_server_abstraction->iceoryx_server_);
+      }
       RMW_TRY_DESTRUCTOR(
-        iceoryx_server->~UntypedServerImpl(),
-        iceoryx_server,
+        iceoryx_server_abstraction->~IceoryxServer(),
+        iceoryx_server_abstraction,
         result = RMW_RET_ERROR)
-      rmw_free(iceoryx_server);
+      rmw_free(iceoryx_server_abstraction);
   }
 
   service->data = nullptr;

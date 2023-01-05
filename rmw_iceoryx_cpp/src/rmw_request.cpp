@@ -170,10 +170,10 @@ rmw_take_request(
       &iceoryx_server_abstraction->type_supports_,
       ros_request);
   }
-  request_header->source_timestamp = 0; // Unsupported until needed
+  request_header->source_timestamp = 0;  // Unsupported until needed
   ret = rcutils_system_time_now(&request_header->received_timestamp);
   request_header->request_id.sequence_number = iceoryx_request_header->getSequenceId();
-  request_header->request_id.writer_guid[0] = 42; /// @todo
+  request_header->request_id.writer_guid[0] = 42;  /// @todo
 
   // Hold the loaned request till we send the response in 'rmw_send_response'
   iceoryx_server_abstraction->request_payload_ = user_payload;

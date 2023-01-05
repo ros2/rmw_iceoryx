@@ -145,10 +145,14 @@ std::map<std::string, std::string> get_topic_names_and_types()
 std::map<std::string, std::string> get_service_names_and_types()
 {
   std::map<std::string, std::string> names_n_types;
-  std::map<std::string, std::vector<std::string>> clients_topics;  // Currently, no possibility to query for clients..
-  std::map<std::string, std::vector<std::string>> servers_topics;  // Can be discovered via 'ServiceDiscovery'
-  std::map<std::string, std::vector<std::string>> topic_clients;   // Currently, no possibility to query for clients..
-  std::map<std::string, std::vector<std::string>> topic_servers;   // Can be discovered, but missing associated node
+  // Currently, no possibility to query for clients..
+  std::map<std::string, std::vector<std::string>> clients_topics;
+  // Can be discovered via 'ServiceDiscovery'
+  std::map<std::string, std::vector<std::string>> servers_topics;
+  // Currently, no possibility to query for clients..
+  std::map<std::string, std::vector<std::string>> topic_clients;
+  // Can be discovered, but missing associated node
+  std::map<std::string, std::vector<std::string>> topic_servers;
 
   std::vector<iox::capro::ServiceDescription> available_servers;
 
@@ -167,7 +171,8 @@ std::map<std::string, std::string> get_service_names_and_types()
       std::string(server.getEventIDString().c_str()));
 
     names_n_types[std::get<0>(name_and_type)] = std::get<1>(name_and_type);
-    /// @todo There is no API to find out which 'ServiceDescription' is offered by which node, for now we use 'NodeFoo'..
+    /// @todo There is no API to find out which 'ServiceDescription' is offered by which node,
+    /// for now we use 'NodeFoo'..
     servers_topics[std::string("NodeFoo")].push_back(
       std::get<0>(
         name_and_type));

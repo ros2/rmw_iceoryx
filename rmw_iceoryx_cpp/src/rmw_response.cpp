@@ -63,23 +63,29 @@ rmw_take_response(
 
   iceoryx_client->take()
   .and_then(
-    [&](const void * responsePayload) {
-      auto responseHeader = iox::popo::ResponseHeader::fromPayload(responsePayload);
-      /// @todo check writer guid
-      if (responseHeader->getSequenceId() == request_header->request_id.sequence_number)
+    [&](const void * iceoryx_response_payload) {
+      auto iceoryx_response_header = iox::popo::ResponseHeader::fromPayload(iceoryx_response_payload);
+      /// @todo check writer guid?
+      request_header->request_id.sequence_number = iceoryx_response_header->getSequenceId();
+      request_header->source_timestamp = 0; // Unsupported until needed
+      rcutils_system_time_now(&request_header->received_timestamp);
+
+      if (iceoryx_response_header->getSequenceId() == iceoryx_client_abstraction->sequence_id_ - 1)
       {
-        user_payload = responseHeader;
+        user_payload = iceoryx_response_payload;
         chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
         ret = RMW_RET_OK;
       }
       else
       {
-        std::cout << "Got Response with outdated sequence number!" << std::endl;
+        RMW_SET_ERROR_MSG("Got response with outdated sequence number!");
+        *taken = false;
         ret = RMW_RET_ERROR;
       }
     })
   .or_else(
     [&](iox::popo::ChunkReceiveResult) {
+      *taken = false;
       RMW_SET_ERROR_MSG("No chunk in iceoryx_client");
       ret = RMW_RET_ERROR;
     });
@@ -90,12 +96,10 @@ rmw_take_response(
 
   // if fixed size, we fetch the data via memcpy
   if (iceoryx_client_abstraction->is_fixed_size_) {
-    memcpy(request_header, user_payload, sizeof(*request_header));
-    /// @todo cast to uint8_t before doing pointer arithmetic?
-    memcpy(ros_response, user_payload + sizeof(*request_header), chunk_header->userPayloadSize());
+    memcpy(ros_response, user_payload, chunk_header->userPayloadSize());
   } else {
-    rmw_iceoryx_cpp::deserialize(
-      static_cast<const char *>(user_payload), /// @todo add fourth param for 'request_header', but how to find out when header ends, separator char?
+    rmw_iceoryx_cpp::deserializeResponse(
+      static_cast<const char *>(user_payload),
       &iceoryx_client_abstraction->type_supports_,
       ros_response);
   }
@@ -104,7 +108,6 @@ rmw_take_response(
   ret = RMW_RET_OK;
   std::cout << "Client took response!" << std::endl;
 
-  *taken = false;
   return ret;
 }
 
@@ -138,21 +141,19 @@ rmw_send_response(
   rmw_ret_t ret = RMW_RET_ERROR;
 
   auto requestHeader = iox::popo::RequestHeader::fromPayload(iceoryx_server_abstraction->request_payload_);
+  requestHeader->setSequenceId(request_header->sequence_number);
+
   iceoryx_server->loan(requestHeader, iceoryx_server_abstraction->response_size_, iceoryx_server_abstraction->response_alignment_)
       .and_then([&](void * responsePayload) {
-          /// @todo memcpy or serialize the response
-          // write |-request_header-|-ros_response-| to shared memory
           if (iceoryx_server_abstraction->is_fixed_size_)
           {
-            memcpy(responsePayload, request_header, sizeof(*request_header));
-            memcpy(responsePayload + sizeof(*request_header), ros_response, iceoryx_server_abstraction->response_size_);
+            memcpy(responsePayload, ros_response, iceoryx_server_abstraction->response_size_);
           }
           else
           {
             // message is not fixed size, so we have to serialize
             std::vector<char> payload_vector{};
-            rmw_iceoryx_cpp::serializeRequest(request_header, &iceoryx_server_abstraction->type_supports_, payload_vector);
-            rmw_iceoryx_cpp::serializeRequest(ros_response, &iceoryx_server_abstraction->type_supports_, payload_vector);
+            rmw_iceoryx_cpp::serializeResponse(ros_response, &iceoryx_server_abstraction->type_supports_, payload_vector);
             memcpy(responsePayload, payload_vector.data(), payload_vector.size());
           }
           std::cout << "Server sent response!" << std::endl;
@@ -163,10 +164,13 @@ rmw_send_response(
               });
       })
       .or_else(
-          [&](auto&) {
+          [&](auto& error) {
+            std::cout << "Could not allocate Response! Error: " << error << std::endl;
             RMW_SET_ERROR_MSG("rmw_send_response loan error!");
             ret = RMW_RET_ERROR;
           });
+
+  iceoryx_server->releaseRequest(iceoryx_server_abstraction->request_payload_);
 
   return ret;
 }

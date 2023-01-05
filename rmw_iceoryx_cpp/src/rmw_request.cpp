@@ -136,8 +136,8 @@ rmw_take_request(
 
   iceoryx_server->take()
   .and_then(
-    [&](const void * requestPayload) {
-      user_payload = requestPayload;
+    [&](const void * iceoryx_request_payload) {
+      user_payload = iceoryx_request_payload;
       chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
       iceoryx_request_header = iox::popo::RequestHeader::fromPayload(user_payload);
       ret = RMW_RET_OK;
@@ -145,6 +145,7 @@ rmw_take_request(
   .or_else(
     [&](iox::popo::ServerRequestResult& error) {
       std::cout << "Could not take request! Error: " << error << std::endl;
+      *taken = false;
       RMW_SET_ERROR_MSG("rmw_take_request error!");
       ret = RMW_RET_ERROR;
     });
@@ -157,12 +158,16 @@ rmw_take_request(
   if (iceoryx_service_abstraction->is_fixed_size_) {
     memcpy(ros_request, user_payload, chunk_header->userPayloadSize());
   } else {
-    rmw_iceoryx_cpp::deserialize(
+    rmw_iceoryx_cpp::deserializeRequest(
       static_cast<const char *>(user_payload),
       &iceoryx_service_abstraction->type_supports_,
       ros_request);
   }
-  iceoryx_server->releaseRequest(user_payload);
+  request_header->source_timestamp = 0; // Unsupported until needed
+  rcutils_system_time_now(&request_header->received_timestamp);
+  request_header->request_id.sequence_number = iceoryx_request_header->getSequenceId();
+  request_header->request_id.writer_guid[0] = 42; /// @todo
+
   *taken = true;
   ret = RMW_RET_OK;
   std::cout << "Server took request!" << std::endl;

@@ -27,8 +27,12 @@ void deserialize(
   const rosidl_message_type_support_t * type_supports,
   void * ros_message);
 
-/// @todo use a variant here for the 2nd parameter to avoid code duplication
-void deserialize(
+void deserializeRequest(
+  const char * serialized_msg,
+  const rosidl_service_type_support_t * type_supports,
+  void * ros_message);
+
+void deserializeResponse(
   const char * serialized_msg,
   const rosidl_service_type_support_t * type_supports,
   void * ros_message);

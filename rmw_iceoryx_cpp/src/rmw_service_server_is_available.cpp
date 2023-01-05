@@ -51,13 +51,12 @@ rmw_service_server_is_available(
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  *is_available = true;
-  // if(iceoryx_client->getConnectionState() == iox::ConnectionState::CONNECTED)
-  // {
-  //   *is_available = true;
-  // }
+  if(iceoryx_client->getConnectionState() == iox::ConnectionState::CONNECTED)
+  {
+    *is_available = true;
+  }
 
-  /// @todo better to go through service discovery?
+  /// @todo Better to go through service discovery?
   // iox::runtime::ServiceDiscovery serviceDiscovery;
   // auto& searchItem = iceoryx_client->getServiceDescription();
   // serviceDiscovery.findService( searchItem.getServiceIDString(),

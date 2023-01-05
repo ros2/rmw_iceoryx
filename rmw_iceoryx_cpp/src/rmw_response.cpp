@@ -105,7 +105,6 @@ rmw_take_response(
   }
   iceoryx_client->releaseResponse(user_payload);
   *taken = true;
-  ret = RMW_RET_OK;
   std::cout << "Client took response!" << std::endl;
 
   return ret;
@@ -140,10 +139,12 @@ rmw_send_response(
 
   rmw_ret_t ret = RMW_RET_ERROR;
 
-  auto requestHeader = iox::popo::RequestHeader::fromPayload(iceoryx_server_abstraction->request_payload_);
-  requestHeader->setSequenceId(request_header->sequence_number);
+  auto* iceoryx_request_header = iox::popo::RequestHeader::fromPayload(iceoryx_server_abstraction->request_payload_);
+  /// @todo Why is it not possible to set the sequence id? Is this automatically done? If so, we need to compare
+  ///       the user-provided sequence id with the one from the 'iceoryx_request_header'
+  //iceoryx_request_header->setSequenceId(request_header->sequence_number);
 
-  iceoryx_server->loan(requestHeader, iceoryx_server_abstraction->response_size_, iceoryx_server_abstraction->response_alignment_)
+  iceoryx_server->loan(iceoryx_request_header, iceoryx_server_abstraction->response_size_, iceoryx_server_abstraction->response_alignment_)
       .and_then([&](void * responsePayload) {
           if (iceoryx_server_abstraction->is_fixed_size_)
           {
@@ -156,8 +157,10 @@ rmw_send_response(
             rmw_iceoryx_cpp::serializeResponse(ros_response, &iceoryx_server_abstraction->type_supports_, payload_vector);
             memcpy(responsePayload, payload_vector.data(), payload_vector.size());
           }
-          std::cout << "Server sent response!" << std::endl;
-          iceoryx_server->send(responsePayload).or_else(
+          iceoryx_server->send(responsePayload).and_then([&]{
+            std::cout << "Server sent response!" << std::endl;
+            ret = RMW_RET_OK;
+          }).or_else(
               [&](auto&) {
                 RMW_SET_ERROR_MSG("rmw_send_response send error!");
                 ret = RMW_RET_ERROR;
@@ -170,6 +173,7 @@ rmw_send_response(
             ret = RMW_RET_ERROR;
           });
 
+  // Release the hold request
   iceoryx_server->releaseRequest(iceoryx_server_abstraction->request_payload_);
 
   return ret;

@@ -39,7 +39,7 @@ struct IceoryxClient
   size_t request_size_;
   /// @todo How can the full type be aquired via rosidl to do an 'alignof()'?
   uint32_t request_alignment_{8};
-  uint64_t sequence_id_;
+  int64_t sequence_id_;
 };
 
 #endif  // TYPES__ICEORYX_CLIENT_HPP_

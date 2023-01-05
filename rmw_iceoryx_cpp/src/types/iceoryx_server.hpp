@@ -39,7 +39,7 @@ struct IceoryxServer
   size_t response_size_;
   /// @todo Is there a way to get the aligment for a complete type via the rosidl?
   uint32_t response_alignment_{8};
-  void * request_payload_;
+  const void * request_payload_;
 };
 
 #endif  // TYPES__ICEORYX_SERVER_HPP_

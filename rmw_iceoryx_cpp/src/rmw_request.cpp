@@ -77,19 +77,20 @@ rmw_send_request(
             rmw_iceoryx_cpp::serializeRequest(ros_request, &iceoryx_client_abstraction->type_supports_, payload_vector);
             memcpy(requestPayload, payload_vector.data(), payload_vector.size());
           }
-          std::cout << "Client sent request!" << std::endl;
-          iceoryx_client->send(requestPayload).or_else(
-              [&](auto&) {
-                RMW_SET_ERROR_MSG("rmw_send_request error!");
-                ret = RMW_RET_ERROR;
-              });
+          iceoryx_client->send(requestPayload).and_then([&]{
+            std::cout << "Client sent request!" << std::endl;
+            ret = RMW_RET_OK;
+          }).or_else(
+            [&](auto&) {
+              RMW_SET_ERROR_MSG("rmw_send_request error!");
+              ret = RMW_RET_ERROR;
+            });
       })
       .or_else([&](auto&) {
         RMW_SET_ERROR_MSG("rmw_send_request error!");
         ret = RMW_RET_ERROR;
       });
 
-  ret = RMW_RET_OK;
   return ret;
 }
 
@@ -110,20 +111,20 @@ rmw_take_request(
     : service, service->implementation_identifier,
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
-  auto iceoryx_service_abstraction = static_cast<IceoryxServer *>(service->data);
-  if (!iceoryx_service_abstraction) {
+  auto iceoryx_server_abstraction = static_cast<IceoryxServer *>(service->data);
+  if (!iceoryx_server_abstraction) {
     RMW_SET_ERROR_MSG("service data is null");
     return RMW_RET_ERROR;
   }
 
-  auto iceoryx_server = iceoryx_service_abstraction->iceoryx_server_;
+  auto iceoryx_server = iceoryx_server_abstraction->iceoryx_server_;
   if (!iceoryx_server) {
     RMW_SET_ERROR_MSG("iceoryx_server is null");
     return RMW_RET_ERROR;
   }
 
   // this should never happen if checked already at rmw_create_service
-  if (!rmw_iceoryx_cpp::iceoryx_is_valid_type_support(&iceoryx_service_abstraction->type_supports_)) {
+  if (!rmw_iceoryx_cpp::iceoryx_is_valid_type_support(&iceoryx_server_abstraction->type_supports_)) {
     RMW_SET_ERROR_MSG("Use either C typesupport or CPP typesupport");
     return RMW_RET_ERROR;
   }
@@ -155,12 +156,12 @@ rmw_take_request(
   }
 
   // if fixed size, we fetch the data via memcpy
-  if (iceoryx_service_abstraction->is_fixed_size_) {
+  if (iceoryx_server_abstraction->is_fixed_size_) {
     memcpy(ros_request, user_payload, chunk_header->userPayloadSize());
   } else {
     rmw_iceoryx_cpp::deserializeRequest(
       static_cast<const char *>(user_payload),
-      &iceoryx_service_abstraction->type_supports_,
+      &iceoryx_server_abstraction->type_supports_,
       ros_request);
   }
   request_header->source_timestamp = 0; // Unsupported until needed
@@ -168,8 +169,10 @@ rmw_take_request(
   request_header->request_id.sequence_number = iceoryx_request_header->getSequenceId();
   request_header->request_id.writer_guid[0] = 42; /// @todo
 
+  // Hold the loaned request till we send the response in 'rmw_send_response'
+  iceoryx_server_abstraction->request_payload_ = user_payload;
+
   *taken = true;
-  ret = RMW_RET_OK;
   std::cout << "Server took request!" << std::endl;
 
   return ret;

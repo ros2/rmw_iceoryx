@@ -165,7 +165,7 @@ rmw_take_request(
       ros_request);
   }
   request_header->source_timestamp = 0; // Unsupported until needed
-  rcutils_system_time_now(&request_header->received_timestamp);
+  ret = rcutils_system_time_now(&request_header->received_timestamp);
   request_header->request_id.sequence_number = iceoryx_request_header->getSequenceId();
   request_header->request_id.writer_guid[0] = 42; /// @todo
 

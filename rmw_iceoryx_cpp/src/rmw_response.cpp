@@ -68,7 +68,7 @@ rmw_take_response(
       /// @todo check writer guid?
       request_header->request_id.sequence_number = iceoryx_response_header->getSequenceId();
       request_header->source_timestamp = 0; // Unsupported until needed
-      rcutils_system_time_now(&request_header->received_timestamp);
+      ret = rcutils_system_time_now(&request_header->received_timestamp);
 
       if (iceoryx_response_header->getSequenceId() == iceoryx_client_abstraction->sequence_id_ - 1)
       {

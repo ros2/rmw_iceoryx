@@ -1,5 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
-// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
+// Copyright (c) 2021 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -401,31 +401,6 @@ void iceoryx_init_message(
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
     members->init_function(message, ROSIDL_RUNTIME_C_MSG_INIT_ALL);
-    return;
-  }
-}
-
-void iceoryx_init_message(
-  const rosidl_service_type_support_t * type_supports,
-  void * message)
-{
-  auto ts = get_type_support(type_supports);
-
-  if (ts.first == TypeSupportLanguage::CPP) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
-    members->request_members_->init_function(
-      message,
-      rosidl_runtime_cpp::MessageInitialization::ALL);
-    members->response_members_->init_function(
-      message,
-      rosidl_runtime_cpp::MessageInitialization::ALL);
-    return;
-  } else if (ts.first == TypeSupportLanguage::C) {
-    auto members =
-      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
-    members->request_members_->init_function(message, ROSIDL_RUNTIME_C_MSG_INIT_ALL);
-    members->response_members_->init_function(message, ROSIDL_RUNTIME_C_MSG_INIT_ALL);
     return;
   }
 }

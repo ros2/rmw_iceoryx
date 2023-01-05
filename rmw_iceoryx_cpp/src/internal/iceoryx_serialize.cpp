@@ -82,7 +82,9 @@ void serializeResponse(
   if (ts.first == TypeSupportLanguage::CPP) {
     auto members =
       static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
-    rmw_iceoryx_cpp::details_cpp::serialize(ros_message, members->response_members_, payload_vector);
+    rmw_iceoryx_cpp::details_cpp::serialize(
+      ros_message, members->response_members_,
+      payload_vector);
   } else if (ts.first == TypeSupportLanguage::C) {
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);

@@ -64,20 +64,18 @@ rmw_take_response(
   iceoryx_client->take()
   .and_then(
     [&](const void * iceoryx_response_payload) {
-      auto iceoryx_response_header = iox::popo::ResponseHeader::fromPayload(iceoryx_response_payload);
+      auto iceoryx_response_header = iox::popo::ResponseHeader::fromPayload(
+        iceoryx_response_payload);
       /// @todo check writer guid?
       request_header->request_id.sequence_number = iceoryx_response_header->getSequenceId();
       request_header->source_timestamp = 0; // Unsupported until needed
       ret = rcutils_system_time_now(&request_header->received_timestamp);
 
-      if (iceoryx_response_header->getSequenceId() == iceoryx_client_abstraction->sequence_id_ - 1)
-      {
+      if (iceoryx_response_header->getSequenceId() == iceoryx_client_abstraction->sequence_id_ - 1) {
         user_payload = iceoryx_response_payload;
         chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
         ret = RMW_RET_OK;
-      }
-      else
-      {
+      } else {
         RMW_SET_ERROR_MSG("Got response with outdated sequence number!");
         *taken = false;
         ret = RMW_RET_ERROR;
@@ -139,42 +137,46 @@ rmw_send_response(
 
   rmw_ret_t ret = RMW_RET_ERROR;
 
-  auto* iceoryx_request_header = iox::popo::RequestHeader::fromPayload(iceoryx_server_abstraction->request_payload_);
+  auto * iceoryx_request_header = iox::popo::RequestHeader::fromPayload(
+    iceoryx_server_abstraction->request_payload_);
   /// @todo Why is it not possible to set the sequence id? Is this automatically done? If so, we need to compare
   ///       the user-provided sequence id with the one from the 'iceoryx_request_header'
   //iceoryx_request_header->setSequenceId(request_header->sequence_number);
 
-  iceoryx_server->loan(iceoryx_request_header, iceoryx_server_abstraction->response_size_, iceoryx_server_abstraction->response_alignment_)
-      .and_then([&](void * responsePayload) {
-          if (iceoryx_server_abstraction->is_fixed_size_)
-          {
-            memcpy(responsePayload, ros_response, iceoryx_server_abstraction->response_size_);
-          }
-          else
-          {
-            // message is not fixed size, so we have to serialize
-            std::vector<char> payload_vector{};
-            rmw_iceoryx_cpp::serializeResponse(ros_response, &iceoryx_server_abstraction->type_supports_, payload_vector);
-            memcpy(responsePayload, payload_vector.data(), payload_vector.size());
-          }
-          /// @todo Why are the sleep before and after 'send()' needed? rmw_cyclonedds and rmw_fastrtps seem to do something similar in 'rmw_send_response'..
-          std::this_thread::sleep_for(std::chrono::milliseconds(100));
-          iceoryx_server->send(responsePayload).and_then([&]{
-            std::cout << "Server sent response!" << std::endl;
-            ret = RMW_RET_OK;
-          }).or_else(
-              [&](auto&) {
-                RMW_SET_ERROR_MSG("rmw_send_response send error!");
-                ret = RMW_RET_ERROR;
-              });
-          std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      })
-      .or_else(
-          [&](auto& error) {
-            std::cout << "Could not allocate Response! Error: " << error << std::endl;
-            RMW_SET_ERROR_MSG("rmw_send_response loan error!");
-            ret = RMW_RET_ERROR;
-          });
+  iceoryx_server->loan(
+    iceoryx_request_header, iceoryx_server_abstraction->response_size_,
+    iceoryx_server_abstraction->response_alignment_)
+  .and_then(
+    [&](void * responsePayload) {
+      if (iceoryx_server_abstraction->is_fixed_size_) {
+        memcpy(responsePayload, ros_response, iceoryx_server_abstraction->response_size_);
+      } else {
+        // message is not fixed size, so we have to serialize
+        std::vector<char> payload_vector{};
+        rmw_iceoryx_cpp::serializeResponse(
+          ros_response,
+          &iceoryx_server_abstraction->type_supports_, payload_vector);
+        memcpy(responsePayload, payload_vector.data(), payload_vector.size());
+      }
+      /// @todo Why are the sleep before and after 'send()' needed? rmw_cyclonedds and rmw_fastrtps seem to do something similar in 'rmw_send_response'..
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      iceoryx_server->send(responsePayload).and_then(
+        [&] {
+          std::cout << "Server sent response!" << std::endl;
+          ret = RMW_RET_OK;
+        }).or_else(
+        [&](auto &) {
+          RMW_SET_ERROR_MSG("rmw_send_response send error!");
+          ret = RMW_RET_ERROR;
+        });
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    })
+  .or_else(
+    [&](auto & error) {
+      std::cout << "Could not allocate Response! Error: " << error << std::endl;
+      RMW_SET_ERROR_MSG("rmw_send_response loan error!");
+      ret = RMW_RET_ERROR;
+    });
 
   // Release the hold request
   iceoryx_server->releaseRequest(iceoryx_server_abstraction->request_payload_);

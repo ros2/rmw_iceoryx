@@ -169,7 +169,9 @@ get_service_description_from_name_n_type(
   return std::make_tuple(service, instance, event);
 }
 
-iox::capro::ServiceDescription make_service_description(const std::string & topic_name, const std::string & type_name)
+iox::capro::ServiceDescription make_service_description(
+  const std::string & topic_name,
+  const std::string & type_name)
 {
   auto serviceDescriptionTuple = get_service_description_from_name_n_type(topic_name, type_name);
 

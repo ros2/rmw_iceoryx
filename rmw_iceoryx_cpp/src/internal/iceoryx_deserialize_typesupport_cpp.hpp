@@ -309,7 +309,7 @@ const char * deserialize(
   return serialized_msg;
 }
 
-const char* deserializeResponse(
+const char * deserializeResponse(
   const char * serialized_msg,
   const rosidl_typesupport_introspection_cpp::ServiceMembers * service_members,
   void * ros_message)
@@ -317,7 +317,7 @@ const char* deserializeResponse(
   return deserialize(serialized_msg, service_members->response_members_, ros_message);
 }
 
-const char* deserializeRequest(
+const char * deserializeRequest(
   const char * serialized_msg,
   const rosidl_typesupport_introspection_cpp::ServiceMembers * service_members,
   void * ros_message)

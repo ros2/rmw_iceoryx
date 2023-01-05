@@ -148,16 +148,17 @@ std::map<std::string, std::string> get_service_names_and_types()
   std::map<std::string, std::vector<std::string>> clients_topics;  // Currently, no possibility to query for clients..
   std::map<std::string, std::vector<std::string>> servers_topics;  // Can be discovered via 'ServiceDiscovery'
   std::map<std::string, std::vector<std::string>> topic_clients;   // Currently, no possibility to query for clients..
-  std::map<std::string, std::vector<std::string>> topic_servers;   // Can be discovered, but missing associated node 
+  std::map<std::string, std::vector<std::string>> topic_servers;   // Can be discovered, but missing associated node
 
   std::vector<iox::capro::ServiceDescription> available_servers;
 
   iox::runtime::ServiceDiscovery service_discovery;
-  service_discovery.findService(iox::cxx::nullopt,
-                                iox::cxx::nullopt,
-                                iox::cxx::nullopt,
-                                [&](auto& service_description){ available_servers.push_back(service_description); },
-                                iox::popo::MessagingPattern::REQ_RES);
+  service_discovery.findService(
+    iox::cxx::nullopt,
+    iox::cxx::nullopt,
+    iox::cxx::nullopt,
+    [&](auto & service_description) {available_servers.push_back(service_description);},
+    iox::popo::MessagingPattern::REQ_RES);
 
   for (auto & server : available_servers) {
     auto name_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(

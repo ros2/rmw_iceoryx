@@ -61,18 +61,9 @@ void iceoryx_init_message(
   const rosidl_message_type_support_t * type_supports,
   void * message);
 
-void iceoryx_init_message( // init_response, init_request
-  const rosidl_service_type_support_t * type_supports,
-  void * message);
-
 void iceoryx_fini_message(
   const rosidl_message_type_support_t * type_supports,
   void * message);
-
-/// @todo
-// void iceoryx_fini_message(
-//   const rosidl_service_type_support_t * type_supports,
-//   void * message);
 
 }  // namespace rmw_iceoryx_cpp
 #endif  // RMW_ICEORYX_CPP__ICEORYX_TYPE_INFO_INTROSPECTION_HPP_

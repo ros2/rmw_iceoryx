@@ -58,38 +58,42 @@ rmw_send_request(
     return ret;
   }
 
-  iceoryx_client->loan(iceoryx_client_abstraction->request_size_, iceoryx_client_abstraction->request_alignment_)
-      .and_then([&](void * requestPayload) {
-          auto requestHeader = iox::popo::RequestHeader::fromPayload(requestPayload);
+  iceoryx_client->loan(
+    iceoryx_client_abstraction->request_size_,
+    iceoryx_client_abstraction->request_alignment_)
+  .and_then(
+    [&](void * requestPayload) {
+      auto requestHeader = iox::popo::RequestHeader::fromPayload(requestPayload);
 
-          requestHeader->setSequenceId(iceoryx_client_abstraction->sequence_id_);
-          *sequence_id = iceoryx_client_abstraction->sequence_id_;
-          iceoryx_client_abstraction->sequence_id_ += 1;
+      requestHeader->setSequenceId(iceoryx_client_abstraction->sequence_id_);
+      *sequence_id = iceoryx_client_abstraction->sequence_id_;
+      iceoryx_client_abstraction->sequence_id_ += 1;
 
-          if (iceoryx_client_abstraction->is_fixed_size_)
-          {
-            memcpy(requestPayload, ros_request, iceoryx_client_abstraction->request_size_);
-          }
-          else
-          {
-            // message is not fixed size, so we have to serialize
-            std::vector<char> payload_vector{};
-            rmw_iceoryx_cpp::serializeRequest(ros_request, &iceoryx_client_abstraction->type_supports_, payload_vector);
-            memcpy(requestPayload, payload_vector.data(), payload_vector.size());
-          }
-          iceoryx_client->send(requestPayload).and_then([&]{
-            std::cout << "Client sent request!" << std::endl;
-            ret = RMW_RET_OK;
-          }).or_else(
-            [&](auto&) {
-              RMW_SET_ERROR_MSG("rmw_send_request error!");
-              ret = RMW_RET_ERROR;
-            });
-      })
-      .or_else([&](auto&) {
-        RMW_SET_ERROR_MSG("rmw_send_request error!");
-        ret = RMW_RET_ERROR;
-      });
+      if (iceoryx_client_abstraction->is_fixed_size_) {
+        memcpy(requestPayload, ros_request, iceoryx_client_abstraction->request_size_);
+      } else {
+        // message is not fixed size, so we have to serialize
+        std::vector<char> payload_vector{};
+        rmw_iceoryx_cpp::serializeRequest(
+          ros_request, &iceoryx_client_abstraction->type_supports_,
+          payload_vector);
+        memcpy(requestPayload, payload_vector.data(), payload_vector.size());
+      }
+      iceoryx_client->send(requestPayload).and_then(
+        [&] {
+          std::cout << "Client sent request!" << std::endl;
+          ret = RMW_RET_OK;
+        }).or_else(
+        [&](auto &) {
+          RMW_SET_ERROR_MSG("rmw_send_request error!");
+          ret = RMW_RET_ERROR;
+        });
+    })
+  .or_else(
+    [&](auto &) {
+      RMW_SET_ERROR_MSG("rmw_send_request error!");
+      ret = RMW_RET_ERROR;
+    });
 
   return ret;
 }
@@ -124,7 +128,8 @@ rmw_take_request(
   }
 
   // this should never happen if checked already at rmw_create_service
-  if (!rmw_iceoryx_cpp::iceoryx_is_valid_type_support(&iceoryx_server_abstraction->type_supports_)) {
+  if (!rmw_iceoryx_cpp::iceoryx_is_valid_type_support(&iceoryx_server_abstraction->type_supports_))
+  {
     RMW_SET_ERROR_MSG("Use either C typesupport or CPP typesupport");
     return RMW_RET_ERROR;
   }
@@ -144,7 +149,7 @@ rmw_take_request(
       ret = RMW_RET_OK;
     })
   .or_else(
-    [&](iox::popo::ServerRequestResult& error) {
+    [&](iox::popo::ServerRequestResult & error) {
       std::cout << "Could not take request! Error: " << error << std::endl;
       *taken = false;
       RMW_SET_ERROR_MSG("rmw_take_request error!");

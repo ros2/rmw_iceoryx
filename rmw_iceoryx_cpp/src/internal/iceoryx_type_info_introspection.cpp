@@ -233,11 +233,13 @@ bool iceoryx_is_fixed_size(const rosidl_service_type_support_t * type_supports)
   if (ts.first == TypeSupportLanguage::CPP) {
     auto members =
       static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
-    return details_cpp::is_fixed_size(members->request_members_) && details_cpp::is_fixed_size(members->response_members_);
+    return details_cpp::is_fixed_size(members->request_members_) && details_cpp::is_fixed_size(
+      members->response_members_);
   } else if (ts.first == TypeSupportLanguage::C) {
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
-    return details_c::is_fixed_size(members->request_members_) && details_c::is_fixed_size(members->response_members_);
+    return details_c::is_fixed_size(members->request_members_) && details_c::is_fixed_size(
+      members->response_members_);
   }
   // Something went wrong
   return false;
@@ -412,8 +414,12 @@ void iceoryx_init_message(
   if (ts.first == TypeSupportLanguage::CPP) {
     auto members =
       static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
-    members->request_members_->init_function(message, rosidl_runtime_cpp::MessageInitialization::ALL);
-    members->response_members_->init_function(message, rosidl_runtime_cpp::MessageInitialization::ALL);
+    members->request_members_->init_function(
+      message,
+      rosidl_runtime_cpp::MessageInitialization::ALL);
+    members->response_members_->init_function(
+      message,
+      rosidl_runtime_cpp::MessageInitialization::ALL);
     return;
   } else if (ts.first == TypeSupportLanguage::C) {
     auto members =

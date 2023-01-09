@@ -82,7 +82,6 @@ rmw_send_request(
       }
       iceoryx_client->send(requestPayload).and_then(
         [&] {
-          std::cout << "Client sent request!" << std::endl;
           ret = RMW_RET_OK;
         }).or_else(
         [&](auto &) {
@@ -151,7 +150,6 @@ rmw_take_request(
     })
   .or_else(
     [&](iox::popo::ServerRequestResult & error) {
-      std::cout << "Could not take request! Error: " << error << std::endl;
       *taken = false;
       RMW_SET_ERROR_MSG("rmw_take_request error!");
       ret = RMW_RET_ERROR;
@@ -179,8 +177,6 @@ rmw_take_request(
   iceoryx_server_abstraction->request_payload_ = user_payload;
 
   *taken = true;
-  std::cout << "Server took request!" << std::endl;
-
   return ret;
 }
 }  // extern "C"

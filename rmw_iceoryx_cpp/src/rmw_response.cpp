@@ -105,8 +105,6 @@ rmw_take_response(
   }
   iceoryx_client->releaseResponse(user_payload);
   *taken = true;
-  std::cout << "Client took response!" << std::endl;
-
   return ret;
 }
 
@@ -139,6 +137,12 @@ rmw_send_response(
 
   rmw_ret_t ret = RMW_RET_ERROR;
 
+  if (!iceoryx_server_abstraction->request_payload_) {
+    RMW_SET_ERROR_MSG("'rmw_take_request' needs to be called before 'rmw_send_response'!");
+    ret = RMW_RET_ERROR;
+    return ret;
+  }
+
   auto * iceoryx_request_header = iox::popo::RequestHeader::fromPayload(
     iceoryx_server_abstraction->request_payload_);
   /// @todo Why is it not possible to set the sequence id? Is this automatically done? If so,
@@ -166,7 +170,6 @@ rmw_send_response(
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       iceoryx_server->send(responsePayload).and_then(
         [&] {
-          std::cout << "Server sent response!" << std::endl;
           ret = RMW_RET_OK;
         }).or_else(
         [&](auto &) {
@@ -177,13 +180,13 @@ rmw_send_response(
     })
   .or_else(
     [&](auto & error) {
-      std::cout << "Could not allocate Response! Error: " << error << std::endl;
       RMW_SET_ERROR_MSG("rmw_send_response loan error!");
       ret = RMW_RET_ERROR;
     });
 
   // Release the hold request
   iceoryx_server->releaseRequest(iceoryx_server_abstraction->request_payload_);
+  iceoryx_server_abstraction->request_payload_ = nullptr;
 
   return ret;
 }

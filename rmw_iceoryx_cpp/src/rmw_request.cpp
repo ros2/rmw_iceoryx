@@ -134,63 +134,59 @@ rmw_take_request(
     return RMW_RET_ERROR;
   }
 
-  const iox::mepoo::ChunkHeader * chunk_header = nullptr;
-  const iox::popo::RequestHeader * iceoryx_request_header = nullptr;
-  const void * user_payload = nullptr;
-
   rmw_ret_t ret = RMW_RET_ERROR;
 
   iceoryx_server->take()
   .and_then(
     [&](const void * iceoryx_request_payload) {
-      user_payload = iceoryx_request_payload;
-      chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
-      iceoryx_request_header = iox::popo::RequestHeader::fromPayload(user_payload);
+      const iox::mepoo::ChunkHeader * chunk_header =
+      iox::mepoo::ChunkHeader::fromUserPayload(
+        iceoryx_request_payload);
+      const iox::popo::RequestHeader * iceoryx_request_header =
+      iox::popo::RequestHeader::fromPayload(
+        iceoryx_request_payload);
+
+      request_header->source_timestamp = 0;  // Unsupported until needed
+      ret = rcutils_system_time_now(&request_header->received_timestamp);
+      if (ret != RMW_RET_OK) {
+        return;
+      }
+      request_header->request_id.sequence_number = iceoryx_request_header->getSequenceId();
+      auto typed_guid = iceoryx_server->getUid();
+      iox::popo::UniquePortId::value_type guid =
+      static_cast<iox::popo::UniquePortId::value_type>(typed_guid);
+      size_t size = sizeof(guid);
+      auto max_rmw_storage = sizeof(request_header->request_id.writer_guid);
+      if (!typed_guid.isValid() || size > max_rmw_storage) {
+        RMW_SET_ERROR_MSG("Could not write server guid");
+        ret = RMW_RET_ERROR;
+        return;
+      }
+      memcpy(request_header->request_id.writer_guid, &guid, size);
+
+      // if fixed size, we fetch the data via memcpy
+      if (iceoryx_server_abstraction->is_fixed_size_) {
+        memcpy(ros_request, iceoryx_request_payload, chunk_header->userPayloadSize());
+      } else {
+        rmw_iceoryx_cpp::deserializeRequest(
+          static_cast<const char *>(iceoryx_request_payload),
+          &iceoryx_server_abstraction->type_supports_,
+          ros_request);
+      }
+
+      // Hold the loaned request till we send the response in 'rmw_send_response'
+      iceoryx_server_abstraction->request_payload_ = iceoryx_request_payload;
+
+      *taken = true;
       ret = RMW_RET_OK;
     })
   .or_else(
-    [&](iox::popo::ServerRequestResult & error) {
+    [&](auto &) {
       *taken = false;
       RMW_SET_ERROR_MSG("rmw_take_request error!");
       ret = RMW_RET_ERROR;
     });
 
-  if (ret == RMW_RET_ERROR) {
-    return ret;
-  }
-
-  // if fixed size, we fetch the data via memcpy
-  if (iceoryx_server_abstraction->is_fixed_size_) {
-    memcpy(ros_request, user_payload, chunk_header->userPayloadSize());
-  } else {
-    rmw_iceoryx_cpp::deserializeRequest(
-      static_cast<const char *>(user_payload),
-      &iceoryx_server_abstraction->type_supports_,
-      ros_request);
-  }
-  request_header->source_timestamp = 0;  // Unsupported until needed
-  ret = rcutils_system_time_now(&request_header->received_timestamp);
-  if (ret != RMW_RET_OK) {
-    return ret;
-  }
-  request_header->request_id.sequence_number = iceoryx_request_header->getSequenceId();
-
-  auto typed_guid = iceoryx_server->getUid();
-  iox::popo::UniquePortId::value_type guid =
-    static_cast<iox::popo::UniquePortId::value_type>(typed_guid);
-  size_t size = sizeof(guid);
-  auto max_rmw_storage = sizeof(request_header->request_id.writer_guid);
-  if (!typed_guid.isValid() || size > max_rmw_storage) {
-    RMW_SET_ERROR_MSG("Could not write server guid");
-    ret = RMW_RET_ERROR;
-    return ret;
-  }
-  memcpy(request_header->request_id.writer_guid, &guid, size);
-
-  // Hold the loaned request till we send the response in 'rmw_send_response'
-  iceoryx_server_abstraction->request_payload_ = user_payload;
-
-  *taken = true;
   return ret;
 }
 }  // extern "C"

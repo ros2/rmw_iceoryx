@@ -57,8 +57,6 @@ rmw_take_response(
     return RMW_RET_ERROR;
   }
 
-  const iox::mepoo::ChunkHeader * chunk_header = nullptr;
-  const void * user_payload = nullptr;
   rmw_ret_t ret = RMW_RET_ERROR;
 
   iceoryx_client->take()
@@ -70,12 +68,12 @@ rmw_take_response(
       if (iceoryx_response_header->getSequenceId() ==
       iceoryx_client_abstraction->sequence_id_ - 1)
       {
-        user_payload = iceoryx_response_payload;
-        chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
+        const iox::mepoo::ChunkHeader * chunk_header =
+        iox::mepoo::ChunkHeader::fromUserPayload(iceoryx_response_payload);
 
         auto typed_guid = chunk_header->originId();
         iox::popo::UniquePortId::value_type guid =
-          static_cast<iox::popo::UniquePortId::value_type>(typed_guid);
+        static_cast<iox::popo::UniquePortId::value_type>(typed_guid);
         size_t size = sizeof(guid);
         auto max_rmw_storage = sizeof(request_header->request_id.writer_guid);
         if (!typed_guid.isValid() || size > max_rmw_storage) {
@@ -90,6 +88,19 @@ rmw_take_response(
         if (ret != RMW_RET_OK) {
           return;
         }
+
+        // if fixed size, we fetch the data via memcpy
+        if (iceoryx_client_abstraction->is_fixed_size_) {
+          memcpy(ros_response, iceoryx_response_payload, chunk_header->userPayloadSize());
+        } else {
+          rmw_iceoryx_cpp::deserializeResponse(
+            static_cast<const char *>(iceoryx_response_payload),
+            &iceoryx_client_abstraction->type_supports_,
+            ros_response);
+        }
+        iceoryx_client->releaseResponse(iceoryx_response_payload);
+
+        *taken = true;
         ret = RMW_RET_OK;
       } else {
         RMW_SET_ERROR_MSG("Got response with outdated sequence number!");
@@ -98,27 +109,12 @@ rmw_take_response(
       }
     })
   .or_else(
-    [&](iox::popo::ChunkReceiveResult) {
+    [&](auto &) {
       *taken = false;
       RMW_SET_ERROR_MSG("No chunk in iceoryx_client");
       ret = RMW_RET_ERROR;
     });
 
-  if (ret == RMW_RET_ERROR) {
-    return ret;
-  }
-
-  // if fixed size, we fetch the data via memcpy
-  if (iceoryx_client_abstraction->is_fixed_size_) {
-    memcpy(ros_response, user_payload, chunk_header->userPayloadSize());
-  } else {
-    rmw_iceoryx_cpp::deserializeResponse(
-      static_cast<const char *>(user_payload),
-      &iceoryx_client_abstraction->type_supports_,
-      ros_response);
-  }
-  iceoryx_client->releaseResponse(user_payload);
-  *taken = true;
   return ret;
 }
 
@@ -189,7 +185,7 @@ rmw_send_response(
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     })
   .or_else(
-    [&](auto & error) {
+    [&](auto &) {
       RMW_SET_ERROR_MSG("rmw_send_response loan error!");
       ret = RMW_RET_ERROR;
     });

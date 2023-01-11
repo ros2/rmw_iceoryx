@@ -66,16 +66,30 @@ rmw_take_response(
     [&](const void * iceoryx_response_payload) {
       auto iceoryx_response_header = iox::popo::ResponseHeader::fromPayload(
         iceoryx_response_payload);
-      /// @todo check writer guid?
-      request_header->request_id.sequence_number = iceoryx_response_header->getSequenceId();
-      request_header->source_timestamp = 0;  // Unsupported until needed
-      ret = rcutils_system_time_now(&request_header->received_timestamp);
 
       if (iceoryx_response_header->getSequenceId() ==
       iceoryx_client_abstraction->sequence_id_ - 1)
       {
         user_payload = iceoryx_response_payload;
         chunk_header = iox::mepoo::ChunkHeader::fromUserPayload(user_payload);
+
+        auto typed_guid = chunk_header->originId();
+        iox::popo::UniquePortId::value_type guid =
+          static_cast<iox::popo::UniquePortId::value_type>(typed_guid);
+        size_t size = sizeof(guid);
+        auto max_rmw_storage = sizeof(request_header->request_id.writer_guid);
+        if (!typed_guid.isValid() || size > max_rmw_storage) {
+          RMW_SET_ERROR_MSG("Could not write server guid");
+          ret = RMW_RET_ERROR;
+          return;
+        }
+        memcpy(request_header->request_id.writer_guid, &guid, size);
+        request_header->request_id.sequence_number = iceoryx_response_header->getSequenceId();
+        request_header->source_timestamp = 0;  // Unsupported until needed
+        ret = rcutils_system_time_now(&request_header->received_timestamp);
+        if (ret != RMW_RET_OK) {
+          return;
+        }
         ret = RMW_RET_OK;
       } else {
         RMW_SET_ERROR_MSG("Got response with outdated sequence number!");
@@ -145,10 +159,6 @@ rmw_send_response(
 
   auto * iceoryx_request_header = iox::popo::RequestHeader::fromPayload(
     iceoryx_server_abstraction->request_payload_);
-  /// @todo Why is it not possible to set the sequence id? Is this automatically done? If so,
-  /// we need to compare the user-provided sequence id with the one from the
-  /// 'iceoryx_request_header'
-  // iceoryx_request_header->setSequenceId(request_header->sequence_number);
 
   iceoryx_server->loan(
     iceoryx_request_header, iceoryx_server_abstraction->response_size_,

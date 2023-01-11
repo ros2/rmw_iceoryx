@@ -20,8 +20,6 @@
 
 #include "./types/iceoryx_client.hpp"
 
-// #include "iceoryx_posh/runtime/service_discovery.hpp"
-
 extern "C"
 {
 rmw_ret_t
@@ -55,15 +53,6 @@ rmw_service_server_is_available(
   if (iceoryx_client->getConnectionState() == iox::ConnectionState::CONNECTED) {
     *is_available = true;
   }
-
-  /// @todo Better to go through service discovery?
-  // iox::runtime::ServiceDiscovery serviceDiscovery;
-  // auto& searchItem = iceoryx_client->getServiceDescription();
-  // serviceDiscovery.findService( searchItem.getServiceIDString(),
-  //                               searchItem.getInstanceIDString(),
-  //                               searchItem.getEventIDString(),
-  //                               [&](auto&){ *is_available = true; },
-  //                               iox::popo::MessagingPattern::REQ_RES);
 
   ret = RMW_RET_OK;
   return ret;

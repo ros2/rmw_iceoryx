@@ -170,8 +170,22 @@ rmw_take_request(
   }
   request_header->source_timestamp = 0;  // Unsupported until needed
   ret = rcutils_system_time_now(&request_header->received_timestamp);
+  if (ret != RMW_RET_OK) {
+    return ret;
+  }
   request_header->request_id.sequence_number = iceoryx_request_header->getSequenceId();
-  request_header->request_id.writer_guid[0] = 42;  /// @todo
+
+  auto typed_guid = iceoryx_server->getUid();
+  iox::popo::UniquePortId::value_type guid =
+    static_cast<iox::popo::UniquePortId::value_type>(typed_guid);
+  size_t size = sizeof(guid);
+  auto max_rmw_storage = sizeof(request_header->request_id.writer_guid);
+  if (!typed_guid.isValid() || size > max_rmw_storage) {
+    RMW_SET_ERROR_MSG("Could not write server guid");
+    ret = RMW_RET_ERROR;
+    return ret;
+  }
+  memcpy(request_header->request_id.writer_guid, &guid, size);
 
   // Hold the loaned request till we send the response in 'rmw_send_response'
   iceoryx_server_abstraction->request_payload_ = user_payload;

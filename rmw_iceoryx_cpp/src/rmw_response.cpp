@@ -158,7 +158,7 @@ rmw_send_response(
 
   iceoryx_server->loan(
     iceoryx_request_header, iceoryx_server_abstraction->response_size_,
-    iceoryx_server_abstraction->response_alignment_)
+    iox::CHUNK_DEFAULT_USER_PAYLOAD_ALIGNMENT)
   .and_then(
     [&](void * responsePayload) {
       if (iceoryx_server_abstraction->is_fixed_size_) {

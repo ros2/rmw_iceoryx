@@ -61,7 +61,7 @@ rmw_send_request(
 
   iceoryx_client->loan(
     iceoryx_client_abstraction->request_size_,
-    iceoryx_client_abstraction->request_alignment_)
+    iox::CHUNK_DEFAULT_USER_PAYLOAD_ALIGNMENT)
   .and_then(
     [&](void * requestPayload) {
       auto requestHeader = iox::popo::RequestHeader::fromPayload(requestPayload);

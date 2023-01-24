@@ -114,16 +114,16 @@ rmw_wait(
     goto after_wait;
   }
 
+  // The triggered entities are checked below individually, this could be refactored by looping
+  // over the vector returned by 'wait()' and using 'vectorEntry->doesOriginateFrom()'
   if (!wait_timeout) {
-    /// @todo Check triggered subscribers in vector? Is that relevant for rmw?
-    auto notificationVector = waitset->wait();
+    waitset->wait();
   } else {
     auto sec = iox::units::Duration::fromSeconds(wait_timeout->sec);
     auto nsec = iox::units::Duration::fromNanoseconds(wait_timeout->nsec);
     auto timeout = sec + nsec;
 
-    /// @todo Check triggered subscribers in vector? Is that relevant for rmw?
-    auto notificationVector = waitset->timedWait(iox::units::Duration(timeout));
+    waitset->timedWait(iox::units::Duration(timeout));
   }
 
 after_wait:

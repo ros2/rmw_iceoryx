@@ -171,9 +171,6 @@ rmw_send_response(
           &iceoryx_server_abstraction->type_supports_, payload_vector);
         memcpy(responsePayload, payload_vector.data(), payload_vector.size());
       }
-      /// @todo Why are the sleeps before and after 'send()' needed?
-      /// rmw_cyclonedds and rmw_fastrtps seem to do something similar in 'rmw_send_response'..
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       iceoryx_server->send(responsePayload).and_then(
         [&] {
           ret = RMW_RET_OK;
@@ -182,7 +179,6 @@ rmw_send_response(
           RMW_SET_ERROR_MSG("rmw_send_response send error!");
           ret = RMW_RET_ERROR;
         });
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     })
   .or_else(
     [&](auto &) {

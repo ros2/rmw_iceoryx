@@ -93,7 +93,7 @@ rmw_create_service(
     iceoryx_server, iceoryx_server,
     cleanupAfterError(), iox::popo::UntypedServer, service_description,
     iox::popo::ServerOptions{
-      1U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+      qos_policies->depth, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
   if (returnOnError) {
     return nullptr;
   }

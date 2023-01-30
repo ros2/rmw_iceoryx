@@ -3,7 +3,7 @@ name: Integration build rmw_iceoryx
 on:
   push:
     branches:
-      - master
+      - humble
   pull_request:
 
 jobs:
@@ -12,18 +12,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          os: [ubuntu-20.04]
+          os: [ubuntu-22.04]
     steps:
       - uses: actions/checkout@v2
       - name: Setup ROS
         uses: ros-tooling/setup-ros@master
+        with:
+          required-ros-distributions: humble
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
       - name: Build & Test
         uses: ros-tooling/action-ros-ci@master
         with:
           package-name: rmw_iceoryx_cpp
-          target-ros2-distro: rolling
-          vcs-repo-file-url: |
-            https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos
-            ${{ github.workspace }}/.github/workflows/custom_repos.repos
+          target-ros2-distro: humble

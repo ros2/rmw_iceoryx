@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +36,7 @@ void fill_topic_containers(
   std::map<std::string, std::vector<std::string>> & topic_publishers_);
 
 std::map<std::string, std::string> get_topic_names_and_types();
+std::map<std::string, std::string> get_service_names_and_types();
 
 std::map<std::string, std::vector<std::string>> get_nodes_and_publishers();
 

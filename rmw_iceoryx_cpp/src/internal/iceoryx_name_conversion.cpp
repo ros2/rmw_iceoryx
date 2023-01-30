@@ -1,5 +1,6 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
 // Copyright (c) 2021 by ZhenshengLee. All rights reserved.
+// Copyright (c) 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@
 #include "rcpputils/split.hpp"
 
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
+#include "rosidl_typesupport_cpp/service_type_support.hpp"
 
 #include "rosidl_typesupport_introspection_c/field_types.h"
 #include "rosidl_typesupport_introspection_c/identifier.h"
@@ -60,6 +62,15 @@ inline void extract_type(
 {
   package_name = to_message_type(rmw_iceoryx_cpp::iceoryx_get_message_namespace(type_support));
   type_name = rmw_iceoryx_cpp::iceoryx_get_message_name(type_support);
+}
+
+inline void extract_type(
+  const rosidl_service_type_support_t * type_support,
+  std::string & package_name,
+  std::string & type_name)
+{
+  package_name = to_message_type(rmw_iceoryx_cpp::iceoryx_get_service_namespace(type_support));
+  type_name = rmw_iceoryx_cpp::iceoryx_get_service_name(type_support);
 }
 
 namespace rmw_iceoryx_cpp
@@ -159,6 +170,18 @@ get_service_description_from_name_n_type(
   return std::make_tuple(service, instance, event);
 }
 
+iox::capro::ServiceDescription make_service_description(
+  const std::string & topic_name,
+  const std::string & type_name)
+{
+  auto serviceDescriptionTuple = get_service_description_from_name_n_type(topic_name, type_name);
+
+  return iox::capro::ServiceDescription(
+    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<0>(serviceDescriptionTuple)),
+    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<1>(serviceDescriptionTuple)),
+    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<2>(serviceDescriptionTuple)));
+}
+
 iox::capro::ServiceDescription
 get_iceoryx_service_description(
   const std::string & topic_name,
@@ -169,12 +192,20 @@ get_iceoryx_service_description(
   extract_type(type_supports, package_name, type_name);
   type_name = package_name + "/" + type_name;
 
-  auto serviceDescriptionTuple = get_service_description_from_name_n_type(topic_name, type_name);
+  return make_service_description(topic_name, type_name);
+}
 
-  return iox::capro::ServiceDescription(
-    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<0>(serviceDescriptionTuple)),
-    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<1>(serviceDescriptionTuple)),
-    iox::capro::IdString_t(iox::cxx::TruncateToCapacity, std::get<2>(serviceDescriptionTuple)));
+iox::capro::ServiceDescription
+get_iceoryx_service_description(
+  const std::string & topic_name,
+  const rosidl_service_type_support_t * type_supports)
+{
+  std::string package_name;
+  std::string type_name;
+  extract_type(type_supports, package_name, type_name);
+  type_name = package_name + "/" + type_name;
+
+  return make_service_description(topic_name, type_name);
 }
 
 }  // namespace rmw_iceoryx_cpp

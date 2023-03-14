@@ -38,6 +38,7 @@ find_package(rosidl_typesupport_introspection_cpp REQUIRED)
 add_library(rmw_iceoryx_serialization SHARED
   src/internal/iceoryx_deserialize.cpp
   src/internal/iceoryx_serialize.cpp
+  src/internal/iceoryx_type_info_introspection.cpp
 )
 target_include_directories(rmw_iceoryx_serialization
   PUBLIC include
@@ -50,7 +51,6 @@ ament_target_dependencies(rmw_iceoryx_serialization
 )
 add_library(rmw_iceoryx_name_conversion SHARED
   src/internal/iceoryx_name_conversion.cpp
-  src/internal/iceoryx_type_info_introspection.cpp
   src/internal/iceoryx_topic_names_and_types.cpp
   src/internal/iceoryx_get_topic_endpoint_info.cpp
 )
@@ -59,6 +59,7 @@ target_include_directories(rmw_iceoryx_name_conversion
 )
 target_link_libraries(rmw_iceoryx_name_conversion
   iceoryx_posh::iceoryx_posh
+  rmw_iceoryx_serialization
 )
 ament_target_dependencies(rmw_iceoryx_name_conversion
   rcpputils

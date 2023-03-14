@@ -17,6 +17,7 @@
 #include <string>
 
 #include "iceoryx_posh/runtime/posh_runtime.hpp"
+#include "iceoryx_dust/cxx/std_string_support.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -103,8 +104,8 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   // This call creates a runtime object.
   // It regisers with the RouDi daemon and gets the configuration
   // for setting up the shared memeory
-  iox::log::LogManager::GetLogManager().SetDefaultLogLevel(iox::log::LogLevel::kWarn);
-  iox::runtime::PoshRuntime::initRuntime(iox::RuntimeName_t(iox::cxx::TruncateToCapacity, name));
+  iox::log::Logger::init(iox::log::LogLevel::WARN);
+  iox::runtime::PoshRuntime::initRuntime(iox::into<iox::lossy<iox::RuntimeName_t>>(name));
 
   return RMW_RET_OK;
 }

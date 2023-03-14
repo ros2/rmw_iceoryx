@@ -131,7 +131,7 @@ fail:
   if (rmw_publisher) {
     if (iceoryx_sender) {
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        iceoryx_sender->~UntypedPublisherImpl(), iox::popo::UntypedPublisher)
+        iceoryx_sender->~UntypedPublisher(), iox::popo::UntypedPublisher)
       rmw_free(iceoryx_sender);
     }
     if (iceoryx_publisher) {
@@ -198,7 +198,7 @@ rmw_destroy_publisher(rmw_node_t * node, rmw_publisher_t * publisher)
   if (iceoryx_publisher) {
     if (iceoryx_publisher->iceoryx_sender_) {
       RMW_TRY_DESTRUCTOR(
-        iceoryx_publisher->iceoryx_sender_->~UntypedPublisherImpl(),
+        iceoryx_publisher->iceoryx_sender_->~UntypedPublisher(),
         iceoryx_publisher->iceoryx_sender_,
         result = RMW_RET_ERROR)
       rmw_free(iceoryx_publisher->iceoryx_sender_);

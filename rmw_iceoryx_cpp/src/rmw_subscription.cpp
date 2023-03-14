@@ -130,7 +130,7 @@ fail:
     if (iceoryx_receiver) {
       /// @todo Can we avoid to use the impl here?
       RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
-        iceoryx_receiver->~UntypedSubscriberImpl(), iox::popo::UntypedSubscriber)
+        iceoryx_receiver->~UntypedSubscriber(), iox::popo::UntypedSubscriber)
       rmw_free(iceoryx_receiver);
     }
     if (iceoryx_subscription) {
@@ -216,7 +216,7 @@ rmw_destroy_subscription(
     if (iceoryx_subscription->iceoryx_receiver_) {
       // @todo Can we avoid to use the impl here?
       RMW_TRY_DESTRUCTOR(
-        iceoryx_subscription->iceoryx_receiver_->~UntypedSubscriberImpl(),
+        iceoryx_subscription->iceoryx_receiver_->~UntypedSubscriber(),
         iceoryx_subscription->iceoryx_receiver_,
         result = RMW_RET_ERROR)
       rmw_free(iceoryx_subscription->iceoryx_receiver_);

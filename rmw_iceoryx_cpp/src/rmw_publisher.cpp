@@ -25,6 +25,7 @@
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 
 #include "./types/iceoryx_publisher.hpp"
+#include "iceoryx_dust/cxx/std_string_support.hpp"
 
 extern "C"
 {
@@ -98,7 +99,7 @@ rmw_create_publisher(
     iceoryx_sender, iceoryx_sender,
     goto fail, iox::popo::UntypedPublisher, service_description,
     iox::popo::PublisherOptions{
-      0U, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+      0U, iox::into<iox::lossy<iox::NodeName_t>>(node_full_name)});
 
   iceoryx_sender->offer();  // make the sender visible
 

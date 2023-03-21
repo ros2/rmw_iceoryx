@@ -20,6 +20,7 @@
 #include "rmw/allocators.h"
 
 #include "./types/iceoryx_node.hpp"
+#include "iceoryx_dust/cxx/std_string_support.hpp"
 
 extern "C"
 {
@@ -80,7 +81,7 @@ rmw_create_node(
   RMW_TRY_PLACEMENT_NEW(
     iceoryx_runnable, iceoryx_runnable,
     goto fail, iox::runtime::Node,
-    iox::NodeName_t(iox::cxx::TruncateToCapacity, full_name));
+    iox::into<iox::lossy<iox::NodeName_t>>(full_name));
 
   node_info = static_cast<IceoryxNodeInfo *>(rmw_allocate(sizeof(IceoryxNodeInfo)));
   if (!node_info) {

@@ -4,8 +4,9 @@
   <name>rmw_iceoryx_cpp</name>
   <version>1.0.1</version>
   <description>rmw implementation for Bosch's zero copy middleware iceoryx</description>
-  <maintainer email="karsten.knese@us.bosch.com">Karsten Knese</maintainer>
+  <maintainer email="simon.hoinkis@apex.ai">Simon Hoinkis</maintainer>
   <license>Apache License 2.0</license>
+  <author>Karsten Knese</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

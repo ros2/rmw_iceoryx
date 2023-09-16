@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "iceoryx_hoofs/cxx/optional.hpp"
 #include "iceoryx_posh/popo/untyped_subscriber.hpp"
 #include "iceoryx_posh/roudi/introspection_types.hpp"
 

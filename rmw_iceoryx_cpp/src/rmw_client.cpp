@@ -93,7 +93,7 @@ rmw_create_client(
     iceoryx_client, iceoryx_client,
     cleanupAfterError(), iox::popo::UntypedClient, service_description,
     iox::popo::ClientOptions{
-      qos_policies->depth, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+      qos_policies->depth, iox::into<iox::lossy<iox::NodeName_t>>(node_full_name)});
   if (returnOnError) {
     return nullptr;
   }

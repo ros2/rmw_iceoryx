@@ -23,6 +23,8 @@
 
 #include "types/iceoryx_server.hpp"
 
+#include "iceoryx_dust/cxx/std_string_support.hpp"
+
 extern "C"
 {
 rmw_service_t *
@@ -93,7 +95,7 @@ rmw_create_service(
     iceoryx_server, iceoryx_server,
     cleanupAfterError(), iox::popo::UntypedServer, service_description,
     iox::popo::ServerOptions{
-      qos_policies->depth, iox::NodeName_t(iox::cxx::TruncateToCapacity, node_full_name)});
+      qos_policies->depth, iox::into<iox::lossy<iox::NodeName_t>>(node_full_name)});
   if (returnOnError) {
     return nullptr;
   }

@@ -20,6 +20,7 @@
 #include "iceoryx_dust/cxx/std_string_support.hpp"
 
 #include "rcutils/error_handling.h"
+#include "rcutils/process.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/impl/cpp/macros.hpp"
@@ -96,8 +97,9 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
   context->impl = nullptr;
 
   // create a name for the process to register with the RouDi daemon
-  extern char * __progname;
-  auto progName = std::string(__progname);
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  auto progam_name = rcutils_get_executable_name(allocator);
+  auto progName = std::string(progam_name);
   /// @todo we could check with the introspection topics beforehand if the name is already used
   auto name = progName + "_" + std::to_string(getpid());
 

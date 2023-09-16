@@ -1,4 +1,5 @@
 // Copyright (c) 2020 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,6 +28,7 @@
 
 #include "rosidl_typesupport_introspection_c/field_types.h"
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
+#include "rosidl_typesupport_introspection_c/service_introspection.h"
 
 #include "./iceoryx_serialization_common.hpp"
 
@@ -237,6 +239,22 @@ const char * deserialize(
     }
   }
   return serialized_msg;
+}
+
+const char * deserializeResponse(
+  const char * serialized_msg,
+  const rosidl_typesupport_introspection_c__ServiceMembers * service_members,
+  void * ros_message)
+{
+  return deserialize(serialized_msg, service_members->response_members_, ros_message);
+}
+
+const char * deserializeRequest(
+  const char * serialized_msg,
+  const rosidl_typesupport_introspection_c__ServiceMembers * service_members,
+  void * ros_message)
+{
+  return deserialize(serialized_msg, service_members->request_members_, ros_message);
 }
 
 }  // namespace details_c

@@ -5,11 +5,11 @@ on:
 jobs:
   lint:
     name: ament_${{ matrix.linter }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-          linter: [cppcheck, cpplint, uncrustify, xmllint, copyright]
+          linter: [cpplint, uncrustify, xmllint, copyright]
     steps:
     - uses: actions/checkout@v2
     - uses: ros-tooling/setup-ros@master

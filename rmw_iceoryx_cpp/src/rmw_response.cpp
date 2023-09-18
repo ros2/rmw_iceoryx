@@ -98,7 +98,6 @@ rmw_take_response(
             &iceoryx_client_abstraction->type_supports_,
             ros_response);
         }
-        iceoryx_client->releaseResponse(iceoryx_response_payload);
 
         *taken = true;
         ret = RMW_RET_OK;
@@ -107,6 +106,7 @@ rmw_take_response(
         *taken = false;
         ret = RMW_RET_ERROR;
       }
+      iceoryx_client->releaseResponse(iceoryx_response_payload);
     })
   .or_else(
     [&](auto &) {

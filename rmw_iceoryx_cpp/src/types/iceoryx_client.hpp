@@ -35,9 +35,9 @@ struct IceoryxClient
 
   rosidl_service_type_support_t type_supports_;
   iox::popo::UntypedClient * const iceoryx_client_;
-  bool is_fixed_size_;
-  size_t request_size_;
-  int64_t sequence_id_;
+  bool is_fixed_size_{false};
+  size_t request_size_{0};
+  int64_t sequence_id_{0};
 };
 
 #endif  // TYPES__ICEORYX_CLIENT_HPP_

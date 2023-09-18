@@ -48,11 +48,7 @@ rmw_service_server_is_available(
     return ret;
   }
 
-  std::this_thread::sleep_for(std::chrono::seconds(1));
-
-  if (iceoryx_client->getConnectionState() == iox::ConnectionState::CONNECTED) {
-    *is_available = true;
-  }
+  *is_available = iceoryx_client->getConnectionState() == iox::ConnectionState::CONNECTED;
 
   ret = RMW_RET_OK;
   return ret;

@@ -139,10 +139,10 @@ rmw_take_request(
   iceoryx_server->take()
   .and_then(
     [&](const void * iceoryx_request_payload) {
-      const iox::mepoo::ChunkHeader * chunk_header =
+      const auto * chunk_header =
       iox::mepoo::ChunkHeader::fromUserPayload(
         iceoryx_request_payload);
-      const iox::popo::RequestHeader * iceoryx_request_header =
+      const auto * iceoryx_request_header =
       iox::popo::RequestHeader::fromPayload(
         iceoryx_request_payload);
 

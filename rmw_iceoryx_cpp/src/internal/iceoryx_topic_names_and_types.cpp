@@ -166,18 +166,19 @@ std::map<std::string, std::string> get_service_names_and_types()
     iox::popo::MessagingPattern::REQ_RES);
 
   for (auto & server : available_servers) {
-    auto name_and_type = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
+    /// @todo Use structured bindings once all platforms are on C++17
+    std::string name;
+    std::string type;
+    std::tie(name, type) = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
       std::string(server.getServiceIDString().c_str()),
       std::string(server.getInstanceIDString().c_str()),
       std::string(server.getEventIDString().c_str()));
 
-    names_n_types[std::get<0>(name_and_type)] = std::get<1>(name_and_type);
+    names_n_types[name] = type;
     /// @todo There is no API to find out which 'ServiceDescription' is offered by which node,
     /// for now we use 'NodeFoo'..
-    servers_topics[std::string("NodeFoo")].push_back(
-      std::get<0>(
-        name_and_type));
-    topic_servers[std::get<0>(name_and_type)].push_back(std::string("NodeFoo"));
+    servers_topics[std::string("NodeFoo")].push_back(name);
+    topic_servers[name].push_back(std::string("NodeFoo"));
   }
 
   return names_n_types;

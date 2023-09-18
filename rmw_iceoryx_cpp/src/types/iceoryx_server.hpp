@@ -35,8 +35,8 @@ struct IceoryxServer
 
   rosidl_service_type_support_t type_supports_;
   iox::popo::UntypedServer * const iceoryx_server_;
-  bool is_fixed_size_;
-  size_t response_size_;
+  bool is_fixed_size_{false};
+  size_t response_size_{0};
   /// @todo The request payload pointer could also be added to 'rmw_request_id_t' if accepeted in
   /// ros2/rmw. For now, the limitation exists to always call 'rmw_take_request' followed by
   /// 'rmw_send_response' and not call e.g. 2x times 'rmw_take_request' and then

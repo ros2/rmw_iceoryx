@@ -6,9 +6,20 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
-if(NOT CMAKE_CXX_STANDARD)
+# Set C++ standard in accordance with iceoryx
+# https://github.com/eclipse-iceoryx/iceoryx/blob/v2.0.3/iceoryx_hoofs/cmake/IceoryxPlatform.cmake#L26-L38
+if(LINUX)
   set(CMAKE_CXX_STANDARD 14)
+elseif(QNX)
+  set(CMAKE_CXX_STANDARD 14)
+elseif(WIN32)
+  set(CMAKE_CXX_STANDARD 17)
+elseif(APPLE)
+  set(CMAKE_CXX_STANDARD 17)
+elseif(UNIX)
+  set(CMAKE_CXX_STANDARD 17)
+else()
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")

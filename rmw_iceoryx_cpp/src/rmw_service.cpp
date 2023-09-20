@@ -1,5 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
-// Copyright (c) 2022 by Apex.AI Inc. All rights reserved.
+// Copyright (c) 2022 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,9 +19,14 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
+#include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
+
+#include "types/iceoryx_server.hpp"
+
+#include "iceoryx_dust/cxx/std_string_support.hpp"
+
 extern "C"
 {
-/// @todo Use the new request/response API of iceoryx v2.0 here instead of dummy services
 rmw_service_t *
 rmw_create_service(
   const rmw_node_t * node,
@@ -34,26 +39,94 @@ rmw_create_service(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(service_name, nullptr);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(qos_policies, nullptr);
 
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_create_service
+    : node, node->implementation_identifier, rmw_get_implementation_identifier(), return nullptr);
+
+  // create the iceoryx service description for a sender
+  auto service_description =
+    rmw_iceoryx_cpp::get_iceoryx_service_description(service_name, type_supports);
+
+  std::string node_full_name = std::string(node->namespace_) + std::string(node->name);
   rmw_service_t * rmw_service = nullptr;
+  iox::popo::UntypedServer * iceoryx_server = nullptr;
+  IceoryxServer * iceoryx_server_abstraction = nullptr;
+
+  bool returnOnError = false;
+
+  auto cleanupAfterError = [&]() {
+      if (rmw_service) {
+        if (iceoryx_server) {
+          RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
+            iceoryx_server->~UntypedServer(), iox::popo::UntypedServer)
+          rmw_free(iceoryx_server);
+        }
+        if (iceoryx_server_abstraction) {
+          RMW_TRY_DESTRUCTOR_FROM_WITHIN_FAILURE(
+            iceoryx_server_abstraction->~IceoryxServer(), IceoryxServer)
+          rmw_free(iceoryx_server_abstraction);
+        }
+        if (rmw_service->service_name) {
+          rmw_free(const_cast<char *>(rmw_service->service_name));
+        }
+        rmw_service_free(rmw_service);
+        returnOnError = true;
+      }
+    };
 
   rmw_service = rmw_service_allocate();
   if (!rmw_service) {
     RMW_SET_ERROR_MSG("failed to allocate memory for service");
+    cleanupAfterError();
     return nullptr;
   }
 
-  void * info = nullptr;
+  iceoryx_server =
+    static_cast<iox::popo::UntypedServer *>(rmw_allocate(
+      sizeof(iox::popo::UntypedServer)));
+
+  if (!iceoryx_server) {
+    RMW_SET_ERROR_MSG("failed to allocate memory for iceoryx server");
+    cleanupAfterError();
+    return nullptr;
+  }
+
+  RMW_TRY_PLACEMENT_NEW(
+    iceoryx_server, iceoryx_server,
+    cleanupAfterError(), iox::popo::UntypedServer, service_description,
+    iox::popo::ServerOptions{
+      qos_policies->depth, iox::into<iox::lossy<iox::NodeName_t>>(node_full_name)});
+  if (returnOnError) {
+    return nullptr;
+  }
+
+  iceoryx_server->offer();
+
+  iceoryx_server_abstraction =
+    static_cast<IceoryxServer *>(rmw_allocate(sizeof(IceoryxServer)));
+  if (!iceoryx_server_abstraction) {
+    RMW_SET_ERROR_MSG("failed to allocate memory for rmw iceoryx publisher");
+    cleanupAfterError();
+    return nullptr;
+  }
+  RMW_TRY_PLACEMENT_NEW(
+    iceoryx_server_abstraction, iceoryx_server_abstraction,
+    cleanupAfterError(), IceoryxServer, type_supports, iceoryx_server);
+  if (returnOnError) {
+    return nullptr;
+  }
 
   rmw_service->implementation_identifier = rmw_get_implementation_identifier();
-  rmw_service->data = info;
+  rmw_service->data = iceoryx_server_abstraction;
 
   rmw_service->service_name =
     static_cast<const char *>(rmw_allocate(sizeof(char) * strlen(service_name) + 1));
   if (!rmw_service->service_name) {
-    RMW_SET_ERROR_MSG("failed to allocate memory for publisher topic name");
-  } else {
-    memcpy(const_cast<char *>(rmw_service->service_name), service_name, strlen(service_name) + 1);
+    RMW_SET_ERROR_MSG("failed to allocate memory for service name");
+    cleanupAfterError();
+    return nullptr;
   }
+  memcpy(const_cast<char *>(rmw_service->service_name), service_name, strlen(service_name) + 1);
 
   return rmw_service;
 }
@@ -70,6 +143,24 @@ rmw_destroy_service(rmw_node_t * node, rmw_service_t * service)
     rmw_get_implementation_identifier(), return RMW_RET_ERROR);
 
   rmw_ret_t result = RMW_RET_OK;
+
+  IceoryxServer * iceoryx_server_abstraction = static_cast<IceoryxServer *>(service->data);
+  if (iceoryx_server_abstraction) {
+    if (iceoryx_server_abstraction->iceoryx_server_) {
+      RMW_TRY_DESTRUCTOR(
+        iceoryx_server_abstraction->iceoryx_server_->~UntypedServer(),
+        iceoryx_server_abstraction->iceoryx_server_,
+        result = RMW_RET_ERROR)
+      rmw_free(iceoryx_server_abstraction->iceoryx_server_);
+    }
+    RMW_TRY_DESTRUCTOR(
+      iceoryx_server_abstraction->~IceoryxServer(),
+      iceoryx_server_abstraction,
+      result = RMW_RET_ERROR)
+    rmw_free(iceoryx_server_abstraction);
+  }
+
+  service->data = nullptr;
 
   rmw_free(const_cast<char *>(service->service_name));
   service->service_name = nullptr;

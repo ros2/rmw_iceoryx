@@ -6,9 +6,20 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
-if(NOT CMAKE_CXX_STANDARD)
+# Set C++ standard in accordance with iceoryx
+# https://github.com/eclipse-iceoryx/iceoryx/blob/v2.0.3/iceoryx_hoofs/cmake/IceoryxPlatform.cmake#L26-L38
+if(LINUX)
   set(CMAKE_CXX_STANDARD 14)
+elseif(QNX)
+  set(CMAKE_CXX_STANDARD 14)
+elseif(WIN32)
+  set(CMAKE_CXX_STANDARD 17)
+elseif(APPLE)
+  set(CMAKE_CXX_STANDARD 17)
+elseif(UNIX)
+  set(CMAKE_CXX_STANDARD 17)
+else()
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -38,6 +49,7 @@ find_package(rosidl_typesupport_introspection_cpp REQUIRED)
 add_library(rmw_iceoryx_serialization SHARED
   src/internal/iceoryx_deserialize.cpp
   src/internal/iceoryx_serialize.cpp
+  src/internal/iceoryx_type_info_introspection.cpp
 )
 target_include_directories(rmw_iceoryx_serialization
   PUBLIC include
@@ -50,7 +62,6 @@ ament_target_dependencies(rmw_iceoryx_serialization
 )
 add_library(rmw_iceoryx_name_conversion SHARED
   src/internal/iceoryx_name_conversion.cpp
-  src/internal/iceoryx_type_info_introspection.cpp
   src/internal/iceoryx_topic_names_and_types.cpp
   src/internal/iceoryx_get_topic_endpoint_info.cpp
 )
@@ -59,6 +70,7 @@ target_include_directories(rmw_iceoryx_name_conversion
 )
 target_link_libraries(rmw_iceoryx_name_conversion
   iceoryx_posh::iceoryx_posh
+  rmw_iceoryx_serialization
 )
 ament_target_dependencies(rmw_iceoryx_name_conversion
   rcpputils

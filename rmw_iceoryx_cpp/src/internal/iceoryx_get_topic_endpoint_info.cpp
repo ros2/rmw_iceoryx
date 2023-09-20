@@ -1,4 +1,5 @@
 // Copyright (c) 2021 by ZhenshengLee. All rights reserved.
+// Copyright (c) 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -117,7 +118,7 @@ fill_rmw_publisher_end_info(
 
   int i = 0;
   // store all data in rmw_topic_endpoint_info_array_t
-  for (const auto node_full_name : full_name_array) {
+  for (const auto & node_full_name : full_name_array) {
     auto name_n_space = get_name_n_space_from_node_full_name(node_full_name);
     auto rmw_topic_endpoint_info = rmw_get_zero_initialized_topic_endpoint_info();
     // duplicate and store the topic_name
@@ -204,7 +205,7 @@ fill_rmw_subscriber_end_info(
 
   int i = 0;
   // store all data in rmw_topic_endpoint_info_array_t
-  for (const auto node_full_name : full_name_array) {
+  for (const auto & node_full_name : full_name_array) {
     auto name_n_space = get_name_n_space_from_node_full_name(node_full_name);
     auto rmw_topic_endpoint_info = rmw_get_zero_initialized_topic_endpoint_info();
     // duplicate and store the topic_name

@@ -1,5 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
-// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
+// Copyright (c) 2021 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "iceoryx_hoofs/cxx/optional.hpp"
 #include "iceoryx_posh/popo/untyped_subscriber.hpp"
 #include "iceoryx_posh/roudi/introspection_types.hpp"
 
@@ -27,6 +28,8 @@
 
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
 #include "rmw_iceoryx_cpp/iceoryx_topic_names_and_types.hpp"
+
+#include "iceoryx_posh/runtime/service_discovery.hpp"
 
 namespace rmw_iceoryx_cpp
 {
@@ -136,6 +139,47 @@ std::map<std::string, std::string> get_topic_names_and_types()
   fill_topic_containers(
     names_n_types, subscribers_topics, publishers_topics, topic_subscribers,
     topic_publishers);
+
+  return names_n_types;
+}
+
+std::map<std::string, std::string> get_service_names_and_types()
+{
+  std::map<std::string, std::string> names_n_types;
+  // Currently, no possibility to query for clients..
+  std::map<std::string, std::vector<std::string>> clients_topics;
+  // Can be discovered via 'ServiceDiscovery'
+  std::map<std::string, std::vector<std::string>> servers_topics;
+  // Currently, no possibility to query for clients..
+  std::map<std::string, std::vector<std::string>> topic_clients;
+  // Can be discovered, but missing associated node
+  std::map<std::string, std::vector<std::string>> topic_servers;
+
+  std::vector<iox::capro::ServiceDescription> available_servers;
+
+  iox::runtime::ServiceDiscovery service_discovery;
+  service_discovery.findService(
+    iox::cxx::nullopt,
+    iox::cxx::nullopt,
+    iox::cxx::nullopt,
+    [&](auto & service_description) {available_servers.push_back(service_description);},
+    iox::popo::MessagingPattern::REQ_RES);
+
+  for (auto & server : available_servers) {
+    /// @todo Use structured bindings once all platforms are on C++17
+    std::string name;
+    std::string type;
+    std::tie(name, type) = rmw_iceoryx_cpp::get_name_n_type_from_service_description(
+      std::string(server.getServiceIDString().c_str()),
+      std::string(server.getInstanceIDString().c_str()),
+      std::string(server.getEventIDString().c_str()));
+
+    names_n_types[name] = type;
+    /// @todo There is no API to find out which 'ServiceDescription' is offered by which node,
+    /// for now we use 'NodeFoo'..
+    servers_topics[std::string("NodeFoo")].push_back(name);
+    topic_servers[name].push_back(std::string("NodeFoo"));
+  }
 
   return names_n_types;
 }

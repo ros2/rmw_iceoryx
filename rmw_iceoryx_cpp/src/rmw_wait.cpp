@@ -1,5 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
-// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
+// Copyright (c) 2021 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@
 #include "rmw/rmw.h"
 
 #include "./types/iceoryx_subscription.hpp"
+#include "./types/iceoryx_client.hpp"
+#include "./types/iceoryx_server.hpp"
 
 extern "C"
 {
@@ -70,6 +72,31 @@ rmw_wait(
       });
   }
 
+  // attach all iceoryx servers to WaitSet
+  for (size_t i = 0; i < services->service_count; ++i) {
+    auto iceoryx_server_abstraction =
+      static_cast<IceoryxServer *>(services->services[i]);
+    auto iceoryx_server = iceoryx_server_abstraction->iceoryx_server_;
+
+    waitset->attachState(*iceoryx_server, iox::popo::ServerState::HAS_REQUEST).or_else(
+      [&](auto &) {
+        RMW_SET_ERROR_MSG("failed to attach service");
+        skip_wait = true;
+      });
+  }
+
+  // attach all iceoryx client to WaitSet
+  for (size_t i = 0; i < clients->client_count; ++i) {
+    auto iceoryx_client_abstraction =
+      static_cast<IceoryxClient *>(clients->clients[i]);
+    auto iceoryx_client = iceoryx_client_abstraction->iceoryx_client_;
+
+    waitset->attachState(*iceoryx_client, iox::popo::ClientState::HAS_RESPONSE).or_else(
+      [&](auto &) {
+        RMW_SET_ERROR_MSG("failed to attach client");
+        skip_wait = true;
+      });
+  }
 
   // attach all guard conditions to WaitSet
   for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
@@ -87,16 +114,16 @@ rmw_wait(
     goto after_wait;
   }
 
+  // The triggered entities are checked below individually, this could be refactored by looping
+  // over the vector returned by 'wait()' and using 'vectorEntry->doesOriginateFrom()'
   if (!wait_timeout) {
-    /// @todo Check triggered subscribers in vector? Is that relevant for rmw?
-    auto notificationVector = waitset->wait();
+    waitset->wait();
   } else {
     auto sec = iox::units::Duration::fromSeconds(wait_timeout->sec);
     auto nsec = iox::units::Duration::fromNanoseconds(wait_timeout->nsec);
     auto timeout = sec + nsec;
 
-    /// @todo Check triggered subscribers in vector? Is that relevant for rmw?
-    auto notificationVector = waitset->timedWait(iox::units::Duration(timeout));
+    waitset->timedWait(iox::units::Duration(timeout));
   }
 
 after_wait:
@@ -111,6 +138,34 @@ after_wait:
 
     if (!iceoryx_receiver->hasData()) {
       subscriptions->subscribers[i] = nullptr;
+    }
+  }
+
+  // reset all the servers that don't have new data
+  for (size_t i = 0; i < services->service_count; ++i) {
+    auto iceoryx_server_abstraction =
+      static_cast<IceoryxServer *>(services->services[i]);
+    iox::popo::UntypedServer * iceoryx_server = iceoryx_server_abstraction->iceoryx_server_;
+
+    // remove waitset from all receivers because next call a new waitset could be provided
+    waitset->detachState(*iceoryx_server, iox::popo::ServerState::HAS_REQUEST);
+
+    if (!iceoryx_server->hasRequests()) {
+      services->services[i] = nullptr;
+    }
+  }
+
+  // reset all the clients that don't have new data
+  for (size_t i = 0; i < clients->client_count; ++i) {
+    auto iceoryx_client_abstraction =
+      static_cast<IceoryxClient *>(clients->clients[i]);
+    iox::popo::UntypedClient * iceoryx_client = iceoryx_client_abstraction->iceoryx_client_;
+
+    // remove waitset from all receivers because next call a new waitset could be provided
+    waitset->detachState(*iceoryx_client, iox::popo::ClientState::HAS_RESPONSE);
+
+    if (!iceoryx_client->hasResponses()) {
+      clients->clients[i] = nullptr;
     }
   }
 

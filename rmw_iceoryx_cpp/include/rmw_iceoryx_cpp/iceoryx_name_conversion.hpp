@@ -1,5 +1,6 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
 // Copyright (c) 2021 by ZhenshengLee. All rights reserved.
+// Copyright (c) 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,6 +25,7 @@
 #include "iceoryx_dust/cxx/std_string_support.hpp"
 
 struct rosidl_message_type_support_t;
+struct rosidl_service_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {
@@ -71,6 +73,11 @@ iox::capro::ServiceDescription
 get_iceoryx_service_description(
   const std::string & topic,
   const rosidl_message_type_support_t * type_supports);
+
+iox::capro::ServiceDescription
+get_iceoryx_service_description(
+  const std::string & topic,
+  const rosidl_service_type_support_t * type_supports);
 
 }  // namespace rmw_iceoryx_cpp
 #endif  // RMW_ICEORYX_CPP__ICEORYX_NAME_CONVERSION_HPP_

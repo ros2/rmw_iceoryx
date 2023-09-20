@@ -1,5 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
-// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
+// Copyright (c) 2021 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,14 +20,18 @@
 #include <sstream>
 
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
+#include "rosidl_typesupport_cpp/service_type_support.hpp"
 
 #include "rosidl_typesupport_introspection_c/field_types.h"
 #include "rosidl_typesupport_introspection_c/identifier.h"
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
+#include "rosidl_typesupport_introspection_c/service_introspection.h"
 
 #include "rosidl_typesupport_introspection_cpp/field_types.hpp"
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
 #include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
+#include "rosidl_typesupport_introspection_cpp/service_introspection.hpp"
+
 
 #include "rcutils/error_handling.h"
 
@@ -167,6 +171,44 @@ const std::pair<rmw_iceoryx_cpp::TypeSupportLanguage,
   throw std::runtime_error(error_string.str());
 }
 
+const std::pair<rmw_iceoryx_cpp::TypeSupportLanguage,
+  const rosidl_service_type_support_t *> get_type_support(
+  const rosidl_service_type_support_t * type_supports)
+{
+  rcutils_error_string_t cpp_error_string;
+  rcutils_error_string_t c_error_string;
+
+  // first, try to extract cpp type support
+  auto ts_cpp = get_service_typesupport_handle(
+    type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
+  if (ts_cpp != nullptr) {
+    return std::make_pair(rmw_iceoryx_cpp::TypeSupportLanguage::CPP, ts_cpp);
+  } else {
+    /// @todo Reset error string since this is not yet an error
+    /// https://github.com/ros2/rosidl_typesupport/pull/102
+    cpp_error_string = rcutils_get_error_string();
+    rcutils_reset_error();
+  }
+
+  // second, try to extract c type support
+  auto ts_c = get_service_typesupport_handle(
+    type_supports, rosidl_typesupport_introspection_c__identifier);
+  if (ts_c != nullptr) {
+    return std::make_pair(rmw_iceoryx_cpp::TypeSupportLanguage::C, ts_c);
+  } else {
+    /// @todo https://github.com/ros2/rosidl_typesupport/pull/102
+    c_error_string = rcutils_get_error_string();
+    rcutils_reset_error();
+  }
+
+  // still here? Then something's wrong
+  std::stringstream error_string;
+  error_string << "No suitable type support given! ";
+  error_string << "cpp error: " << cpp_error_string.str;
+  error_string << "c error: " << c_error_string.str;
+  throw std::runtime_error(error_string.str());
+}
+
 bool iceoryx_is_fixed_size(const rosidl_message_type_support_t * type_supports)
 {
   auto ts = get_type_support(type_supports);
@@ -179,6 +221,25 @@ bool iceoryx_is_fixed_size(const rosidl_message_type_support_t * type_supports)
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
     return details_c::is_fixed_size(members);
+  }
+  // Something went wrong
+  return false;
+}
+
+bool iceoryx_is_fixed_size(const rosidl_service_type_support_t * type_supports)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    return details_cpp::is_fixed_size(members->request_members_) && details_cpp::is_fixed_size(
+      members->response_members_);
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    return details_c::is_fixed_size(members->request_members_) && details_c::is_fixed_size(
+      members->response_members_);
   }
   // Something went wrong
   return false;
@@ -201,6 +262,40 @@ size_t iceoryx_get_message_size(const rosidl_message_type_support_t * type_suppo
   return 0;
 }
 
+size_t iceoryx_get_request_size(const rosidl_service_type_support_t * type_supports)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    return members->request_members_->size_of_;
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    return members->request_members_->size_of_;
+  }
+  // Something went wrong
+  return 0;
+}
+
+size_t iceoryx_get_response_size(const rosidl_service_type_support_t * type_supports)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    return members->response_members_->size_of_;
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    return members->response_members_->size_of_;
+  }
+  // Something went wrong
+  return 0;
+}
+
 std::string iceoryx_get_message_name(const rosidl_message_type_support_t * type_supports)
 {
   auto ts = get_type_support(type_supports);
@@ -213,6 +308,23 @@ std::string iceoryx_get_message_name(const rosidl_message_type_support_t * type_
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
     return members->message_name_;
+  }
+  // Something went wrong
+  return "";
+}
+
+std::string iceoryx_get_service_name(const rosidl_service_type_support_t * type_supports)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    return members->service_name_;
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    return members->service_name_;
   }
   // Something went wrong
   return "";
@@ -235,7 +347,35 @@ std::string iceoryx_get_message_namespace(const rosidl_message_type_support_t * 
   return "";
 }
 
+std::string iceoryx_get_service_namespace(const rosidl_service_type_support_t * type_supports)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    return members->service_namespace_;
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    return members->service_namespace_;
+  }
+  // Something went wrong
+  return "";
+}
+
 bool iceoryx_is_valid_type_support(const rosidl_message_type_support_t * type_supports)
+{
+  try {
+    get_type_support(type_supports);
+  } catch (...) {
+    return false;
+  }
+
+  return true;
+}
+
+bool iceoryx_is_valid_type_support(const rosidl_service_type_support_t * type_supports)
 {
   try {
     get_type_support(type_supports);

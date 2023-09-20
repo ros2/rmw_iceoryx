@@ -1,5 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
-// Copyright (c) 2021 by Apex.AI Inc. All rights reserved.
+// Copyright (c) 2021 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@
 
 #include "rosidl_typesupport_introspection_c/identifier.h"
 #include "rosidl_typesupport_introspection_c/message_introspection.h"
+#include "rosidl_typesupport_introspection_c/service_introspection.h"
 
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
 #include "rosidl_typesupport_introspection_cpp/message_introspection.hpp"
+#include "rosidl_typesupport_introspection_cpp/service_introspection.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -49,6 +51,44 @@ void serialize(
     auto members =
       static_cast<const rosidl_typesupport_introspection_c__MessageMembers *>(ts.second->data);
     rmw_iceoryx_cpp::details_c::serialize(ros_message, members, payload_vector);
+  }
+}
+
+void serializeRequest(
+  const void * ros_message,
+  const rosidl_service_type_support_t * type_supports,
+  std::vector<char> & payload_vector)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    rmw_iceoryx_cpp::details_cpp::serialize(ros_message, members->request_members_, payload_vector);
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    rmw_iceoryx_cpp::details_c::serialize(ros_message, members->request_members_, payload_vector);
+  }
+}
+
+void serializeResponse(
+  const void * ros_message,
+  const rosidl_service_type_support_t * type_supports,
+  std::vector<char> & payload_vector)
+{
+  auto ts = get_type_support(type_supports);
+
+  if (ts.first == TypeSupportLanguage::CPP) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_cpp::ServiceMembers *>(ts.second->data);
+    rmw_iceoryx_cpp::details_cpp::serialize(
+      ros_message, members->response_members_,
+      payload_vector);
+  } else if (ts.first == TypeSupportLanguage::C) {
+    auto members =
+      static_cast<const rosidl_typesupport_introspection_c__ServiceMembers *>(ts.second->data);
+    rmw_iceoryx_cpp::details_c::serialize(ros_message, members->response_members_, payload_vector);
   }
 }
 

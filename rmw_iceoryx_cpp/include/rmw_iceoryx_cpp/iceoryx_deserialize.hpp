@@ -1,4 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
+// Copyright (c) 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +17,7 @@
 #define RMW_ICEORYX_CPP__ICEORYX_DESERIALIZE_HPP_
 
 struct rosidl_message_type_support_t;
+struct rosidl_service_type_support_t;
 
 namespace rmw_iceoryx_cpp
 {
@@ -24,6 +26,16 @@ namespace rmw_iceoryx_cpp
 void deserialize(
   const char * serialized_msg,
   const rosidl_message_type_support_t * type_supports,
+  void * ros_message);
+
+void deserializeRequest(
+  const char * serialized_msg,
+  const rosidl_service_type_support_t * type_supports,
+  void * ros_message);
+
+void deserializeResponse(
+  const char * serialized_msg,
+  const rosidl_service_type_support_t * type_supports,
   void * ros_message);
 
 }  // namespace rmw_iceoryx_cpp

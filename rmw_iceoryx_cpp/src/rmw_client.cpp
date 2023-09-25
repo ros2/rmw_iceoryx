@@ -203,4 +203,26 @@ rmw_ret_t rmw_client_set_on_new_response_callback(
 
   return RMW_RET_UNSUPPORTED;
 }
+
+rmw_ret_t
+rmw_get_gid_for_client(const rmw_client_t * client, rmw_gid_t * gid)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(gid, RMW_RET_INVALID_ARGUMENT);
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_get_gid_for_client
+    : client, client->implementation_identifier,
+    rmw_get_implementation_identifier(),
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  IceoryxClient * iceoryx_client_abstraction = static_cast<IceoryxClient *>(client->data);
+
+  if (!iceoryx_client_abstraction) {
+    RMW_SET_ERROR_MSG("client info handle is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  *gid = iceoryx_client_abstraction->gid_;
+  return RMW_RET_OK;
+}
 }  // extern "C"

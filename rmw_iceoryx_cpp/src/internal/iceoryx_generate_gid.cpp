@@ -1,5 +1,5 @@
 // Copyright (c) 2019 by Robert Bosch GmbH. All rights reserved.
-// Copyright (c) 2022 by Apex.AI Inc. All rights reserved.
+// Copyright (c) 2022 - 2023 by Apex.AI Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #include "rmw/impl/cpp/macros.hpp"
 
 #include "iceoryx_posh/popo/untyped_publisher.hpp"
+#include "iceoryx_posh/popo/untyped_client.hpp"
 
 rmw_gid_t generate_publisher_gid(iox::popo::UntypedPublisher * const publisher)
 {
@@ -31,7 +32,27 @@ rmw_gid_t generate_publisher_gid(iox::popo::UntypedPublisher * const publisher)
   size_t size = sizeof(uid);
 
   if (!typed_uid.isValid() || size > RMW_GID_STORAGE_SIZE) {
-    RMW_SET_ERROR_MSG("Could not generated gid");
+    RMW_SET_ERROR_MSG("Could not generated client gid");
+    return gid;
+  }
+  memcpy(gid.data, &uid, size);
+
+  return gid;
+}
+
+rmw_gid_t generate_client_gid(iox::popo::UntypedClient * const client)
+{
+  rmw_gid_t gid;
+  gid.implementation_identifier = rmw_get_implementation_identifier();
+  memset(gid.data, 0, RMW_GID_STORAGE_SIZE);
+
+  iox::popo::UniquePortId typed_uid = client->getUid();
+  iox::popo::UniquePortId::value_type uid =
+    static_cast<iox::popo::UniquePortId::value_type>(typed_uid);
+  size_t size = sizeof(uid);
+
+  if (!typed_uid.isValid() || size > RMW_GID_STORAGE_SIZE) {
+    RMW_SET_ERROR_MSG("Could not generated publisher gid");
     return gid;
   }
   memcpy(gid.data, &uid, size);

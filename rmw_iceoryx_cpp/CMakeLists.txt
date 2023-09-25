@@ -114,6 +114,7 @@ add_library(rmw_iceoryx_cpp SHARED
   src/rmw_trigger_guard_condition.cpp
   src/rmw_wait.cpp
   src/rmw_wait_set.cpp
+  src/rmw_dynamic_type_support.cpp
 )
 ament_target_dependencies(rmw_iceoryx_cpp
   "rcutils"

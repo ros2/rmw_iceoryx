@@ -3,7 +3,7 @@ name: Integration build rmw_iceoryx
 on:
   push:
     branches:
-      - humble
+      - iron
   pull_request:
 
 jobs:
@@ -18,11 +18,11 @@ jobs:
       - name: Setup ROS
         uses: ros-tooling/setup-ros@master
         with:
-          required-ros-distributions: humble
+          required-ros-distributions: iron
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
       - name: Build & Test
         uses: ros-tooling/action-ros-ci@master
         with:
           package-name: rmw_iceoryx_cpp
-          target-ros2-distro: humble
+          target-ros2-distro: iron

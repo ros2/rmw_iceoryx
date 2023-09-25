@@ -15,7 +15,7 @@ To install rmw_iceoryx in a ROS 2 workspace with the latest ROS version, just ex
 ```bash
 mkdir -p ~/iceoryx_ws/src
 cd $_
-# LATEST_ROS_VERSION could be e.g. humble
+# LATEST_ROS_VERSION could be e.g. iron
 git clone --branch LATEST_ROS_VERSION https://github.com/ros2/rmw_iceoryx.git
 ```
 

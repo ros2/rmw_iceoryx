@@ -15,6 +15,8 @@
 #ifndef TYPES__ICEORYX_CLIENT_HPP_
 #define TYPES__ICEORYX_CLIENT_HPP_
 
+#include "../iceoryx_generate_gid.hpp"
+
 #include "iceoryx_posh/popo/untyped_client.hpp"
 
 #include "rmw/rmw.h"
@@ -30,14 +32,16 @@ struct IceoryxClient
   : type_supports_(*type_supports),
     iceoryx_client_(iceoryx_client),
     is_fixed_size_(rmw_iceoryx_cpp::iceoryx_is_fixed_size(type_supports)),
-    request_size_(rmw_iceoryx_cpp::iceoryx_get_request_size(type_supports))
+    request_size_(rmw_iceoryx_cpp::iceoryx_get_request_size(type_supports)),
+    gid_(generate_client_gid(iceoryx_client_))
   {}
 
   rosidl_service_type_support_t type_supports_;
   iox::popo::UntypedClient * const iceoryx_client_;
-  bool is_fixed_size_;
-  size_t request_size_;
-  int64_t sequence_id_;
+  bool is_fixed_size_{false};
+  size_t request_size_{0};
+  int64_t sequence_id_{0};
+  rmw_gid_t gid_;
 };
 
 #endif  // TYPES__ICEORYX_CLIENT_HPP_

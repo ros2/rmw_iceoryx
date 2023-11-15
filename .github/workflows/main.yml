@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Setup ROS
-        uses: ros-tooling/setup-ros@master
+        uses: ros-tooling/setup-ros@v0.5
         with:
           required-ros-distributions: foxy
       - name: Install Iceoryx Dependencies

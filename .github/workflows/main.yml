@@ -21,10 +21,17 @@ jobs:
           required-ros-distributions: foxy
       - name: Install Iceoryx Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake libacl1-dev libncurses5-dev pkg-config
-      - name: Build & Test
+      - name: Build & Test rmw_iceoryx_cpp
         uses: ros-tooling/action-ros-ci@master
         with:
-          package-name: rmw_iceoryx_cpp iceoryx_ros2_bridge
+          package-name: rmw_iceoryx_cpp
+          target-ros2-distro: foxy
+          vcs-repo-file-url: |
+            ./.github/workflows/additional_repos.repos
+      - name: Build & Test iceoryx_ros2_bridge
+        uses: ros-tooling/action-ros-ci@master
+        with:
+          package-name: iceoryx_ros2_bridge
           target-ros2-distro: foxy
           vcs-repo-file-url: |
             ./.github/workflows/additional_repos.repos

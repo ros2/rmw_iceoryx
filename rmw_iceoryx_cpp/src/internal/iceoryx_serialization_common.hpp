@@ -19,6 +19,7 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+#include <stdexcept>
 
 namespace rmw_iceoryx_cpp
 {

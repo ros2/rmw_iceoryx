@@ -15,6 +15,8 @@
 #ifndef TYPES__ICEORYX_SERVER_HPP_
 #define TYPES__ICEORYX_SERVER_HPP_
 
+#include <map>
+
 #include "iceoryx_posh/popo/untyped_server.hpp"
 
 #include "rmw/rmw.h"
@@ -31,17 +33,18 @@ struct IceoryxServer
     iceoryx_server_(iceoryx_server),
     is_fixed_size_(rmw_iceoryx_cpp::iceoryx_is_fixed_size(type_supports)),
     response_size_(rmw_iceoryx_cpp::iceoryx_get_response_size(type_supports))
-  {}
+  {
+  }
 
   rosidl_service_type_support_t type_supports_;
   iox::popo::UntypedServer * const iceoryx_server_;
   bool is_fixed_size_{false};
   size_t response_size_{0};
-  /// @todo The request payload pointer could also be added to 'rmw_request_id_t' if accepeted in
-  /// ros2/rmw. For now, the limitation exists to always call 'rmw_take_request' followed by
-  /// 'rmw_send_response' and not call e.g. 2x times 'rmw_take_request' and then
-  /// 2x 'rmw_send_response'
-  const void * request_payload_{nullptr};
+  /// @brief The map stores the sequence numbers together with the corresponding
+  ///        sample pointer pointing to the shared memory. This is due to the fact that
+  ///        'rmw_request_id_t' misses a place to store the sample pointer, which is not
+  ///        typical with DDS implementations.
+  std::map<int64_t, const void *> request_payload_map_;
 };
 
 #endif  // TYPES__ICEORYX_SERVER_HPP_

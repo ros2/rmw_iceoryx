@@ -146,15 +146,23 @@ rmw_send_response(
   }
 
   rmw_ret_t ret = RMW_RET_ERROR;
+  auto & payload_ptr_map = iceoryx_server_abstraction->request_payload_map_;
 
-  if (!iceoryx_server_abstraction->request_payload_) {
+  if (payload_ptr_map.empty()) {
     RMW_SET_ERROR_MSG("'rmw_take_request' needs to be called before 'rmw_send_response'!");
     ret = RMW_RET_ERROR;
     return ret;
   }
 
-  auto * iceoryx_request_header = iox::popo::RequestHeader::fromPayload(
-    iceoryx_server_abstraction->request_payload_);
+  auto it = payload_ptr_map.find(request_header->sequence_number);
+
+  if (it == payload_ptr_map.end()) {
+    RMW_SET_ERROR_MSG("Could not find the payload pointer in the map");
+    ret = RMW_RET_ERROR;
+    return ret;
+  }
+
+  auto * iceoryx_request_header = iox::popo::RequestHeader::fromPayload((*it).second);
 
   iceoryx_server->loan(
     iceoryx_request_header, iceoryx_server_abstraction->response_size_,
@@ -186,9 +194,9 @@ rmw_send_response(
       ret = RMW_RET_ERROR;
     });
 
-  // Release the hold request
-  iceoryx_server->releaseRequest(iceoryx_server_abstraction->request_payload_);
-  iceoryx_server_abstraction->request_payload_ = nullptr;
+  // Release the hold request and delete the entry from the map
+  iceoryx_server->releaseRequest((*it).second);
+  payload_ptr_map.erase(request_header->sequence_number);
 
   return ret;
 }

@@ -15,8 +15,12 @@
 #ifndef TYPES__ICEORYX_SUBSCRIPTION_HPP_
 #define TYPES__ICEORYX_SUBSCRIPTION_HPP_
 
-#include "iceoryx_posh/popo/untyped_subscriber.hpp"
+#include <mutex>
 
+#include "iceoryx_posh/popo/untyped_subscriber.hpp"
+#include "iceoryx_posh/popo/listener.hpp"
+
+#include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "rmw/types.h"
 
@@ -31,12 +35,29 @@ struct IceoryxSubscription
     iceoryx_receiver_(iceoryx_receiver),
     is_fixed_size_(rmw_iceoryx_cpp::iceoryx_is_fixed_size(type_supports)),
     message_size_(rmw_iceoryx_cpp::iceoryx_get_message_size(type_supports))
-  {}
+  {
+  }
 
   rosidl_message_type_support_t type_supports_;
-  iox::popo::UntypedSubscriber * const iceoryx_receiver_;
-  bool is_fixed_size_;
-  size_t message_size_;
-};
+  iox::popo::UntypedSubscriber * const iceoryx_receiver_{nullptr};
+  bool is_fixed_size_{false};
+  size_t message_size_{0};
+  std::mutex mutex_;
+  /// TODO Why not having one listener for all subscriptions?
+  iox::popo::Listener listener_;
+  rmw_event_callback_t user_callback_{nullptr};
+  const void * user_data_{nullptr};
 
+  static void onSampleReceivedCallback(iox::popo::UntypedSubscriber *, IceoryxSubscription * self)
+  {
+    /// TODO This lock isn't needed, the listener calls are sequential, right?
+    const std::lock_guard<std::mutex> lock(self->mutex_);
+    if (self == nullptr) {
+      RMW_SET_ERROR_MSG("onSampleReceivedCallback: Invalid arguments");
+      return;
+    }
+
+    self->user_callback_(self->user_data_, 1);
+  }
+};
 #endif  // TYPES__ICEORYX_SUBSCRIPTION_HPP_

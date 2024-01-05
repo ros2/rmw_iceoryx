@@ -16,6 +16,7 @@
 #include <string>
 
 #include "iceoryx_posh/capro/service_description.hpp"
+#include "iceoryx_posh/popo/listener.hpp"
 
 #include "rcutils/error_handling.h"
 
@@ -188,11 +189,47 @@ rmw_ret_t rmw_subscription_set_on_new_message_callback(
   rmw_event_callback_t callback,
   const void * user_data)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(callback, RMW_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(user_data, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
 
-  return RMW_RET_UNSUPPORTED;
+  auto iceoryx_subscription = static_cast<IceoryxSubscription *>(subscription->data);
+  if (!iceoryx_subscription) {
+    RMW_SET_ERROR_MSG("subscription data is null");
+    return RMW_RET_ERROR;
+  }
+
+  auto iceoryx_receiver = iceoryx_subscription->iceoryx_receiver_;
+  if (!iceoryx_receiver) {
+    RMW_SET_ERROR_MSG("iceoryx_receiver is null");
+    return RMW_RET_ERROR;
+  }
+  const std::lock_guard<std::mutex> lock(iceoryx_subscription->mutex_);
+  rmw_ret_t ret = RMW_RET_OK;
+
+  if (callback == nullptr) {
+    iceoryx_subscription->listener_.detachEvent(
+      *(iceoryx_subscription->iceoryx_receiver_),
+      iox::popo::SubscriberEvent::DATA_RECEIVED);
+    ret = RMW_RET_OK;
+    return ret;
+  }
+
+  iceoryx_subscription->user_callback_ = callback;
+  iceoryx_subscription->user_data_ = user_data;
+  iceoryx_subscription->listener_
+  .attachEvent(
+    *(iceoryx_subscription->iceoryx_receiver_),
+    iox::popo::SubscriberEvent::DATA_RECEIVED,
+    iox::popo::createNotificationCallback(
+      IceoryxSubscription::onSampleReceivedCallback,
+      *iceoryx_subscription))
+  .or_else(
+    [&](auto) {
+      RMW_SET_ERROR_MSG(
+        "rmw_subscription_get_content_filter: Unable to attach subscriber to listener");
+      ret = RMW_RET_ERROR;
+    });
+
+  return ret;
 }
 
 rmw_ret_t

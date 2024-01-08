@@ -23,7 +23,7 @@
 
 #include "types/iceoryx_server.hpp"
 
-#include "iceoryx_dust/cxx/std_string_support.hpp"
+#include "iox/std_string_support.hpp"
 
 extern "C"
 {

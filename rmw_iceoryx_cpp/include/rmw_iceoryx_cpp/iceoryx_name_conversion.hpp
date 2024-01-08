@@ -22,7 +22,7 @@
 
 #include "iceoryx_posh/capro/service_description.hpp"
 #include "iceoryx_hoofs/cxx/string.hpp"
-#include "iceoryx_dust/cxx/std_string_support.hpp"
+#include "iox/std_string_support.hpp"
 
 struct rosidl_message_type_support_t;
 struct rosidl_service_type_support_t;

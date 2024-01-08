@@ -6,12 +6,11 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Set C++ standard in accordance with iceoryx
-# https://github.com/eclipse-iceoryx/iceoryx/blob/v2.0.3/iceoryx_hoofs/cmake/IceoryxPlatform.cmake#L26-L38
+# Set C++ standard in accordance with iceoryx's 'ICEORYX_CXX_STANDARD' CMake variable
 if(LINUX)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 elseif(QNX)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 elseif(WIN32)
   set(CMAKE_CXX_STANDARD 17)
 elseif(APPLE)

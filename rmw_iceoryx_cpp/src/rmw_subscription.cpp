@@ -24,7 +24,7 @@
 #include "rmw/rmw.h"
 
 #include "rmw_iceoryx_cpp/iceoryx_name_conversion.hpp"
-#include "iceoryx_dust/cxx/std_string_support.hpp"
+#include "iox/std_string_support.hpp"
 
 #include "./types/iceoryx_subscription.hpp"
 

@@ -17,7 +17,7 @@
 #include <string>
 
 #include "iceoryx_posh/runtime/posh_runtime.hpp"
-#include "iceoryx_dust/cxx/std_string_support.hpp"
+#include "iox/std_string_support.hpp"
 
 #include "rcutils/error_handling.h"
 #include "rcutils/process.h"

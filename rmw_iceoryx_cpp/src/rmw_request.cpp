@@ -175,7 +175,17 @@ rmw_take_request(
       }
 
       // Hold the loaned request till we send the response in 'rmw_send_response'
-      iceoryx_server_abstraction->request_payload_ = iceoryx_request_payload;
+      auto result =
+      iceoryx_server_abstraction->request_payload_map_.insert(
+        {request_header->request_id.
+          sequence_number, iceoryx_request_payload});
+
+      if (result.second == false) {
+        *taken = false;
+        RMW_SET_ERROR_MSG("rmw_take_request: Could not store the sample pointer in the map!");
+        ret = RMW_RET_ERROR;
+        return;
+      }
 
       *taken = true;
       ret = RMW_RET_OK;
@@ -183,7 +193,7 @@ rmw_take_request(
   .or_else(
     [&](auto &) {
       *taken = false;
-      RMW_SET_ERROR_MSG("rmw_take_request error!");
+      RMW_SET_ERROR_MSG("rmw_take_request: Taking the sample failed!");
       ret = RMW_RET_ERROR;
     });
 

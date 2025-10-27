@@ -59,4 +59,11 @@ rmw_ret_t rmw_event_set_callback(
 
   return RMW_RET_UNSUPPORTED;
 }
+
+bool
+rmw_event_type_is_supported(rmw_event_type_t event_type)
+{
+  (void) event_type;
+  return false;
+}
 }  // extern "C"

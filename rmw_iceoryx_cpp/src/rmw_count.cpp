@@ -142,4 +142,46 @@ rmw_publisher_count_matched_subscriptions(
   *subscription_count = counter;
   return RMW_RET_OK;
 }
+
+rmw_ret_t
+rmw_count_clients(
+  const rmw_node_t * node,
+  const char * service_name,
+  size_t * count)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(service_name, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(count, RMW_RET_ERROR);
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_count_clients
+    : node, node->implementation_identifier,
+    rmw_get_implementation_identifier(), return RMW_RET_ERROR);
+
+  // Iceoryx introspection does not support client/server counting
+  // See: https://github.com/eclipse-iceoryx/iceoryx/issues/1128
+  *count = 0;
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_count_services(
+  const rmw_node_t * node,
+  const char * service_name,
+  size_t * count)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(service_name, RMW_RET_ERROR);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(count, RMW_RET_ERROR);
+
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    rmw_count_services
+    : node, node->implementation_identifier,
+    rmw_get_implementation_identifier(), return RMW_RET_ERROR);
+
+  // Iceoryx introspection does not support client/server counting
+  // See: https://github.com/eclipse-iceoryx/iceoryx/issues/1128
+  *count = 0;
+  return RMW_RET_UNSUPPORTED;
+}
 }  // extern "C"
